@@ -1,6 +1,9 @@
 import { BellRing, CircleCheck, CircleDashed, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import { DeleteAccountForm } from "@/components/app/delete-account-form";
+import { EmailImportSettings } from "@/components/app/email-import-settings";
+import { getInboundSettings } from "@/lib/data/detected";
+import { getInboundConfig, inboundAddress } from "@/lib/email-import/config";
 import { PageHeader } from "@/components/app/page-header";
 import { ReminderSettingsForm } from "@/components/app/reminder-settings-form";
 import { SignOutButton } from "@/components/app/sign-out-button";
@@ -20,8 +23,10 @@ function timeZoneOptions(current: string): string[] {
 }
 
 export default async function SettingsPage({ searchParams }: PageProps<"/panel/ustawienia">) {
-  const [profile, params] = await Promise.all([getUserProfile(), searchParams]);
+  const [profile, params, inbound] = await Promise.all([getUserProfile(), searchParams, getInboundSettings()]);
   const emailEnabled = getEmailConfig() !== null;
+  const inboundConfig = getInboundConfig();
+  const address = inboundConfig && inbound ? inboundAddress(inboundConfig, inbound.token) : null;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -32,6 +37,8 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
         </Alert>
       )}
       <div className="flex flex-col gap-4">
+        <EmailImportSettings address={address} settings={inbound} />
+
         <Card>
           <CardHeader icon={<BellRing className="size-5" aria-hidden />} title="Przypomnienia" description="Przypomnienie nie anuluje subskrypcji — tylko daje Ci czas na decyzję." />
           <div className="p-5">

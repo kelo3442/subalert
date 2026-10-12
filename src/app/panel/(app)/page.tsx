@@ -2,6 +2,9 @@ import { CalendarClock, CalendarRange, Layers, Plus, Wallet, Zap } from "lucide-
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryBreakdown } from "@/components/app/category-breakdown";
+import { DetectedPanel } from "@/components/app/detected-panel";
+import { listDetectedForReview } from "@/lib/data/detected";
+import { getInboundConfig } from "@/lib/email-import/config";
 import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
 import { SubscriptionList } from "@/components/app/subscription-list";
@@ -28,8 +31,19 @@ export const metadata: Metadata = { title: "Pulpit" };
 const UPCOMING_DAYS = 30;
 
 export default async function DashboardPage({ searchParams }: PageProps<"/panel">) {
-  const [profile, subscriptions, params] = await Promise.all([getUserProfile(), listSubscriptions(), searchParams]);
+  const [profile, subscriptions, params, detected] = await Promise.all([
+    getUserProfile(),
+    listSubscriptions(),
+    searchParams,
+    listDetectedForReview(),
+  ]);
   const today = todayInTimeZone(profile.timeZone);
+  const emailImportAvailable = getInboundConfig() !== null;
+  const detectedPanel = detected.length > 0 && (
+    <div className="mb-4">
+      <DetectedPanel items={detected} />
+    </div>
+  );
   const summary = summarize(subscriptions, today);
   const active = activeSubscriptions(subscriptions);
 
@@ -45,6 +59,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
     return (
       <>
         <PageHeader title="Pulpit" description="Tu zobaczysz swoje wydatki i nadchodzące płatności." />
+        {detectedPanel}
         <Card>
           <EmptyState
             icon={<Layers className="size-6" aria-hidden />}
@@ -81,8 +96,19 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
           <strong className="font-semibold">{formatPLN(summary.monthlyCents)}</strong> miesięcznie, czyli{" "}
           <strong className="font-semibold">{formatPLN(summary.yearlyCents)}</strong> rocznie. Uzupełnij okresy próbne i
           linki do anulowania w szczegółach każdej usługi.
+          {emailImportAvailable && (
+            <>
+              {" "}
+              <Link href="/panel/ustawienia#automatyczne" className="font-semibold underline underline-offset-2">
+                Włącz automatyczne dodawanie nowych subskrypcji z e-maili
+              </Link>
+              .
+            </>
+          )}
         </Alert>
       )}
+
+      {detectedPanel}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard

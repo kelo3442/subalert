@@ -134,6 +134,63 @@ do $$ begin
   end;
 end $$;
 
+-- Detected subscriptions (from forwarded e-mails): written by the service role only.
+reset role;
+set role service_role;
+insert into public.detected_subscriptions (user_id, message_id, name, amount_cents)
+values ('00000000-0000-0000-0000-00000000000a', 'msg-1', 'Netflix', 4900);
+do $$ begin
+  begin
+    insert into public.detected_subscriptions (user_id, message_id, name)
+    values ('00000000-0000-0000-0000-00000000000a', 'msg-1', 'Netflix');
+    raise exception 'FAIL: duplicate message accepted';
+  exception when unique_violation then null;
+  end;
+end $$;
+
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'bob', false);
+do $$
+declare affected int;
+begin
+  assert (select count(*) from public.detected_subscriptions) = 0, 'FAIL: bob sees alice detections';
+  update public.detected_subscriptions set status = 'dismissed';
+  get diagnostics affected = row_count;
+  assert affected = 0, 'FAIL: bob changed alice detection';
+  assert (select count(*) from public.profiles where inbound_token is not null) = 1, 'FAIL: bob sees other tokens';
+  begin
+    insert into public.detected_subscriptions (user_id, message_id, name)
+    values (auth.uid(), 'fake', 'Fake');
+    raise exception 'FAIL: user inserted detection';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$
+declare
+  old_token text;
+  bob_token text;
+begin
+  update public.detected_subscriptions set status = 'dismissed' where message_id = 'msg-1';
+  assert (select status from public.detected_subscriptions where message_id = 'msg-1') = 'dismissed', 'FAIL: alice cannot dismiss';
+  begin
+    update public.detected_subscriptions set name = 'Changed';
+    raise exception 'FAIL: user changed detection name';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.profiles set inbound_token = 'chosen-by-user';
+    raise exception 'FAIL: user set own token';
+  exception when insufficient_privilege then null;
+  end;
+  select inbound_token into old_token from public.profiles;
+  perform public.rotate_inbound_token();
+  assert (select inbound_token from public.profiles) <> old_token, 'FAIL: token not rotated';
+  assert (select char_length(inbound_token) from public.profiles) = 32, 'FAIL: token length';
+end $$;
+
 -- Account deletion removes only the caller and cascades to their data.
 reset role;
 set role anon;

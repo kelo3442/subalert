@@ -71,6 +71,16 @@ export async function createSubscription(
 
   if (error) return { status: "error", message: SAVE_ERROR };
 
+  // Created from an e-mail suggestion: mark it as handled.
+  const detectedId = readString(formData, "detectedId");
+  if (detectedId && isUuid(detectedId)) {
+    await supabase
+      .from("detected_subscriptions")
+      .update({ status: "added", subscription_id: data.id })
+      .eq("id", detectedId)
+      .eq("user_id", user.id);
+  }
+
   revalidateApp();
   redirect(`/panel/subskrypcje/${data.id}?zapisano=1`);
 }

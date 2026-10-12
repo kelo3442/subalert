@@ -28,6 +28,7 @@ przypomnienia e-mail przed obciążeniem.
 | Pulpit | Suma miesięczna i roczna, liczba aktywnych, najbliższa płatność, nadchodzące odnowienia (30 dni), wydatki wg kategorii, lista subskrypcji |
 | Szybki start | Po rejestracji: zaznaczenie używanych usług (ok. 30 popularnych, także polskich) i własnych, wpisanie kwot i dnia płatności, podsumowanie miesięczne/roczne na żywo, zapis wszystkich naraz (`/panel/start`) |
 | Import z historii konta | Plik CSV z bankowości internetowej (UTF-8 lub Windows-1250, różne układy kolumn, ręczne wskazanie kolumn jako zapas) jest analizowany **tylko w przeglądarce**; wykrywane są płatności cykliczne (tydzień/miesiąc/kwartał/rok), znane usługi, możliwie nieaktywne subskrypcje. Zapisywane jest tylko to, co użytkownik zaznaczy. Przykładowy plik demonstracyjny do wypróbowania |
+| Automatyczne dodawanie z e-maili | Każdy użytkownik ma prywatny adres do przekazywania potwierdzeń płatności (np. filtr w Gmailu). Rozpoznane usługi z kwotą są dodawane od razu, pozostałe czekają na pulpicie na „Dodaj / Uzupełnij / Odrzuć”. Kod potwierdzenia przekazywania z Gmaila pojawia się w ustawieniach. Przechowywane są tylko nadawca, temat i wyciągnięte dane — nie treść |
 | Subskrypcje | Dodawanie (szybki wybór popularnych usług lub własna), edycja, usuwanie z potwierdzeniem, filtr aktywne/anulowane |
 | Trial Guard | Data końca okresu próbnego, liczba dni do końca, wyróżnienie w panelu, komunikat, że przypomnienie nie anuluje usługi |
 | Kalendarz | Agenda płatności i końców okresów próbnych (30 dni / 3 miesiące / rok), sumy miesięczne, wyróżnienie najbliższych dni |
@@ -82,7 +83,8 @@ Nigdy nie dodawaj prefiksu `NEXT_PUBLIC_` do kluczy sekretnych.
 1. Załóż projekt na https://supabase.com (region np. `eu-central-1` — Frankfurt).
 2. **Schemat bazy** — uruchom migracje (po kolei) jednym ze sposobów:
    - *SQL Editor* w panelu Supabase → wklej i uruchom zawartość każdego pliku z `supabase/migrations/`
-     w kolejności nazw (`20261012000000_init.sql`, potem `20261013000000_delete_own_account.sql`), albo
+     w kolejności nazw (`20261012000000_init.sql`, `20261013000000_delete_own_account.sql`,
+     `20261014000000_email_import.sql`), albo
    - Supabase CLI: `npx supabase link --project-ref <ref>` i `npx supabase db push`.
 3. **Klucze** — *Project Settings → API Keys*: skopiuj URL, klucz publishable (do `.env.local`) oraz secret
    (tylko jeśli uruchamiasz przypomnienia).
@@ -143,6 +145,24 @@ Ręczne wywołanie (np. test na produkcji):
 curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/reminders
 ```
 
+## Automatyczne dodawanie z e-maili — konfiguracja
+
+Funkcja jest opcjonalna; bez tej konfiguracji ustawienia pokazują informację, że nie jest dostępna.
+
+1. Załóż konto w usłudze odbierającej pocztę przychodzącą — kod przyjmuje format webhooka
+   [Postmark Inbound](https://postmarkapp.com/developer/webhooks/inbound-webhook)
+   (pola `From`, `Subject`, `TextBody`, `HtmlBody`, `To`/`ToFull`/`MailboxHash`, `MessageID`, `Date`).
+2. Adres użytkownika powstaje z szablonu `INBOUND_EMAIL_ADDRESS` (`{token}` = 32-znakowy losowy token z tabeli `profiles`):
+   - bez własnej domeny: `TWOJ_INBOUND_HASH+{token}@inbound.postmarkapp.com` (adresowanie „plus”),
+   - z domeną: `{token}@in.twojadomena.pl` (rekord MX domeny wskazuje na dostawcę).
+3. Wygeneruj sekret (`openssl rand -hex 32`), ustaw go jako `INBOUND_EMAIL_WEBHOOK_SECRET`, a w dostawcy podaj URL webhooka
+   z Basic Auth: `https://subalert:<SEKRET>@<twoja-domena>/api/inbound-email`.
+4. Wymagany jest też `SUPABASE_SECRET_KEY` (webhook zapisuje dane bez sesji użytkownika).
+
+Bezpieczeństwo: webhook bez poprawnego hasła zwraca 401; nieznany adresat jest ignorowany (200, żeby dostawca nie ponawiał);
+limit 100 wiadomości na użytkownika na dobę; ta sama wiadomość (`MessageID`) jest przetwarzana raz; użytkownik może
+w ustawieniach wygenerować nowy adres, co unieważnia stary.
+
 ## Wdrożenie na Vercel
 
 1. Wypchnij repozytorium na GitHub i zaimportuj je w Vercel (*Add New → Project*). Framework zostanie
@@ -155,7 +175,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
 
 ## Testy
 
-- `npm test` — 135 testów jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
+- `npm test` — 150 testów jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
   przełom roku, DST), okresy próbne, harmonogram i deduplikacja przypomnień, strefy czasowe, walidacja
   formularzy, kwoty, bezpieczne przekierowania, mapowanie błędów Auth, szablon e-maila (escapowanie HTML).
 - `supabase/tests/rls.test.sql` — test izolacji danych (RLS) na czystym PostgreSQL. Uruchomienie lokalne
@@ -166,6 +186,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
   psql -d subalert_test -f supabase/tests/auth_stub.sql
   psql -d subalert_test -f supabase/migrations/20261012000000_init.sql
   psql -d subalert_test -f supabase/migrations/20261013000000_delete_own_account.sql
+  psql -d subalert_test -f supabase/migrations/20261014000000_email_import.sql
   psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 

@@ -43,6 +43,23 @@ function toItem(entry: QuickStartEntry, today: ISODate): BulkSubscriptionItem {
   };
 }
 
+function StepHeading({ title, description, center = false }: { title: string; description: string; center?: boolean }) {
+  return (
+    <div className={center ? "mx-auto mb-8 max-w-2xl text-center" : "mb-6"}>
+      <h1 className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">{title}</h1>
+      <p className="mt-2 text-sm text-muted sm:text-base">{description}</p>
+    </div>
+  );
+}
+
+function BackLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-fg">
+      <ArrowLeft className="size-4" aria-hidden /> Zmień sposób
+    </button>
+  );
+}
+
 export function QuickStart({ today, existingNames }: { today: ISODate; existingNames: string[] }) {
   const [state, formAction, isPending] = useActionState(createSubscriptionsBulk, initialState);
   const [step, setStep] = useState<"choose" | "pick" | "import" | "details">("choose");
@@ -165,40 +182,52 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
 
   if (step === "choose") {
     const choiceClass =
-      "group flex flex-col items-start gap-3 rounded-2xl border border-line bg-surface p-5 text-left transition-colors hover:border-accent/50 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+      "group relative flex min-h-[15rem] flex-col items-center justify-center gap-4 overflow-hidden rounded-3xl border-2 p-8 text-center transition-all duration-200 sm:min-h-[22rem] " +
+      "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent hover:-translate-y-0.5 active:scale-[0.99]";
     return (
-      <div className="flex flex-col gap-4">
-        <div className="grid gap-3 md:grid-cols-2">
-          <button type="button" className={choiceClass} onClick={() => setStep("pick")}>
-            <span className="grid size-11 place-items-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
-              <MousePointerClick className="size-5" aria-hidden />
+      <div className="flex flex-1 flex-col">
+        <StepHeading
+          center
+          title="Jak chcesz dodać swoje subskrypcje?"
+          description="Wybierz jedną z opcji. Na koniec zobaczysz, ile wydajesz miesięcznie i rocznie."
+        />
+        <div className="grid flex-1 gap-4 md:grid-cols-2 md:gap-6">
+          <button
+            type="button"
+            className={`${choiceClass} border-line bg-surface hover:border-accent/60 hover:bg-surface-2`}
+            onClick={() => setStep("pick")}
+          >
+            <span className="grid size-20 place-items-center rounded-3xl border border-accent/30 bg-accent/10 text-accent transition-transform duration-200 group-hover:scale-105">
+              <MousePointerClick className="size-10" aria-hidden />
             </span>
-            <span className="text-lg font-semibold text-fg">Wybiorę sam</span>
-            <span className="text-sm leading-relaxed text-muted">
-              Zaznacz usługi z listy ok. 30 popularnych (Netflix, Spotify, siłownia, telefon…) i wpisz kwoty. Około minuty.
+            <span className="text-2xl font-semibold text-fg sm:text-3xl">Wybiorę sam</span>
+            <span className="max-w-xs text-base leading-relaxed text-muted">
+              Kliknij usługi, z których korzystasz — Netflix, Spotify, siłownia, telefon… — i wpisz kwoty.
             </span>
-            <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-accent">
-              Zaczynam <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink">
+              Około minuty <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </span>
           </button>
-          <button type="button" className={choiceClass} onClick={() => setStep("import")}>
-            <span className="grid size-11 place-items-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
-              <FileSearch className="size-5" aria-hidden />
+          <button
+            type="button"
+            className={`${choiceClass} border-accent/40 bg-gradient-to-b from-accent/[0.10] to-surface hover:border-accent`}
+            onClick={() => setStep("import")}
+          >
+            <span className="grid size-20 place-items-center rounded-3xl border border-accent/30 bg-accent/10 text-accent transition-transform duration-200 group-hover:scale-105">
+              <FileSearch className="size-10" aria-hidden />
             </span>
-            <span className="text-lg font-semibold text-fg">Znajdź w historii konta</span>
-            <span className="text-sm leading-relaxed text-muted">
-              Wgraj plik CSV pobrany z bankowości internetowej, a wykryjemy powtarzające się płatności — także te, o
-              których zapomniałeś. Bez logowania do banku.
+            <span className="text-2xl font-semibold text-fg sm:text-3xl">Znajdź w historii konta</span>
+            <span className="max-w-xs text-base leading-relaxed text-muted">
+              Wgraj plik z bankowości internetowej — wykryjemy powtarzające się płatności, także te zapomniane.
             </span>
-            <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-accent">
-              Wgraj plik <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-ink">
+              Wgraj plik CSV <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </span>
           </button>
         </div>
-        <p className="flex items-start gap-2 text-xs leading-relaxed text-subtle">
-          <ShieldCheck className="mt-px size-4 shrink-0 text-accent" aria-hidden />
-          SubAlert nie łączy się z Twoim bankiem ani skrzynką e-mail. Plik z historią analizujemy wyłącznie w
-          przeglądarce i nigdzie go nie wysyłamy. Zapisujemy tylko to, co zatwierdzisz.
+        <p className="mx-auto mt-6 flex max-w-2xl items-start gap-2 text-center text-xs leading-relaxed text-subtle sm:items-center">
+          <ShieldCheck className="mt-px size-4 shrink-0 text-accent sm:mt-0" aria-hidden />
+          SubAlert nie łączy się z Twoim bankiem. Plik analizujemy wyłącznie w przeglądarce i nigdzie go nie wysyłamy.
         </p>
       </div>
     );
@@ -206,18 +235,26 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
 
   if (step === "import") {
     return (
-      <BankImport
+      <div>
+        <BackLink onClick={() => setStep("choose")} />
+        <StepHeading title="Znajdź w historii konta" description="Wykryjemy płatności, które powtarzają się co tydzień, miesiąc, kwartał lub rok." />
+        <BankImport
         today={today}
         isExisting={(name) => existing.has(normalize(name))}
         onConfirm={addImported}
         onManual={() => setStep("pick")}
-      />
+        />
+      </div>
     );
   }
 
   if (step === "pick") {
     return (
       <div className="flex flex-col gap-6">
+        <div>
+          <BackLink onClick={() => setStep("choose")} />
+          <StepHeading title="Z czego korzystasz?" description="Zaznacz usługi, za które płacisz cyklicznie. W następnym kroku wpiszesz kwoty." />
+        </div>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
           <label htmlFor="qs-search" className="sr-only">
@@ -269,7 +306,7 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
           </button>
         </p>
 
-        <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl lg:bottom-4">
+        <div className="sticky bottom-4 z-10 flex items-center justify-between gap-3 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl">
           {summary}
           <Button onClick={() => setStep("details")} disabled={entries.length === 0}>
             Dalej <ArrowRight className="size-4" aria-hidden />
@@ -281,9 +318,10 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted">
-        Wpisz kwoty i terminy. Okres próbny, link do anulowania czy notatkę dodasz później w szczegółach subskrypcji.
-      </p>
+      <StepHeading
+        title="Wpisz kwoty i terminy"
+        description="Okres próbny, link do anulowania czy notatkę dodasz później w szczegółach subskrypcji."
+      />
       {errors?.message && <Alert tone="error">{errors.message}</Alert>}
       <ul className="grid gap-3 md:grid-cols-2">
         {entries.map((entry, index) => (
@@ -300,7 +338,7 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
         <Plus className="size-4" aria-hidden /> Wybierz więcej
       </Button>
 
-      <div className="sticky bottom-20 z-10 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
+      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
         {summary}
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => setStep("pick")} disabled={isPending}>

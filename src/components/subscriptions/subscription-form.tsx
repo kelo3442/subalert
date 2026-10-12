@@ -38,10 +38,12 @@ const initialState: FormState<SubscriptionField> = { status: "idle" };
 interface Props {
   mode: "create" | "edit";
   subscriptionId?: string;
+  /** Set when the form was opened from a subscription detected in an e-mail. */
+  detectedId?: string;
   initialValues: SubscriptionFormValues;
 }
 
-export function SubscriptionForm({ mode, subscriptionId, initialValues }: Props) {
+export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValues }: Props) {
   const serverAction =
     mode === "edit" && subscriptionId ? updateSubscription.bind(null, subscriptionId) : createSubscription;
   const [state, formAction, isPending] = useActionState(serverAction, initialState);
@@ -92,6 +94,7 @@ export function SubscriptionForm({ mode, subscriptionId, initialValues }: Props)
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
+      {detectedId && <input type="hidden" name="detectedId" value={detectedId} />}
       {state.status === "error" && state.message && !clientErrors && <Alert tone="error">{state.message}</Alert>}
 
       {mode === "create" && (

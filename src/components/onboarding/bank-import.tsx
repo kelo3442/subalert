@@ -219,7 +219,7 @@ export function BankImport({
           </ul>
         )}
 
-        <div className="sticky bottom-20 z-10 flex flex-col gap-2 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
+        <div className="sticky bottom-4 z-10 flex flex-col gap-2 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
           <Button variant="ghost" onClick={reset}>
             <RotateCcw className="size-4" aria-hidden /> Inny plik
           </Button>
