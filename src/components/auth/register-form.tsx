@@ -1,6 +1,7 @@
 "use client";
 
 import { MailCheck } from "lucide-react";
+import Link from "next/link";
 import { useActionState } from "react";
 import { signUp } from "@/actions/auth";
 import type { FormState } from "@/actions/form-state";
@@ -68,6 +69,33 @@ export function RegisterForm() {
           aria-describedby={describedBy("passwordConfirm", errors.passwordConfirm)}
         />
       </Field>
+      <div>
+        <label className="flex cursor-pointer items-start gap-2.5 text-sm text-muted">
+          <input
+            type="checkbox"
+            name="acceptTerms"
+            className="mt-0.5 size-4 shrink-0 accent-[#c4f542]"
+            aria-invalid={Boolean(errors.acceptTerms) || undefined}
+            aria-describedby={errors.acceptTerms ? "acceptTerms-error" : undefined}
+          />
+          <span>
+            Akceptuję{" "}
+            <Link href="/regulamin" target="_blank" className="text-accent hover:underline">
+              regulamin
+            </Link>{" "}
+            i{" "}
+            <Link href="/prywatnosc" target="_blank" className="text-accent hover:underline">
+              politykę prywatności
+            </Link>
+            .
+          </span>
+        </label>
+        {errors.acceptTerms && (
+          <p id="acceptTerms-error" className="mt-1.5 text-xs text-danger" role="alert">
+            {errors.acceptTerms[0]}
+          </p>
+        )}
+      </div>
       <SubmitButton size="lg" className="mt-2 w-full" pendingText="Tworzenie konta…">
         Załóż konto
       </SubmitButton>

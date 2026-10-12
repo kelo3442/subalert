@@ -23,7 +23,12 @@ const passwordsMatch = (value: { password: string; passwordConfirm: string }) =>
 const mismatch = { path: ["passwordConfirm"], message: "Hasła nie są takie same." };
 
 export const registerSchema = z
-  .object({ email, password: newPassword, passwordConfirm: z.string("Powtórz hasło.") })
+  .object({
+    email,
+    password: newPassword,
+    passwordConfirm: z.string("Powtórz hasło."),
+    acceptTerms: z.literal(true, "Zaakceptuj regulamin i politykę prywatności."),
+  })
   .refine(passwordsMatch, mismatch);
 
 export const forgotPasswordSchema = z.object({ email });
@@ -57,6 +62,7 @@ export function registerInputFromFormData(formData: FormData) {
     email: readString(formData, "email"),
     password: readString(formData, "password"),
     passwordConfirm: readString(formData, "passwordConfirm"),
+    acceptTerms: formData.get("acceptTerms") === "on",
   };
 }
 

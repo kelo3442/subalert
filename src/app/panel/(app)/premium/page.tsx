@@ -1,5 +1,6 @@
 import { Crown } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { openBillingPortal, startCheckout } from "@/actions/premium";
 import { PageHeader } from "@/components/app/page-header";
 import { PricingCards } from "@/components/premium/pricing-cards";
@@ -92,7 +93,11 @@ export default async function PremiumPage({ searchParams }: PageProps<"/panel/pr
         <p className="mt-4 text-sm text-subtle">Płatności nie są jeszcze skonfigurowane na tym serwerze.</p>
       )}
       <p className="mt-6 text-xs leading-relaxed text-subtle">
-        Płatności obsługuje Stripe. SubAlert nie widzi ani nie przechowuje danych Twojej karty. Ceny w złotych.
+        Płatności obsługuje Stripe. SubAlert nie widzi ani nie przechowuje danych Twojej karty. Ceny w złotych. Kupując, akceptujesz{" "}
+        <Link href="/regulamin" className="text-accent hover:underline">
+          regulamin
+        </Link>{" "}
+        — masz 14 dni na odstąpienie od umowy.
       </p>
     </div>
   );

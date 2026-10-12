@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signInWithGoogle } from "@/actions/auth";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -12,9 +13,22 @@ function GoogleLogo() {
   );
 }
 
-export function GoogleButton({ next, label }: { next?: string; label: string }) {
+export function GoogleButton({ next, label, showTerms = false }: { next?: string; label: string; showTerms?: boolean }) {
   return (
     <form action={signInWithGoogle} data-oauth="google">
+      {showTerms && (
+        <p className="mb-3 text-center text-xs text-subtle">
+          Kontynuując przez Google, akceptujesz{" "}
+          <Link href="/regulamin" className="text-accent hover:underline">
+            regulamin
+          </Link>{" "}
+          i{" "}
+          <Link href="/prywatnosc" className="text-accent hover:underline">
+            politykę prywatności
+          </Link>
+          .
+        </p>
+      )}
       <input type="hidden" name="next" value={next ?? "/panel"} />
       <SubmitButton variant="secondary" size="lg" className="w-full" pendingText="Przekierowuję do Google…">
         <GoogleLogo /> {label}

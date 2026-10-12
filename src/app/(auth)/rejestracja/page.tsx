@@ -26,7 +26,7 @@ export default function RegisterPage() {
     >
       {isGoogleAuthEnabled() && (
         <>
-          <GoogleButton next={"/panel/start"} label="Załóż konto przez Google" />
+          <GoogleButton next={"/panel/start"} label="Załóż konto przez Google" showTerms />
           <AuthDivider />
         </>
       )}

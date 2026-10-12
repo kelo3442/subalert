@@ -198,15 +198,31 @@ i tylko on może nadać Premium — użytkownik nie może zmienić `premium_unti
 
 Przed uruchomieniem sprzedaży potrzebne są też **regulamin** i **polityka prywatności** (nie są częścią tego repozytorium).
 
+## Regulamin i polityka prywatności
+
+Strony `/regulamin` i `/prywatnosc` są gotowe; dane sprzedawcy/administratora pobierają ze zmiennych
+`LEGAL_OPERATOR_NAME`, `LEGAL_OPERATOR_ADDRESS`, opcjonalnie `LEGAL_OPERATOR_TAX_ID`, oraz `NEXT_PUBLIC_CONTACT_EMAIL`
+(dzięki temu dane osobowe nie trafiają do repozytorium). Dopóki nie są ustawione, strony pokazują komunikat
+„Dokument w przygotowaniu”. Treść to rzetelny wzór oparty na polskich przepisach, ale przed rozpoczęciem sprzedaży
+warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia akceptacji regulaminu (sprawdzane też na serwerze).
+
 ## Wdrożenie na Vercel
 
-1. Wypchnij repozytorium na GitHub i zaimportuj je w Vercel (*Add New → Project*). Framework zostanie
-   wykryty automatycznie.
-2. W *Settings → Environment Variables* dodaj zmienne z tabeli wyżej (dla Production, a wg potrzeb Preview).
-3. Deploy. Następnie w Supabase ustaw *Site URL* i *Redirect URLs* na domenę Vercel (patrz wyżej).
-4. Cron z `vercel.json` aktywuje się automatycznie na produkcji. Plan Hobby pozwala na uruchomienie raz
+1. Zaloguj się na [vercel.com](https://vercel.com) kontem GitHub → *Add New → Project* → wybierz repozytorium
+   (przy pierwszym razie *Adjust GitHub App Permissions* i nadaj dostęp do repozytorium). Framework zostanie wykryty
+   automatycznie. Nazwa projektu wyznacza adres `nazwa.vercel.app`.
+2. Przed kliknięciem *Deploy* rozwiń *Environment Variables* i dodaj co najmniej:
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (np. `https://subalert.vercel.app`),
+   `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `NEXT_PUBLIC_CONTACT_EMAIL` i dane do regulaminu. Pozostałe (Resend, Stripe,
+   Google, odbiór e-maili) dodasz później — po każdej zmianie zmiennych zrób *Redeploy*.
+3. Deploy. Wdrażana jest gałąź domyślna repozytorium (*Settings → Git → Production Branch*).
+4. W Supabase: *Authentication → URL Configuration* → *Site URL* = adres Vercel, a w *Redirect URLs* dodaj
+   `https://<twoj-adres>/**`.
+5. Cron z `vercel.json` aktywuje się automatycznie na produkcji. Plan Hobby pozwala na uruchomienie raz
    dziennie — to wystarcza, bo przypomnienia są liczone w dniach.
-5. Resend: zweryfikuj domenę nadawcy (rekordy DNS) i ustaw `REMINDER_FROM_EMAIL` na adres w tej domenie.
+6. Własna domena: *Settings → Domains → Add* i rekordy DNS wskazane przez Vercel; potem zaktualizuj
+   `NEXT_PUBLIC_SITE_URL` i adresy w Supabase.
+7. Resend: zweryfikuj domenę nadawcy (rekordy DNS) i ustaw `REMINDER_FROM_EMAIL` na adres w tej domenie.
 
 ## Testy
 

@@ -101,15 +101,21 @@ describe("auth schemas", () => {
 
   it("requires matching, long enough passwords on sign-up", () => {
     expect(
-      registerSchema.safeParse({ email: "jan@example.pl", password: "dobrehaslo", passwordConfirm: "dobrehaslo" }).success,
+      registerSchema.safeParse({ email: "jan@example.pl", password: "dobrehaslo", passwordConfirm: "dobrehaslo", acceptTerms: true })
+        .success,
     ).toBe(true);
     expect(
-      registerSchema.safeParse({ email: "jan@example.pl", password: "krotkie", passwordConfirm: "krotkie" }).success,
+      registerSchema.safeParse({ email: "jan@example.pl", password: "dobrehaslo", passwordConfirm: "dobrehaslo", acceptTerms: false })
+        .error?.issues[0].path,
+    ).toEqual(["acceptTerms"]);
+    expect(
+      registerSchema.safeParse({ email: "jan@example.pl", password: "krotkie", passwordConfirm: "krotkie", acceptTerms: true }).success,
     ).toBe(false);
     const mismatch = registerSchema.safeParse({
       email: "jan@example.pl",
       password: "dobrehaslo",
       passwordConfirm: "innehaslo",
+      acceptTerms: true,
     });
     expect(mismatch.error?.issues[0].path).toEqual(["passwordConfirm"]);
   });

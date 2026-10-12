@@ -1,5 +1,6 @@
 import { BellRing, CircleCheck, CircleDashed, Download, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DeleteAccountForm } from "@/components/app/delete-account-form";
 import { EmailImportSettings } from "@/components/app/email-import-settings";
 import { PlanBadge } from "@/components/premium/plan-badge";
@@ -84,6 +85,15 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
             <SignOutButton />
           </div>
         </Card>
+
+        <p className="flex gap-4 px-1 text-xs text-subtle">
+          <Link href="/regulamin" className="hover:text-fg">
+            Regulamin
+          </Link>
+          <Link href="/prywatnosc" className="hover:text-fg">
+            Polityka prywatności
+          </Link>
+        </p>
 
         <Card className="border-danger/25">
           <CardHeader
