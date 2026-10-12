@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ServiceAvatar } from "@/components/subscriptions/service-avatar";
 import { cn } from "@/components/ui/cn";
 import { formatDateShort, formatWeekday } from "@/lib/dates";
-import { formatPLN } from "@/lib/money";
+import { formatAmount, formatPLN } from "@/lib/money";
 import { NEAR_PAYMENT_DAYS, type ScheduleEvent } from "@/lib/subscriptions/schedule";
 import { DaysBadge } from "./days-badge";
 
@@ -33,7 +33,7 @@ export function UpcomingList({ events, showWeekday = false }: { events: Schedule
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-sm font-medium tabular-nums text-fg">
-                  {isTrial ? `potem ${formatPLN(event.subscription.amountCents)}` : formatPLN(event.subscription.amountCents)}
+                  {isTrial ? `potem ${formatPLN(event.subscription.amountCents)}` : formatAmount(event.subscription.amountCents, event.subscription.amountIsEstimate)}
                 </span>
                 <DaysBadge days={event.daysUntil} />
               </div>

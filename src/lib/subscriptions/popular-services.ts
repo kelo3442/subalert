@@ -41,6 +41,14 @@ const BANK_PATTERNS: Record<string, RegExp> = {
   "Allegro Smart!": /allegro ?smart/,
   "Duolingo Super": /duolingo/,
   Midjourney: /midjourney/,
+  // Household bills: common Polish providers.
+  Prąd: /\bpge\b|tauron|\benea\b|energa|e\.on|innogy|stoen/,
+  Gaz: /pgnig|polskie g[oó]rnictwo naftowe|psg sp/,
+  "Woda i ścieki": /mpwik|wodoci[aą]g|aquanet|wodkan|zwik/,
+  "Internet domowy": /\bupc\b|vectra|netia|\binea\b|toya|multimedia polska/,
+  "Abonament telefoniczny": /\borange\b|\bplay\b|p4 sp|\bplus\b|polkomtel|t-mobile|heyah|nju mobile/,
+  "Telewizja kablowa / satelitarna": /canal\+ polska|polsat box|cyfrowy polsat/,
+  "Ubezpieczenie samochodu (OC/AC)": /\bpzu\b|warta|allianz|ergo hestia|link4|generali|uniqa|compensa|proama|\baviva\b/,
 };
 
 const APP_STORE_NOTE =
@@ -172,8 +180,20 @@ export const POPULAR_SERVICES: PopularService[] = [
   { name: "Duolingo Super", category: "education", manageUrl: null },
   { name: "Midjourney", category: "ai", manageUrl: null },
   { name: "Siłownia / karta sportowa", category: "fitness", manageUrl: null },
-  { name: "Abonament telefoniczny", category: "other", manageUrl: null },
-  { name: "Internet domowy", category: "other", manageUrl: null },
+  { name: "Prąd", category: "utilities", manageUrl: null },
+  { name: "Gaz", category: "utilities", manageUrl: null },
+  { name: "Woda i ścieki", category: "utilities", manageUrl: null },
+  { name: "Ogrzewanie", category: "utilities", manageUrl: null },
+  { name: "Wywóz śmieci", category: "utilities", manageUrl: null },
+  { name: "Czynsz / opłaty administracyjne", category: "housing", manageUrl: null },
+  { name: "Rata kredytu", category: "housing", manageUrl: null },
+  { name: "Abonament telefoniczny", category: "telecom", manageUrl: null },
+  { name: "Internet domowy", category: "telecom", manageUrl: null },
+  { name: "Telewizja kablowa / satelitarna", category: "telecom", manageUrl: null },
+  { name: "Abonament RTV", category: "telecom", manageUrl: null },
+  { name: "Ubezpieczenie samochodu (OC/AC)", category: "insurance", manageUrl: null },
+  { name: "Ubezpieczenie mieszkania", category: "insurance", manageUrl: null },
+  { name: "Ubezpieczenie na życie", category: "insurance", manageUrl: null },
 ];
 
 export const FEATURED_SERVICES = POPULAR_SERVICES.filter((service) => service.featured);

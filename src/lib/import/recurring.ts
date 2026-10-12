@@ -22,7 +22,9 @@ export interface RecurringCandidate {
 const CYCLE_RANGES: { cycle: BillingCycle; min: number; max: number; days: number }[] = [
   { cycle: "weekly", min: 6, max: 8, days: 7 },
   { cycle: "monthly", min: 26, max: 35, days: 30 },
+  { cycle: "bimonthly", min: 55, max: 67, days: 61 },
   { cycle: "quarterly", min: 84, max: 98, days: 91 },
+  { cycle: "semiannual", min: 170, max: 195, days: 182 },
   { cycle: "yearly", min: 350, max: 380, days: 365 },
 ];
 

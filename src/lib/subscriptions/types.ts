@@ -9,6 +9,8 @@ export interface Subscription {
   id: string;
   name: string;
   amountCents: number;
+  /** Variable bills (e.g. electricity): the amount is the user's estimate. */
+  amountIsEstimate: boolean;
   currency: "PLN";
   billingCycle: BillingCycle;
   /** The next charge the user told us about; later charges are derived from it. */

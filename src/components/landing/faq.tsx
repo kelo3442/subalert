@@ -30,8 +30,16 @@ const QUESTIONS = [
     a: "Tak. SubAlert to aplikacja webowa zaprojektowana z myślą o telefonach — działa w przeglądarce, bez instalacji.",
   },
   {
+    q: "Czy mogę dodać rachunki za prąd, wodę czy czynsz?",
+    a: "Tak. Oprócz subskrypcji dodasz rachunki domowe: prąd, gaz, wodę, czynsz, internet, telefon czy ubezpieczenia. Obsługujemy płatności co 2 miesiące i co pół roku, a przy zmiennych rachunkach wpisujesz kwotę orientacyjną.",
+  },
+  {
     q: "Ile to kosztuje?",
-    a: "Obecna wersja SubAlert nie ma płatnych planów.",
+    a: "Plan darmowy obejmuje 3 subskrypcje lub rachunki ze wszystkimi podstawowymi funkcjami. Premium kosztuje 9,99 zł miesięcznie albo 79 zł za rok i daje brak limitu oraz automatyczne dodawanie z e-maili.",
+  },
+  {
+    q: "Czy Premium odnawia się samo?",
+    a: "Plan miesięczny (karta) odnawia się co miesiąc i możesz go anulować w każdej chwili. Plan roczny opłacasz jednorazowo BLIKIEM, Przelewy24 lub kartą — nie odnawia się automatycznie.",
   },
 ];
 

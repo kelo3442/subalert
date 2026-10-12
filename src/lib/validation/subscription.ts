@@ -32,6 +32,7 @@ export const subscriptionSchema = z
         }
         return cents;
       }),
+    amountIsEstimate: z.boolean(),
     billingCycle: z.enum(BILLING_CYCLES, "Wybierz cykl płatności."),
     nextPaymentDate: isoDateField("Podaj datę następnej płatności."),
     hasTrial: z.boolean(),
@@ -78,6 +79,7 @@ export function subscriptionInputFromFormData(formData: FormData): SubscriptionI
   return {
     name: readString(formData, "name"),
     amount: readString(formData, "amount"),
+    amountIsEstimate: formData.get("amountIsEstimate") === "on",
     billingCycle: readString(formData, "billingCycle") as SubscriptionInput["billingCycle"],
     nextPaymentDate: readString(formData, "nextPaymentDate"),
     hasTrial: formData.get("hasTrial") === "on",
@@ -98,6 +100,7 @@ const bulkItemSchema = z.object({
   nextPaymentDate: z.string(),
   category: z.string().optional(),
   manageUrl: z.string().optional(),
+  amountIsEstimate: z.boolean().optional(),
 });
 
 export type BulkSubscriptionItem = z.infer<typeof bulkItemSchema>;
@@ -106,6 +109,7 @@ export function bulkItemToInput(item: BulkSubscriptionItem): SubscriptionInput {
   return {
     name: item.name,
     amount: item.amount,
+    amountIsEstimate: item.amountIsEstimate ?? false,
     billingCycle: item.billingCycle as SubscriptionInput["billingCycle"],
     nextPaymentDate: item.nextPaymentDate,
     hasTrial: false,

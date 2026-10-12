@@ -1,8 +1,10 @@
-import { BellRing, CircleCheck, CircleDashed, KeyRound, TriangleAlert, UserRound } from "lucide-react";
+import { BellRing, CircleCheck, CircleDashed, Download, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import { DeleteAccountForm } from "@/components/app/delete-account-form";
 import { EmailImportSettings } from "@/components/app/email-import-settings";
+import { PlanBadge } from "@/components/premium/plan-badge";
 import { getInboundSettings } from "@/lib/data/detected";
+import { getPlanStatus } from "@/lib/data/plan";
 import { getInboundConfig, inboundAddress } from "@/lib/email-import/config";
 import { PageHeader } from "@/components/app/page-header";
 import { ReminderSettingsForm } from "@/components/app/reminder-settings-form";
@@ -23,7 +25,7 @@ function timeZoneOptions(current: string): string[] {
 }
 
 export default async function SettingsPage({ searchParams }: PageProps<"/panel/ustawienia">) {
-  const [profile, params, inbound] = await Promise.all([getUserProfile(), searchParams, getInboundSettings()]);
+  const [profile, params, inbound, plan] = await Promise.all([getUserProfile(), searchParams, getInboundSettings(), getPlanStatus()]);
   const emailEnabled = getEmailConfig() !== null;
   const inboundConfig = getInboundConfig();
   const address = inboundConfig && inbound ? inboundAddress(inboundConfig, inbound.token) : null;
@@ -37,7 +39,8 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
         </Alert>
       )}
       <div className="flex flex-col gap-4">
-        <EmailImportSettings address={address} settings={inbound} />
+        <PlanBadge plan={plan} variant="card" />
+        <EmailImportSettings address={address} settings={inbound} premium={plan.premium} />
 
         <Card>
           <CardHeader icon={<BellRing className="size-5" aria-hidden />} title="Przypomnienia" description="Przypomnienie nie anuluje subskrypcji — tylko daje Ci czas na decyzję." />
@@ -75,6 +78,9 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
             <ButtonLink href="/panel/ustawienia/haslo" variant="ghost" className="justify-start px-3">
               <KeyRound className="size-[18px]" aria-hidden /> Zmień hasło
             </ButtonLink>
+            <a href="/api/eksport" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg" download>
+              <Download className="size-[18px]" aria-hidden /> Pobierz moje dane (CSV)
+            </a>
             <SignOutButton />
           </div>
         </Card>

@@ -5,6 +5,7 @@ export function makeSubscription(overrides: Partial<Subscription> = {}): Subscri
     id: overrides.id ?? crypto.randomUUID(),
     name: "Netflix",
     amountCents: 4900,
+    amountIsEstimate: false,
     currency: "PLN",
     billingCycle: "monthly",
     nextPaymentDate: "2026-10-20",

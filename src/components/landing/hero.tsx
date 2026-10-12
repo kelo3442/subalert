@@ -13,15 +13,15 @@ export function Hero() {
         <div className="animate-fade-up">
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
             <BellRing className="size-3.5 text-accent" aria-hidden />
-            Przypomnienia przed płatnością i końcem okresu próbnego
+            Subskrypcje i rachunki domowe w jednym miejscu
           </p>
           <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-fg sm:text-5xl lg:text-[3.5rem]">
             Przestań tracić pieniądze na subskrypcje,{" "}
             <span className="text-accent">o których zapominasz.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-            Zapisz swoje subskrypcje w jednym miejscu, zobacz, ile naprawdę kosztują w skali miesiąca i roku,
-            i dostań przypomnienie, zanim pieniądze znikną z konta.
+            Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet — zapisz wszystko w jednym miejscu, zobacz,
+            ile naprawdę kosztuje w skali miesiąca i roku, i dostań przypomnienie, zanim pieniądze znikną z konta.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/rejestracja" size="lg">

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, FileSearch, LoaderCircle, MousePointerClick, Plus, Search, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { createSubscriptionsBulk, type BulkFormState } from "@/actions/subscriptions";
 import { Alert } from "@/components/ui/alert";
@@ -26,6 +27,13 @@ import type { QuickStartEntry } from "./types";
 const initialState: BulkFormState = { status: "idle" };
 type ItemErrors = Record<number, Partial<Record<SubscriptionField, string>>>;
 
+/** "pozycję", "pozycje", "pozycji" for the accusative after "dodać". */
+function itemsWord(count: number) {
+  if (count === 1) return "pozycję";
+  const lastTwo = count % 100;
+  return count % 10 >= 2 && count % 10 <= 4 && (lastTwo < 12 || lastTwo > 14) ? "pozycje" : "pozycji";
+}
+
 function normalize(value: string) {
   return value.trim().toLocaleLowerCase("pl");
 }
@@ -40,6 +48,8 @@ function toItem(entry: QuickStartEntry, today: ISODate): BulkSubscriptionItem {
     nextPaymentDate,
     category: entry.category ?? "",
     manageUrl: entry.manageUrl ?? "",
+    // Utility bills vary from period to period; the entered amount is an estimate.
+    amountIsEstimate: entry.category === "utilities",
   };
 }
 
@@ -60,17 +70,29 @@ function BackLink({ onClick }: { onClick: () => void }) {
   );
 }
 
-export function QuickStart({ today, existingNames }: { today: ISODate; existingNames: string[] }) {
+export function QuickStart({
+  today,
+  existingNames,
+  freeSlots,
+}: {
+  today: ISODate;
+  existingNames: string[];
+  /** Remaining free-plan slots; null on Premium. */
+  freeSlots: number | null;
+}) {
   const [state, formAction, isPending] = useActionState(createSubscriptionsBulk, initialState);
   const [step, setStep] = useState<"choose" | "pick" | "import" | "details">("choose");
   const [entries, setEntries] = useState<QuickStartEntry[]>([]);
   const [query, setQuery] = useState("");
   const [customCount, setCustomCount] = useState(0);
-  const [clientErrors, setClientErrors] = useState<{ message: string; itemErrors: ItemErrors } | null>(null);
+  const [clientErrors, setClientErrors] = useState<{ message: string; itemErrors: ItemErrors; upgrade?: boolean } | null>(null);
 
   const existing = useMemo(() => new Set(existingNames.map(normalize)), [existingNames]);
   const selectedNames = new Set(entries.filter((e) => !e.custom).map((e) => e.name));
-  const errors = clientErrors ?? (state.status === "error" ? { message: state.message ?? "", itemErrors: state.itemErrors ?? {} } : null);
+  const errors =
+    clientErrors ??
+    (state.status === "error" ? { message: state.message ?? "", itemErrors: state.itemErrors ?? {}, upgrade: state.upgrade } : null);
+  const overLimit = freeSlots !== null && entries.length > freeSlots;
 
   const visibleServices = POPULAR_SERVICES.filter((service) => normalize(service.name).includes(normalize(query)));
   const sections = CATEGORY_KEYS.map((category) => ({
@@ -156,6 +178,14 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
   const submit = () => {
     const items = entries.map((entry) => toItem(entry, today));
     const json = JSON.stringify(items);
+    if (overLimit) {
+      setClientErrors({
+        message: `Darmowy plan pozwala dodać jeszcze ${freeSlots} ${itemsWord(freeSlots)}. Usuń nadmiarowe albo przejdź na Premium.`,
+        itemErrors: {},
+        upgrade: true,
+      });
+      return;
+    }
     const result = parseBulkSubscriptions(json);
     if (!result.ok) {
       setClientErrors({ message: result.message, itemErrors: result.itemErrors });
@@ -322,7 +352,24 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
         title="Wpisz kwoty i terminy"
         description="Okres próbny, link do anulowania czy notatkę dodasz później w szczegółach subskrypcji."
       />
-      {errors?.message && <Alert tone="error">{errors.message}</Alert>}
+      {freeSlots !== null && !errors?.message && (
+        <Alert tone={overLimit ? "warn" : "info"}>
+          Plan darmowy: możesz dodać jeszcze {freeSlots} {itemsWord(freeSlots)}.{" "}
+          <Link href="/panel/premium" className="font-semibold underline underline-offset-2">
+            Premium bez limitu
+          </Link>
+        </Alert>
+      )}
+      {errors?.message && (
+        <Alert tone={errors.upgrade ? "warn" : "error"}>
+          {errors.message}
+          {errors.upgrade && (
+            <Link href="/panel/premium" className="mt-2 block font-semibold underline underline-offset-2">
+              Przejdź na Premium — 9,99 zł/mies. lub 79 zł/rok
+            </Link>
+          )}
+        </Alert>
+      )}
       <ul className="grid gap-3 md:grid-cols-2">
         {entries.map((entry, index) => (
           <QuickStartItem

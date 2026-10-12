@@ -1,4 +1,4 @@
-import { CalendarDays, Calculator, Hourglass, ListChecks, LogOut, Mail } from "lucide-react";
+import { CalendarDays, Calculator, FileSearch, Hourglass, ListChecks, LogOut, Mail, MailPlus, Receipt } from "lucide-react";
 
 const FEATURES = [
   {
@@ -31,6 +31,21 @@ const FEATURES = [
     title: "Cancel Assistant",
     text: "Link do strony zarządzania usługą, wskazówki anulowania i oznaczenie, że zrezygnowałeś.",
   },
+  {
+    icon: Receipt,
+    title: "Rachunki domowe",
+    text: "Prąd, gaz, woda, czynsz, internet, ubezpieczenia. Płatności co 2 miesiące i kwoty orientacyjne dla zmiennych rachunków.",
+  },
+  {
+    icon: FileSearch,
+    title: "Znajdź w historii konta",
+    text: "Wgraj plik CSV z bankowości — wykryjemy powtarzające się płatności. Plik nie opuszcza Twojej przeglądarki.",
+  },
+  {
+    icon: MailPlus,
+    title: "Automatycznie z e-maili",
+    text: "W Premium przekazujesz potwierdzenia płatności na swój adres SubAlert, a nowe pozycje pojawiają się same.",
+  },
 ];
 
 export function Features() {
@@ -43,7 +58,7 @@ export function Features() {
             Mniej niespodzianek na wyciągu z konta
           </h2>
           <p className="mt-3 text-muted">
-            SubAlert nie zgaduje, za co płacisz — to Ty dodajesz swoje subskrypcje. W zamian dostajesz porządek,
+            SubAlert nie podgląda Twojego konta — to Ty decydujesz, co dodajesz: ręcznie, z pliku z banku albo z przekazanych e-maili. W zamian dostajesz porządek,
             liczby i przypomnienia na czas.
           </p>
         </div>

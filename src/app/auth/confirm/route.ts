@@ -21,8 +21,19 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, request.url));
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      // Users signing in for the first time (e.g. with Google) start with onboarding.
+      let destination = next;
+      if (next === "/panel" && data.user) {
+        const { count } = await supabase
+          .from("subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", data.user.id);
+        if (count === 0) destination = "/panel/start";
+      }
+      return NextResponse.redirect(new URL(destination, request.url));
+    }
   } else if (tokenHash && type && OTP_TYPES.includes(type)) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error) return NextResponse.redirect(new URL(next, request.url));

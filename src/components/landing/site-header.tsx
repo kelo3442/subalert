@@ -4,7 +4,8 @@ import { Logo } from "@/components/ui/logo";
 const LINKS = [
   { href: "#funkcje", label: "Funkcje" },
   { href: "#kalkulator", label: "Kalkulator" },
-  { href: "#przypomnienia", label: "Przypomnienia" },
+  { href: "#rachunki", label: "Rachunki" },
+  { href: "#cennik", label: "Cennik" },
   { href: "#faq", label: "FAQ" },
 ];
 

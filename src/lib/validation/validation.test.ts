@@ -23,6 +23,7 @@ describe("subscriptionSchema", () => {
     expect(result).toEqual({
       name: "Netflix",
       amountCents: 4900,
+      amountIsEstimate: false,
       billingCycle: "monthly",
       nextPaymentDate: "2026-10-20",
       status: "active",
@@ -52,6 +53,15 @@ describe("subscriptionSchema", () => {
       manageUrl: "https://www.netflix.com/account",
       notes: "Plan rodzinny",
     });
+  });
+
+  it("accepts bills: bimonthly cycle, utility category and estimated amount", () => {
+    const result = subscriptionSchema.parse(
+      subscriptionInputFromFormData(
+        form({ ...valid, name: "Prąd", billingCycle: "bimonthly", category: "utilities", amountIsEstimate: "on" }),
+      ),
+    );
+    expect(result).toMatchObject({ billingCycle: "bimonthly", category: "utilities", amountIsEstimate: true });
   });
 
   it("drops the trial date when the trial box is unchecked", () => {

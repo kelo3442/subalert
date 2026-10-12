@@ -59,7 +59,7 @@ export function QuickStartItem({
       </div>
       {errors?.name && <p className="mt-1.5 text-xs text-danger">{errors.name}</p>}
 
-      <div className="mt-3 grid grid-cols-4 gap-1 rounded-xl border border-line bg-bg p-1" role="radiogroup" aria-label="Cykl płatności">
+      <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-line bg-bg p-1" role="radiogroup" aria-label="Cykl płatności">
         {BILLING_CYCLES.map((cycle: BillingCycle) => (
           <button
             key={cycle}

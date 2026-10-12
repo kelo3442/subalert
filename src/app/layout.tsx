@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: "%s · SubAlert",
   },
   description:
-    "Przestań tracić pieniądze na subskrypcje, o których zapominasz. Zapisz swoje usługi, zobacz koszty i dostawaj przypomnienia przed płatnością.",
+    "Przestań tracić pieniądze na subskrypcje, o których zapominasz. Subskrypcje i rachunki domowe w jednym miejscu, koszty miesięczne i roczne oraz przypomnienia przed płatnością.",
   openGraph: { locale: "pl_PL", siteName: "SubAlert", type: "website" },
 };
 

@@ -74,6 +74,18 @@ describe("detectRecurring", () => {
     expect(result.at(-1)?.name).toBe("Disney+");
   });
 
+  it("detects bimonthly electricity bills with varying amounts", () => {
+    const bills = [
+      t("2026-02-10", 21_000, "TAURON SPRZEDAŻ prognoza"),
+      t("2026-04-10", 19_500, "TAURON SPRZEDAŻ prognoza"),
+      t("2026-06-10", 17_800, "TAURON SPRZEDAŻ prognoza"),
+      t("2026-08-10", 18_900, "TAURON SPRZEDAŻ prognoza"),
+    ];
+    expect(detectRecurring(bills, today)).toEqual([
+      expect.objectContaining({ name: "Prąd", category: "utilities", cycle: "bimonthly", nextPaymentDate: "2026-12-10" }),
+    ]);
+  });
+
   it("needs at least two charges", () => {
     expect(detectRecurring([t("2026-10-05", 4900, "NETFLIX.COM")], today)).toEqual([]);
   });

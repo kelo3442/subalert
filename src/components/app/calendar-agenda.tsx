@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ServiceAvatar } from "@/components/subscriptions/service-avatar";
 import { cn } from "@/components/ui/cn";
 import { formatMonthYear, formatRelativeDays, formatWeekday, type ISODate } from "@/lib/dates";
-import { formatPLN } from "@/lib/money";
+import { formatAmount, formatPLN } from "@/lib/money";
 import { NEAR_PAYMENT_DAYS, type ScheduleEvent } from "@/lib/subscriptions/schedule";
 
 interface DayGroup {
@@ -83,7 +83,7 @@ export function CalendarAgenda({ events }: { events: ScheduleEvent[] }) {
                               )}
                             </span>
                             <span className={cn("shrink-0 text-sm tabular-nums", event.kind === "trial_end" ? "text-muted" : "text-fg")}>
-                              {event.kind === "trial_end" ? "—" : formatPLN(event.subscription.amountCents)}
+                              {event.kind === "trial_end" ? "—" : formatAmount(event.subscription.amountCents, event.subscription.amountIsEstimate)}
                             </span>
                           </Link>
                         </li>

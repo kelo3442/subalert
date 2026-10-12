@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { DEFAULT_TIME_ZONE } from "@/lib/dates";
+import { isPremiumActive } from "@/lib/premium/plan";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { decideAction, extractInboundToken, parseReceiptEmail, type InboundEmail } from "./parse";
 
@@ -20,6 +21,7 @@ export interface InboundPayload {
 
 export type ProcessResult =
   | "not_configured"
+  | "not_premium"
   | "unknown_recipient"
   | "rate_limited"
   | "duplicate_message"
@@ -46,10 +48,12 @@ export async function processInboundEmail(payload: InboundPayload): Promise<Proc
 
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, time_zone, auto_add_detected")
+    .select("id, time_zone, auto_add_detected, premium_until")
     .eq("inbound_token", token)
     .maybeSingle();
   if (!profile) return "unknown_recipient";
+  // Automatic adding from e-mails is a Premium feature.
+  if (!isPremiumActive(profile.premium_until)) return "not_premium";
 
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const { count } = await admin

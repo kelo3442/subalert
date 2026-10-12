@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "@/components/auth/login-form";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { SetupRequired } from "@/components/auth/setup-required";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isGoogleAuthEnabled, isSupabaseConfigured } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 
 export const metadata: Metadata = { title: "Logowanie" };
@@ -14,6 +15,7 @@ const NOTICES: Record<string, string> = {
   "inna-przegladarka":
     "Otwórz link w tej samej przeglądarce, w której prosiłeś o reset hasła, albo poproś o nowy link.",
   "konto-usuniete": "Twoje konto i wszystkie dane zostały usunięte.",
+  google: "Nie udało się połączyć z Google. Spróbuj ponownie albo zaloguj się e-mailem.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/logowanie">) {
@@ -37,6 +39,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/logowanie"
         </>
       }
     >
+      {isGoogleAuthEnabled() && (
+        <>
+          <GoogleButton next={next} label="Zaloguj się przez Google" />
+          <AuthDivider />
+        </>
+      )}
       <LoginForm next={next} notice={notice} />
     </AuthCard>
   );

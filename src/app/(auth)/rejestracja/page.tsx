@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthCard } from "@/components/auth/auth-card";
 import { RegisterForm } from "@/components/auth/register-form";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { SetupRequired } from "@/components/auth/setup-required";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isGoogleAuthEnabled, isSupabaseConfigured } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Rejestracja" };
 
@@ -23,6 +24,12 @@ export default function RegisterPage() {
         </>
       }
     >
+      {isGoogleAuthEnabled() && (
+        <>
+          <GoogleButton next={"/panel/start"} label="Załóż konto przez Google" />
+          <AuthDivider />
+        </>
+      )}
       <RegisterForm />
     </AuthCard>
   );

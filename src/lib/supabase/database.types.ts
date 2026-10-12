@@ -54,6 +54,10 @@ export type Database = {
           gmail_forwarding_code: string | null;
           gmail_forwarding_link: string | null;
           gmail_forwarding_received_at: string | null;
+          premium_until: string | null;
+          premium_source: "subscription" | "one_time" | null;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -72,6 +76,10 @@ export type Database = {
           gmail_forwarding_code?: string | null;
           gmail_forwarding_link?: string | null;
           gmail_forwarding_received_at?: string | null;
+          premium_until?: string | null;
+          premium_source?: "subscription" | "one_time" | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
         };
         Relationships: [];
       };
@@ -81,6 +89,7 @@ export type Database = {
           user_id: string;
           name: string;
           amount_cents: number;
+          amount_is_estimate: boolean;
           currency: string;
           billing_cycle: string;
           next_payment_date: string;
@@ -98,6 +107,7 @@ export type Database = {
           user_id?: string;
           name: string;
           amount_cents: number;
+          amount_is_estimate?: boolean;
           currency?: string;
           billing_cycle: string;
           next_payment_date: string;
@@ -111,6 +121,7 @@ export type Database = {
         Update: {
           name?: string;
           amount_cents?: number;
+          amount_is_estimate?: boolean;
           billing_cycle?: string;
           next_payment_date?: string;
           trial_ends_at?: string | null;
@@ -132,6 +143,12 @@ export type Database = {
         };
         // auto_added is writable only by the service role (column grant); users change status/subscription_id.
         Update: { status?: DetectedRow["status"]; subscription_id?: string | null; auto_added?: boolean };
+        Relationships: [];
+      };
+      stripe_events: {
+        Row: { id: string; type: string; created_at: string };
+        Insert: { id: string; type: string };
+        Update: Record<never, never>;
         Relationships: [];
       };
       reminders: {
@@ -156,6 +173,10 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      is_premium: {
+        Args: { p_user_id: string };
+        Returns: boolean;
+      };
       rotate_inbound_token: {
         Args: Record<never, never>;
         Returns: string;

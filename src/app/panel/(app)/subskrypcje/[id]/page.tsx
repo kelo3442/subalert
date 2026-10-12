@@ -17,7 +17,7 @@ import { getEmailConfig } from "@/lib/email/resend";
 import { getSubscription } from "@/lib/data/subscriptions";
 import { getUserProfile } from "@/lib/data/user";
 import { compareISODates, daysBetween, formatDateLong, formatRelativeDays, pluralDays, todayInTimeZone } from "@/lib/dates";
-import { formatPLN } from "@/lib/money";
+import { formatAmount, formatPLN } from "@/lib/money";
 import { reminderSendDate } from "@/lib/reminders/schedule";
 import {
   BILLING_CYCLE_LABELS,
@@ -100,7 +100,7 @@ export default async function SubscriptionPage({ params, searchParams }: PagePro
               <div>
                 <p className="text-sm text-muted">Kwota</p>
                 <p className="text-3xl font-semibold tabular-nums tracking-tight text-fg">
-                  {formatPLN(subscription.amountCents)}
+                  {formatAmount(subscription.amountCents, subscription.amountIsEstimate)}
                   <span className="text-base font-normal text-subtle"> / {BILLING_CYCLE_SUFFIX[subscription.billingCycle]}</span>
                 </p>
               </div>
@@ -162,7 +162,7 @@ export default async function SubscriptionPage({ params, searchParams }: PagePro
                 {[next, ...following].map((date) => (
                   <li key={date} className="flex items-center justify-between px-5 py-2.5 text-sm">
                     <span className="text-fg">{formatDateLong(date)}</span>
-                    <span className="tabular-nums text-muted">{formatPLN(subscription.amountCents)}</span>
+                    <span className="tabular-nums text-muted">{formatAmount(subscription.amountCents, subscription.amountIsEstimate)}</span>
                   </li>
                 ))}
               </ul>

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isUuid } from "@/lib/data/subscriptions";
 import { requireUser } from "@/lib/data/user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { FREE_PLAN_LIMIT_MESSAGE, isFreePlanLimitError } from "@/lib/premium/plan";
 import { readString } from "@/lib/validation/shared";
 import {
   parseBulkSubscriptions,
@@ -20,10 +21,17 @@ type SubscriptionFormState = FormState<SubscriptionField>;
 
 const SAVE_ERROR = "Nie udało się zapisać subskrypcji. Spróbuj ponownie.";
 
+function saveFailure(error: { message?: string }): SubscriptionFormState {
+  return isFreePlanLimitError(error)
+    ? { status: "error", message: FREE_PLAN_LIMIT_MESSAGE, upgrade: true }
+    : { status: "error", message: SAVE_ERROR };
+}
+
 function toColumns(values: SubscriptionValues) {
   return {
     name: values.name,
     amount_cents: values.amountCents,
+    amount_is_estimate: values.amountIsEstimate,
     billing_cycle: values.billingCycle,
     next_payment_date: values.nextPaymentDate,
     trial_ends_at: values.trialEndsAt,
@@ -69,7 +77,7 @@ export async function createSubscription(
     .select("id")
     .single();
 
-  if (error) return { status: "error", message: SAVE_ERROR };
+  if (error) return saveFailure(error);
 
   // Created from an e-mail suggestion: mark it as handled.
   const detectedId = readString(formData, "detectedId");
@@ -118,7 +126,7 @@ export async function updateSubscription(
     .eq("id", id)
     .eq("user_id", user.id);
 
-  if (error) return { status: "error", message: SAVE_ERROR };
+  if (error) return saveFailure(error);
 
   revalidateApp();
   redirect(`/panel/subskrypcje/${id}?zapisano=1`);
@@ -132,11 +140,12 @@ export async function setSubscriptionStatus(id: string, status: "active" | "canc
   const user = await requireUser();
   if (!isUuid(id)) return;
   const supabase = await createSupabaseServerClient();
-  await supabase
+  const { error } = await supabase
     .from("subscriptions")
     .update({ status, cancelled_at: status === "cancelled" ? new Date().toISOString() : null })
     .eq("id", id)
     .eq("user_id", user.id);
+  if (isFreePlanLimitError(error)) redirect("/panel/premium?powod=limit");
   revalidateApp();
 }
 
@@ -154,6 +163,7 @@ export interface BulkFormState {
   status: "idle" | "error";
   message?: string;
   itemErrors?: Record<number, Partial<Record<SubscriptionField, string>>>;
+  upgrade?: boolean;
 }
 
 /** Quick start: adds several subscriptions at once, validated like the single form. */
@@ -166,7 +176,11 @@ export async function createSubscriptionsBulk(_prev: BulkFormState, formData: Fo
   const { error } = await supabase
     .from("subscriptions")
     .insert(result.values.map((values) => ({ ...toColumns(values), user_id: user.id, cancelled_at: null })));
-  if (error) return { status: "error", message: "Nie udało się zapisać subskrypcji. Spróbuj ponownie." };
+  if (error) {
+    return isFreePlanLimitError(error)
+      ? { status: "error", message: FREE_PLAN_LIMIT_MESSAGE, upgrade: true }
+      : { status: "error", message: SAVE_ERROR };
+  }
 
   revalidateApp();
   redirect(`/panel?dodano=${result.values.length}`);

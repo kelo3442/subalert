@@ -29,6 +29,10 @@ przypomnienia e-mail przed obciążeniem.
 | Szybki start | Po rejestracji: zaznaczenie używanych usług (ok. 30 popularnych, także polskich) i własnych, wpisanie kwot i dnia płatności, podsumowanie miesięczne/roczne na żywo, zapis wszystkich naraz (`/panel/start`) |
 | Import z historii konta | Plik CSV z bankowości internetowej (UTF-8 lub Windows-1250, różne układy kolumn, ręczne wskazanie kolumn jako zapas) jest analizowany **tylko w przeglądarce**; wykrywane są płatności cykliczne (tydzień/miesiąc/kwartał/rok), znane usługi, możliwie nieaktywne subskrypcje. Zapisywane jest tylko to, co użytkownik zaznaczy. Przykładowy plik demonstracyjny do wypróbowania |
 | Automatyczne dodawanie z e-maili | Każdy użytkownik ma prywatny adres do przekazywania potwierdzeń płatności (np. filtr w Gmailu). Rozpoznane usługi z kwotą są dodawane od razu, pozostałe czekają na pulpicie na „Dodaj / Uzupełnij / Odrzuć”. Kod potwierdzenia przekazywania z Gmaila pojawia się w ustawieniach. Przechowywane są tylko nadawca, temat i wyciągnięte dane — nie treść |
+| Rachunki domowe | Prąd, gaz, woda, czynsz, internet, telefon, ubezpieczenia; cykle co 2 miesiące i co pół roku; kwota orientacyjna („ok. 180 zł”) dla zmiennych rachunków; rozpoznawanie popularnych polskich dostawców w imporcie z banku |
+| Premium | Plan darmowy do 3 aktywnych pozycji (limit pilnowany też przez bazę danych). Premium: 9,99 zł/mies. (karta, odnawiane, anulowanie w portalu Stripe) lub 79 zł/rok (BLIK, Przelewy24, karta — jednorazowo, bez automatycznego odnawiania). Premium odblokowuje brak limitu i automatyczne dodawanie z e-maili |
+| Logowanie przez Google | Przycisk na stronach logowania i rejestracji (po włączeniu w Supabase i ustawieniu `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true`) |
+| Eksport danych | Plik CSV (Excel, UTF-8) ze wszystkimi pozycjami — Ustawienia → „Pobierz moje dane” |
 | Subskrypcje | Dodawanie (szybki wybór popularnych usług lub własna), edycja, usuwanie z potwierdzeniem, filtr aktywne/anulowane |
 | Trial Guard | Data końca okresu próbnego, liczba dni do końca, wyróżnienie w panelu, komunikat, że przypomnienie nie anuluje usługi |
 | Kalendarz | Agenda płatności i końców okresów próbnych (30 dni / 3 miesiące / rok), sumy miesięczne, wyróżnienie najbliższych dni |
@@ -84,7 +88,7 @@ Nigdy nie dodawaj prefiksu `NEXT_PUBLIC_` do kluczy sekretnych.
 2. **Schemat bazy** — uruchom migracje (po kolei) jednym ze sposobów:
    - *SQL Editor* w panelu Supabase → wklej i uruchom zawartość każdego pliku z `supabase/migrations/`
      w kolejności nazw (`20261012000000_init.sql`, `20261013000000_delete_own_account.sql`,
-     `20261014000000_email_import.sql`), albo
+     `20261014000000_email_import.sql`, `20261015000000_premium_and_bills.sql`), albo
    - Supabase CLI: `npx supabase link --project-ref <ref>` i `npx supabase db push`.
 3. **Klucze** — *Project Settings → API Keys*: skopiuj URL, klucz publishable (do `.env.local`) oraz secret
    (tylko jeśli uruchamiasz przypomnienia).
@@ -163,6 +167,37 @@ Bezpieczeństwo: webhook bez poprawnego hasła zwraca 401; nieznany adresat jest
 limit 100 wiadomości na użytkownika na dobę; ta sama wiadomość (`MessageID`) jest przetwarzana raz; użytkownik może
 w ustawieniach wygenerować nowy adres, co unieważnia stary.
 
+## Logowanie przez Google — konfiguracja
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → nowy projekt → *APIs & Services → OAuth consent screen*
+   (typ „External”, nazwa aplikacji, e-mail kontaktowy, domena).
+2. *Credentials → Create credentials → OAuth client ID* → typ „Web application”.
+   W *Authorized redirect URIs* wpisz adres z Supabase: *Authentication → Sign In / Providers → Google* pokazuje
+   „Callback URL” (`https://<projekt>.supabase.co/auth/v1/callback`).
+3. Skopiuj Client ID i Client secret do Supabase (*Providers → Google*) i włącz dostawcę.
+4. Ustaw `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true` i zbuduj aplikację ponownie.
+   Redirect URLs w Supabase muszą zawierać `https://<twoja-domena>/**` (patrz „Konfiguracja Supabase”).
+
+## Premium i płatności (Stripe) — konfiguracja
+
+1. Załóż konto na [stripe.com](https://stripe.com) (do przyjmowania płatności potrzebna jest działalność gospodarcza
+   lub inna forma prowadzenia sprzedaży — sprawdź wymagania podatkowe).
+2. *Settings → Payment methods*: włącz **Cards**, **BLIK** i **Przelewy24**. Plan miesięczny pokaże tylko metody
+   obsługujące płatności cykliczne (karty, Apple Pay / Google Pay); plan roczny — wszystkie włączone.
+3. *Settings → Billing → Customer portal*: zapisz konfigurację (pozwól anulować subskrypcję i zmienić kartę).
+4. *Developers → Webhooks → Add endpoint*: `https://<twoja-domena>/api/stripe/webhook`, zdarzenia:
+   `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+   `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`.
+5. Ustaw `STRIPE_SECRET_KEY` i `STRIPE_WEBHOOK_SECRET` (oraz `SUPABASE_SECRET_KEY`). Ceny (9,99 zł / 79 zł) są
+   zdefiniowane w kodzie (`src/lib/premium/plan.ts`) — nie trzeba tworzyć produktów w Stripe.
+6. Testy: klucze `sk_test_...` i karta `4242 4242 4242 4242`; lokalnie webhooki przekażesz poleceniem
+   `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+
+Webhook weryfikuje podpis Stripe (HMAC, tolerancja 5 minut), każde zdarzenie przetwarza raz (tabela `stripe_events`)
+i tylko on może nadać Premium — użytkownik nie może zmienić `premium_until` w bazie.
+
+Przed uruchomieniem sprzedaży potrzebne są też **regulamin** i **polityka prywatności** (nie są częścią tego repozytorium).
+
 ## Wdrożenie na Vercel
 
 1. Wypchnij repozytorium na GitHub i zaimportuj je w Vercel (*Add New → Project*). Framework zostanie
@@ -187,6 +222,7 @@ w ustawieniach wygenerować nowy adres, co unieważnia stary.
   psql -d subalert_test -f supabase/migrations/20261012000000_init.sql
   psql -d subalert_test -f supabase/migrations/20261013000000_delete_own_account.sql
   psql -d subalert_test -f supabase/migrations/20261014000000_email_import.sql
+  psql -d subalert_test -f supabase/migrations/20261015000000_premium_and_bills.sql
   psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 
@@ -214,7 +250,6 @@ supabase/
 
 - Brak zmiany adresu e-mail w aplikacji; zmiana hasła nie wymaga podania obecnego hasła (domyślne zachowanie Supabase).
 - Tylko waluta PLN; tylko jasno określone cykle (bez np. co 2 miesiące).
-- Brak eksportu danych.
 - Interfejs ma tylko motyw ciemny.
 - Linki i instrukcje anulowania dla popularnych usług są ogólne; dostawcy zmieniają swoje strony, więc warto
   je okresowo weryfikować (`src/lib/subscriptions/popular-services.ts`).

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ServiceAvatar } from "@/components/subscriptions/service-avatar";
 import { Badge } from "@/components/ui/badge";
 import { daysBetween, formatDateShort, type ISODate } from "@/lib/dates";
-import { formatPLN } from "@/lib/money";
+import { formatAmount } from "@/lib/money";
 import { BILLING_CYCLE_SUFFIX } from "@/lib/subscriptions/billing";
 import { CATEGORY_LABELS } from "@/lib/subscriptions/categories";
 import { nextPaymentDate } from "@/lib/subscriptions/schedule";
@@ -39,7 +39,7 @@ export function SubscriptionList({ subscriptions, today }: { subscriptions: Subs
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <p className="text-sm font-medium tabular-nums text-fg">
-                  {formatPLN(subscription.amountCents)}
+                  {formatAmount(subscription.amountCents, subscription.amountIsEstimate)}
                   <span className="text-xs font-normal text-subtle"> / {BILLING_CYCLE_SUFFIX[subscription.billingCycle]}</span>
                 </p>
                 {active && <DaysBadge days={daysBetween(today, next)} />}

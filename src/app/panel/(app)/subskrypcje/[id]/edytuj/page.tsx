@@ -21,6 +21,7 @@ export default async function EditSubscriptionPage({ params }: PageProps<"/panel
         initialValues={{
           name: subscription.name,
           amount: centsToInputValue(subscription.amountCents),
+          amountIsEstimate: subscription.amountIsEstimate,
           billingCycle: subscription.billingCycle,
           nextPaymentDate: subscription.nextPaymentDate,
           hasTrial: subscription.trialEndsAt !== null,

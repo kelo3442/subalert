@@ -87,7 +87,9 @@ export function findPlnAmount(text: string): number | null {
 }
 
 export function detectCycle(text: string): BillingCycle {
+  if (/półroczn|co pół roku|semi-?annual|6 miesięcy/i.test(text)) return "semiannual";
   if (/rocz|annual|yearly|per year|\/\s?rok|12 miesięcy/i.test(text)) return "yearly";
+  if (/dwumiesi[eę]czn|co 2 miesiące|co dwa miesiące|bimonthly/i.test(text)) return "bimonthly";
   if (/kwartaln|quarter/i.test(text)) return "quarterly";
   if (/tygodni|weekly|per week/i.test(text)) return "weekly";
   return "monthly";

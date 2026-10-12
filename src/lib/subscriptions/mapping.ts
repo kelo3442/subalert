@@ -7,6 +7,7 @@ export interface SubscriptionRow {
   id: string;
   name: string;
   amount_cents: number;
+  amount_is_estimate: boolean;
   currency: string;
   billing_cycle: string;
   next_payment_date: string;
@@ -30,6 +31,7 @@ export function subscriptionFromRow(row: SubscriptionRow): Subscription | null {
     id: row.id,
     name: row.name,
     amountCents: row.amount_cents,
+    amountIsEstimate: row.amount_is_estimate,
     currency: "PLN",
     billingCycle: row.billing_cycle,
     nextPaymentDate: row.next_payment_date,
@@ -44,4 +46,4 @@ export function subscriptionFromRow(row: SubscriptionRow): Subscription | null {
 }
 
 export const SUBSCRIPTION_COLUMNS =
-  "id, name, amount_cents, currency, billing_cycle, next_payment_date, trial_ends_at, category, manage_url, notes, status, cancelled_at, created_at";
+  "id, name, amount_cents, amount_is_estimate, currency, billing_cycle, next_payment_date, trial_ends_at, category, manage_url, notes, status, cancelled_at, created_at";

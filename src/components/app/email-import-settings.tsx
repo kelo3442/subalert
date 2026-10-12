@@ -1,5 +1,6 @@
 import { KeyRound, MailPlus, RefreshCw, ShieldCheck } from "lucide-react";
 import { rotateInboundAddress, setAutoAddDetected } from "@/actions/detected";
+import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { InboundSettings } from "@/lib/data/detected";
@@ -9,7 +10,15 @@ import { CopyButton } from "./copy-button";
 export const GMAIL_FILTER_QUERY =
   'subject:(subskrypcja OR subskrypcji OR abonament OR członkostwo OR "okres próbny" OR odnowienie OR subscription OR membership OR receipt OR "free trial" OR "your plan")';
 
-export function EmailImportSettings({ address, settings }: { address: string | null; settings: InboundSettings | null }) {
+export function EmailImportSettings({
+  address,
+  settings,
+  premium,
+}: {
+  address: string | null;
+  settings: InboundSettings | null;
+  premium: boolean;
+}) {
   return (
     <Card id="automatyczne" className="scroll-mt-24">
       <CardHeader
@@ -18,7 +27,17 @@ export function EmailImportSettings({ address, settings }: { address: string | n
         description="Przekazuj potwierdzenia płatności na swój adres SubAlert — nowe subskrypcje pojawią się same."
       />
       <div className="flex flex-col gap-5 p-5">
-        {!address || !settings ? (
+        {!premium ? (
+          <div className="flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/[0.06] p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-muted">
+              <strong className="text-fg">Funkcja Premium.</strong> Ustawiasz raz filtr w Gmailu, a nowe subskrypcje i rachunki
+              pojawiają się w SubAlert same.
+            </p>
+            <ButtonLink href="/panel/premium" size="sm" className="shrink-0">
+              Zobacz Premium
+            </ButtonLink>
+          </div>
+        ) : !address || !settings ? (
           <p className="rounded-xl border border-line bg-surface-2 p-3 text-sm text-muted">
             Odbieranie e-maili nie jest jeszcze skonfigurowane na tym serwerze (instrukcja w README, sekcja „Automatyczne
             dodawanie z e-maili”).

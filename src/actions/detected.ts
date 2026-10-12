@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getDetected } from "@/lib/data/detected";
 import { isUuid } from "@/lib/data/subscriptions";
 import { requireUser } from "@/lib/data/user";
+import { isFreePlanLimitError } from "@/lib/premium/plan";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function dismissDetected(id: string): Promise<void> {
@@ -44,7 +45,9 @@ export async function acceptDetected(id: string): Promise<void> {
     })
     .select("id")
     .single();
-  if (error) redirect(`/panel/subskrypcje/nowa?wykryta=${id}`);
+  if (error) {
+    redirect(isFreePlanLimitError(error) ? "/panel/premium?powod=limit" : `/panel/subskrypcje/nowa?wykryta=${id}`);
+  }
 
   await supabase
     .from("detected_subscriptions")

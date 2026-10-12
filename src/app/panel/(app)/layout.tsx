@@ -3,11 +3,13 @@ import { MobileNav, SidebarNav } from "@/components/app/app-nav";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ButtonLink } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { PlanBadge } from "@/components/premium/plan-badge";
+import { getPlanStatus } from "@/lib/data/plan";
 import { requireUser } from "@/lib/data/user";
 import { Plus } from "lucide-react";
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
-  const user = await requireUser();
+  const [user, plan] = await Promise.all([requireUser(), getPlanStatus()]);
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[260px_1fr]">
@@ -17,7 +19,8 @@ export default async function AppShellLayout({ children }: { children: ReactNode
           <Plus className="size-4" aria-hidden /> Dodaj subskrypcję
         </ButtonLink>
         <SidebarNav />
-        <div className="mt-auto border-t border-line pt-4">
+        <div className="mt-auto flex flex-col gap-3 border-t border-line pt-4">
+          <PlanBadge plan={plan} />
           <p className="truncate px-3 pb-2 text-xs text-subtle" title={user.email}>
             {user.email}
           </p>

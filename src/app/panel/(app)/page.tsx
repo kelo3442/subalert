@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { listSubscriptions } from "@/lib/data/subscriptions";
 import { getUserProfile } from "@/lib/data/user";
 import { formatDateShort, formatRelativeDays, todayInTimeZone } from "@/lib/dates";
-import { formatPLN } from "@/lib/money";
+import { formatAmount, formatPLN } from "@/lib/money";
 import {
   activeSubscriptions,
   activeTrials,
@@ -132,7 +132,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
         />
         <StatCard
           label="Najbliższa płatność"
-          value={next ? formatPLN(next.subscription.amountCents) : "—"}
+          value={next ? formatAmount(next.subscription.amountCents, next.subscription.amountIsEstimate) : "—"}
           detail={next ? `${next.subscription.name}, ${formatRelativeDays(next.daysUntil)}` : "brak aktywnych"}
           icon={<CalendarClock className="size-4" aria-hidden />}
         />

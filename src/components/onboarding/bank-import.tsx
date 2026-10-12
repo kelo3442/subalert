@@ -21,7 +21,9 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const CYCLE_WORDS: Record<BillingCycle, string> = {
   weekly: "co tydzień",
   monthly: "co miesiąc",
+  bimonthly: "co 2 miesiące",
   quarterly: "co kwartał",
+  semiannual: "co pół roku",
   yearly: "co rok",
 };
 

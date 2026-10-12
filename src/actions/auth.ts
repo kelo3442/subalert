@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { PASSWORD_PAGE } from "@/lib/auth-confirm";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { getSiteUrl, isSupabaseConfigured } from "@/lib/env";
+import { getSiteUrl, isGoogleAuthEnabled, isSupabaseConfigured } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/data/user";
@@ -150,6 +150,19 @@ export async function deleteAccount(
   // The user no longer exists; clear the session cookies locally.
   await supabase.auth.signOut({ scope: "local" });
   redirect("/logowanie?info=konto-usuniete");
+}
+
+/** Starts "Sign in with Google" (Supabase OAuth, PKCE); returns to /auth/confirm. */
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  if (!isSupabaseConfigured() || !isGoogleAuthEnabled()) redirect("/logowanie");
+  const next = safeRedirectPath(readString(formData, "next"));
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${getSiteUrl()}/auth/confirm?next=${encodeURIComponent(next)}` },
+  });
+  if (error || !data.url) redirect("/logowanie?blad=google");
+  redirect(data.url);
 }
 
 export async function signOut(): Promise<void> {

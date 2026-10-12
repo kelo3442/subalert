@@ -1,19 +1,23 @@
 import { addDays, addMonthsClamped, compareISODates, daysBetween, type ISODate } from "@/lib/dates";
 
-export const BILLING_CYCLES = ["weekly", "monthly", "quarterly", "yearly"] as const;
+export const BILLING_CYCLES = ["weekly", "monthly", "bimonthly", "quarterly", "semiannual", "yearly"] as const;
 export type BillingCycle = (typeof BILLING_CYCLES)[number];
 
 export const BILLING_CYCLE_LABELS: Record<BillingCycle, string> = {
   weekly: "Tygodniowy",
   monthly: "Miesięczny",
+  bimonthly: "Co 2 miesiące",
   quarterly: "Kwartalny",
+  semiannual: "Półroczny",
   yearly: "Roczny",
 };
 
 export const BILLING_CYCLE_SUFFIX: Record<BillingCycle, string> = {
   weekly: "tydz.",
   monthly: "mies.",
+  bimonthly: "2 mies.",
   quarterly: "kw.",
+  semiannual: "pół roku",
   yearly: "rok",
 };
 
@@ -21,7 +25,9 @@ export const BILLING_CYCLE_SUFFIX: Record<BillingCycle, string> = {
 export const PAYMENTS_PER_YEAR: Record<BillingCycle, number> = {
   weekly: 52,
   monthly: 12,
+  bimonthly: 6,
   quarterly: 4,
+  semiannual: 2,
   yearly: 1,
 };
 
@@ -29,7 +35,9 @@ export const PAYMENTS_PER_YEAR: Record<BillingCycle, number> = {
 const MAX_CYCLE_DAYS: Record<BillingCycle, number> = {
   weekly: 7,
   monthly: 31,
+  bimonthly: 62,
   quarterly: 92,
+  semiannual: 184,
   yearly: 366,
 };
 
@@ -69,8 +77,12 @@ export function nthPaymentDate(anchor: ISODate, cycle: BillingCycle, n: number):
       return addDays(anchor, 7 * n);
     case "monthly":
       return addMonthsClamped(anchor, n);
+    case "bimonthly":
+      return addMonthsClamped(anchor, 2 * n);
     case "quarterly":
       return addMonthsClamped(anchor, 3 * n);
+    case "semiannual":
+      return addMonthsClamped(anchor, 6 * n);
     case "yearly":
       return addMonthsClamped(anchor, 12 * n);
   }

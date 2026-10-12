@@ -9,6 +9,10 @@ export const CATEGORY_KEYS = [
   "education",
   "fitness",
   "shopping",
+  "utilities",
+  "housing",
+  "telecom",
+  "insurance",
   "other",
 ] as const;
 
@@ -25,9 +29,16 @@ export const CATEGORY_LABELS: Record<CategoryKey, string> = {
   education: "Edukacja",
   fitness: "Zdrowie i sport",
   shopping: "Zakupy i dostawy",
+  utilities: "Prąd, gaz, woda",
+  housing: "Mieszkanie i czynsz",
+  telecom: "Telefon i internet",
+  insurance: "Ubezpieczenia",
   other: "Inne",
 };
 
 export function isCategoryKey(value: string): value is CategoryKey {
   return (CATEGORY_KEYS as readonly string[]).includes(value);
 }
+
+/** Household bills — shown as a separate group in quick start and on the landing page. */
+export const BILL_CATEGORIES: readonly CategoryKey[] = ["utilities", "housing", "telecom", "insurance"];

@@ -19,6 +19,13 @@ describe("costs", () => {
     expect(monthlyCostCents(9999, "yearly")).toBe(833);
   });
 
+  it("supports bill cycles", () => {
+    expect(yearlyCostCents(18_000, "bimonthly")).toBe(108_000);
+    expect(monthlyCostCents(18_000, "bimonthly")).toBe(9000);
+    expect(yearlyCostCents(60_000, "semiannual")).toBe(120_000);
+    expect(monthlyCostCents(60_000, "semiannual")).toBe(10_000);
+  });
+
   it("sums without accumulating rounding errors", () => {
     const items = Array.from({ length: 3 }, () => ({ amountCents: 1000, billingCycle: "yearly" as const }));
     // 3 × 10 zł / 12 = 2,50 zł; per-item rounding would give 3 × 0,83 = 2,49 zł
@@ -47,6 +54,18 @@ describe("payment dates", () => {
     expect(nthPaymentDate("2026-10-12", "monthly", 3)).toBe("2027-01-12");
     expect(nthPaymentDate("2026-10-12", "quarterly", 2)).toBe("2027-04-12");
     expect(nthPaymentDate("2026-10-12", "yearly", 1)).toBe("2027-10-12");
+  });
+
+  it("advances bill cycles from the anchor", () => {
+    expect(paymentDatesBetween("2026-01-31", "bimonthly", "2026-01-01", "2026-12-31")).toEqual([
+      "2026-01-31",
+      "2026-03-31",
+      "2026-05-31",
+      "2026-07-31",
+      "2026-09-30",
+      "2026-11-30",
+    ]);
+    expect(nextPaymentOnOrAfter("2025-08-31", "semiannual", "2026-10-12")).toBe("2027-02-28");
   });
 
   it("keeps the 31st after a short month", () => {

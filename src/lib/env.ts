@@ -25,3 +25,8 @@ export function getSiteUrl(): string {
   const withProtocol = configured.startsWith("http") ? configured : `https://${configured}`;
   return withProtocol.replace(/\/$/, "");
 }
+
+/** Show "Sign in with Google" only once the provider is enabled in Supabase. */
+export function isGoogleAuthEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED === "true";
+}

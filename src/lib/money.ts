@@ -30,3 +30,8 @@ export function formatPLN(cents: number): string {
 export function centsToInputValue(cents: number): string {
   return (cents / 100).toFixed(2).replace(".", ",");
 }
+
+/** "ok. 180,00 zł" for estimated (variable) amounts. */
+export function formatAmount(cents: number, isEstimate = false): string {
+  return isEstimate ? `ok. ${formatPLN(cents)}` : formatPLN(cents);
+}

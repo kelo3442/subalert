@@ -22,6 +22,7 @@ import {
 export interface SubscriptionFormValues {
   name: string;
   amount: string;
+  amountIsEstimate: boolean;
   billingCycle: BillingCycle;
   nextPaymentDate: string;
   hasTrial: boolean;
@@ -64,6 +65,7 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
       name: service.name,
       category: service.category,
       manageUrl: service.manageUrl ?? current.manageUrl,
+      amountIsEstimate: service.category === "utilities" || current.amountIsEstimate,
     }));
     setClientErrors(null);
   };
@@ -95,7 +97,16 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
       {detectedId && <input type="hidden" name="detectedId" value={detectedId} />}
-      {state.status === "error" && state.message && !clientErrors && <Alert tone="error">{state.message}</Alert>}
+      {state.status === "error" && state.message && !clientErrors && (
+        <Alert tone={state.upgrade ? "warn" : "error"}>
+          {state.message}
+          {state.upgrade && (
+            <Link href="/panel/premium" className="mt-2 block font-semibold underline underline-offset-2">
+              Zobacz Premium
+            </Link>
+          )}
+        </Alert>
+      )}
 
       {mode === "create" && (
         <section aria-labelledby="presets-title" className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
@@ -158,6 +169,16 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
             />
             <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-subtle">zł</span>
           </div>
+          <label className="mt-1 flex cursor-pointer items-center gap-2 text-xs text-muted">
+            <input
+              type="checkbox"
+              name="amountIsEstimate"
+              checked={values.amountIsEstimate}
+              onChange={(e) => set("amountIsEstimate", e.target.checked)}
+              className="size-4 accent-[#c4f542]"
+            />
+            Kwota zmienna — podaję orientacyjną (np. prąd, gaz)
+          </label>
         </Field>
 
         <Field id="nextPaymentDate" label="Data następnej płatności" errors={errors.nextPaymentDate}>
@@ -174,7 +195,7 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
 
         <fieldset className="sm:col-span-2">
           <legend className="mb-1.5 text-sm font-medium text-fg">Cykl płatności</legend>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {BILLING_CYCLES.map((cycle) => (
               <label
                 key={cycle}

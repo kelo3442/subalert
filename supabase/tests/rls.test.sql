@@ -191,6 +191,79 @@ begin
   assert (select char_length(inbound_token) from public.profiles) = 32, 'FAIL: token length';
 end $$;
 
+-- Free plan: at most 3 active subscriptions, enforced by the database.
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$
+declare n int;
+begin
+  select count(*) into n from public.subscriptions where status = 'active';
+  -- Alice has 1 active subscription; two more fit, the fourth must fail.
+  insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date)
+  values ('Prąd', 18000, 'bimonthly', '2026-11-10');
+  update public.subscriptions set amount_is_estimate = true where name = 'Prąd';
+  insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date, category)
+  values ('OC', 60000, 'semiannual', '2027-01-10', 'insurance');
+  begin
+    insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date)
+    values ('Czwarta', 100, 'monthly', '2026-11-01');
+    raise exception 'FAIL: free plan limit not enforced';
+  exception when raise_exception then
+    if sqlerrm <> 'free_plan_limit' then raise; end if;
+  end;
+  -- A cancelled one can be added, but not reactivated while at the limit.
+  insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date, status)
+  values ('Stara', 100, 'monthly', '2026-11-01', 'cancelled');
+  begin
+    update public.subscriptions set status = 'active' where name = 'Stara';
+    raise exception 'FAIL: reactivation bypassed limit';
+  exception when raise_exception then null;
+  end;
+  begin
+    update public.profiles set premium_until = now() + interval '1 year';
+    raise exception 'FAIL: user granted themselves premium';
+  exception when insufficient_privilege then null;
+  end;
+  assert not public.is_premium(auth.uid()), 'FAIL: unexpectedly premium';
+end $$;
+
+-- Multi-row inserts are counted row by row.
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'bob', false);
+do $$ begin
+  begin
+    insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date)
+    values ('B1', 100, 'monthly', '2026-11-01'), ('B2', 100, 'monthly', '2026-11-01'), ('B3', 100, 'monthly', '2026-11-01');
+    raise exception 'FAIL: bulk insert bypassed limit';
+  exception when raise_exception then
+    if sqlerrm <> 'free_plan_limit' then raise; end if;
+  end;
+  assert (select count(*) from public.subscriptions) = 1, 'FAIL: partial bulk insert kept';
+end $$;
+
+-- Premium (set by the service role, as the Stripe webhook does) lifts the limit.
+reset role;
+set role service_role;
+update public.profiles set premium_until = now() + interval '30 days', premium_source = 'subscription'
+ where id = '00000000-0000-0000-0000-00000000000a';
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$ begin
+  assert public.is_premium(auth.uid()), 'FAIL: premium not detected';
+  insert into public.subscriptions (name, amount_cents, billing_cycle, next_payment_date)
+  values ('Czwarta', 100, 'monthly', '2026-11-01');
+  update public.subscriptions set status = 'active' where name = 'Stara';
+  assert (select count(*) from public.subscriptions where status = 'active') = 5, 'FAIL: premium limit';
+  begin
+    perform count(*) from public.stripe_events;
+    raise exception 'FAIL: user can read stripe events';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- Account deletion removes only the caller and cascades to their data.
 reset role;
 set role anon;
