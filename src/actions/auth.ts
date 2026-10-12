@@ -70,14 +70,14 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?next=/panel` },
+    options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?next=/panel/start` },
   });
   if (error) {
     return { status: "error", message: authErrorMessage(error), values: { email: input.email } };
   }
 
   // With e-mail confirmation disabled Supabase signs the user in right away.
-  if (data.session) redirect("/panel");
+  if (data.session) redirect("/panel/start");
 
   return {
     status: "success",

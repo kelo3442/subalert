@@ -4,6 +4,7 @@ import {
   addMonthsClamped,
   daysBetween,
   formatRelativeDays,
+  nextDateForDayOfMonth,
   isValidISODate,
   todayInTimeZone,
 } from "./dates";
@@ -68,5 +69,24 @@ describe("formatRelativeDays", () => {
     expect(formatRelativeDays(1)).toBe("jutro");
     expect(formatRelativeDays(5)).toBe("za 5 dni");
     expect(formatRelativeDays(-2)).toBe("2 dni temu");
+  });
+});
+
+describe("nextDateForDayOfMonth", () => {
+  it("uses this month when the day is today or later", () => {
+    expect(nextDateForDayOfMonth("2026-10-12", 12)).toBe("2026-10-12");
+    expect(nextDateForDayOfMonth("2026-10-12", 25)).toBe("2026-10-25");
+  });
+
+  it("moves to next month, also across the year", () => {
+    expect(nextDateForDayOfMonth("2026-10-12", 5)).toBe("2026-11-05");
+    expect(nextDateForDayOfMonth("2026-12-20", 1)).toBe("2027-01-01");
+  });
+
+  it("clamps to the month's last day", () => {
+    expect(nextDateForDayOfMonth("2026-02-10", 31)).toBe("2026-02-28");
+    expect(nextDateForDayOfMonth("2028-02-10", 30)).toBe("2028-02-29");
+    expect(nextDateForDayOfMonth("2026-01-31", 30)).toBe("2026-02-28");
+    expect(nextDateForDayOfMonth("2026-04-30", 31)).toBe("2026-04-30");
   });
 });

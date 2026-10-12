@@ -26,6 +26,7 @@ przypomnienia e-mail przed obciążeniem.
 | Landing | Hero, funkcje, kalkulator kosztów bez rejestracji, sekcja o przypomnieniach, FAQ |
 | Konto | Rejestracja, logowanie, wylogowanie (Supabase Auth), potwierdzenie e-mail, bezpieczne przekierowanie `?next=`, reset hasła e-mailem, zmiana hasła, usunięcie konta wraz z danymi |
 | Pulpit | Suma miesięczna i roczna, liczba aktywnych, najbliższa płatność, nadchodzące odnowienia (30 dni), wydatki wg kategorii, lista subskrypcji |
+| Szybki start | Po rejestracji: zaznaczenie używanych usług (ok. 30 popularnych, także polskich) i własnych, wpisanie kwot i dnia płatności, podsumowanie miesięczne/roczne na żywo, zapis wszystkich naraz (`/panel/start`) |
 | Subskrypcje | Dodawanie (szybki wybór popularnych usług lub własna), edycja, usuwanie z potwierdzeniem, filtr aktywne/anulowane |
 | Trial Guard | Data końca okresu próbnego, liczba dni do końca, wyróżnienie w panelu, komunikat, że przypomnienie nie anuluje usługi |
 | Kalendarz | Agenda płatności i końców okresów próbnych (30 dni / 3 miesiące / rok), sumy miesięczne, wyróżnienie najbliższych dni |
@@ -153,7 +154,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
 
 ## Testy
 
-- `npm test` — 94 testy jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
+- `npm test` — 104 testy jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
   przełom roku, DST), okresy próbne, harmonogram i deduplikacja przypomnień, strefy czasowe, walidacja
   formularzy, kwoty, bezpieczne przekierowania, mapowanie błędów Auth, szablon e-maila (escapowanie HTML).
 - `supabase/tests/rls.test.sql` — test izolacji danych (RLS) na czystym PostgreSQL. Uruchomienie lokalne

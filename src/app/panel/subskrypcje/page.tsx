@@ -1,4 +1,4 @@
-import { Layers, Plus } from "lucide-react";
+import { Layers, Plus, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
@@ -39,9 +39,14 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
             : "Wszystko, za co płacisz cyklicznie."
         }
         action={
-          <ButtonLink href="/panel/subskrypcje/nowa">
-            <Plus className="size-4" aria-hidden /> Dodaj
-          </ButtonLink>
+          <>
+            <ButtonLink href="/panel/start" variant="secondary">
+              <Zap className="size-4" aria-hidden /> Kilka naraz
+            </ButtonLink>
+            <ButtonLink href="/panel/subskrypcje/nowa">
+              <Plus className="size-4" aria-hidden /> Dodaj
+            </ButtonLink>
+          </>
         }
       />
 
@@ -81,8 +86,8 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
             title="Brak aktywnych subskrypcji"
             description="Dodaj usługi, za które płacisz — Netflix, Spotify, chmurę, siłownię albo cokolwiek innego."
             action={
-              <ButtonLink href="/panel/subskrypcje/nowa">
-                <Plus className="size-4" aria-hidden /> Dodaj subskrypcję
+              <ButtonLink href="/panel/start">
+                <Zap className="size-4" aria-hidden /> Szybki start
               </ButtonLink>
             }
           />

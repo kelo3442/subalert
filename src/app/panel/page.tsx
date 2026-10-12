@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarRange, Layers, Plus, Wallet } from "lucide-react";
+import { CalendarClock, CalendarRange, Layers, Plus, Wallet, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryBreakdown } from "@/components/app/category-breakdown";
@@ -7,6 +7,7 @@ import { StatCard } from "@/components/app/stat-card";
 import { SubscriptionList } from "@/components/app/subscription-list";
 import { TrialGuardPanel } from "@/components/app/trial-guard-panel";
 import { UpcomingList } from "@/components/app/upcoming-list";
+import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,8 +27,8 @@ export const metadata: Metadata = { title: "Pulpit" };
 
 const UPCOMING_DAYS = 30;
 
-export default async function DashboardPage() {
-  const [profile, subscriptions] = await Promise.all([getUserProfile(), listSubscriptions()]);
+export default async function DashboardPage({ searchParams }: PageProps<"/panel">) {
+  const [profile, subscriptions, params] = await Promise.all([getUserProfile(), listSubscriptions(), searchParams]);
   const today = todayInTimeZone(profile.timeZone);
   const summary = summarize(subscriptions, today);
   const active = activeSubscriptions(subscriptions);
@@ -47,12 +48,17 @@ export default async function DashboardPage() {
         <Card>
           <EmptyState
             icon={<Layers className="size-6" aria-hidden />}
-            title="Dodaj pierwszą subskrypcję"
-            description="Wybierz usługę z listy popularnych albo wpisz własną. Podsumowania, kalendarz i przypomnienia pojawią się automatycznie."
+            title="Dodaj swoje subskrypcje"
+            description="Zaznacz usługi, z których korzystasz, i wpisz kwoty — zajmie to około minuty. Podsumowania, kalendarz i przypomnienia pojawią się automatycznie."
             action={
-              <ButtonLink href="/panel/subskrypcje/nowa">
-                <Plus className="size-4" aria-hidden /> Dodaj subskrypcję
-              </ButtonLink>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <ButtonLink href="/panel/start" size="lg">
+                  <Zap className="size-4" aria-hidden /> Szybki start
+                </ButtonLink>
+                <ButtonLink href="/panel/subskrypcje/nowa" variant="ghost" size="lg">
+                  Dodaj jedną ręcznie
+                </ButtonLink>
+              </div>
             }
           />
         </Card>
@@ -68,6 +74,15 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title="Pulpit" description={`Dzisiaj jest ${formatDateShort(today)}.`} action={addButton} />
+
+      {typeof params.dodano === "string" && Number(params.dodano) > 0 && (
+        <Alert tone="success" className="mb-4">
+          Dodano subskrypcje: {Number(params.dodano)}. Łącznie płacisz{" "}
+          <strong className="font-semibold">{formatPLN(summary.monthlyCents)}</strong> miesięcznie, czyli{" "}
+          <strong className="font-semibold">{formatPLN(summary.yearlyCents)}</strong> rocznie. Uzupełnij okresy próbne i
+          linki do anulowania w szczegółach każdej usługi.
+        </Alert>
+      )}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard

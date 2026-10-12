@@ -88,3 +88,72 @@ export function subscriptionInputFromFormData(formData: FormData): SubscriptionI
     status: (readString(formData, "status") || "active") as SubscriptionInput["status"],
   };
 }
+
+export const MAX_BULK_SUBSCRIPTIONS = 40;
+
+const bulkItemSchema = z.object({
+  name: z.string(),
+  amount: z.string(),
+  billingCycle: z.string(),
+  nextPaymentDate: z.string(),
+  category: z.string().optional(),
+  manageUrl: z.string().optional(),
+});
+
+export type BulkSubscriptionItem = z.infer<typeof bulkItemSchema>;
+
+export function bulkItemToInput(item: BulkSubscriptionItem): SubscriptionInput {
+  return {
+    name: item.name,
+    amount: item.amount,
+    billingCycle: item.billingCycle as SubscriptionInput["billingCycle"],
+    nextPaymentDate: item.nextPaymentDate,
+    hasTrial: false,
+    trialEndsAt: "",
+    category: item.category ?? "",
+    manageUrl: item.manageUrl ?? "",
+    notes: "",
+    status: "active",
+  };
+}
+
+export type BulkResult =
+  | { ok: true; values: SubscriptionValues[] }
+  | { ok: false; message: string; itemErrors: Record<number, Partial<Record<SubscriptionField, string>>> };
+
+/** Validates a JSON list of quick-start items with the same rules as the single form. */
+export function parseBulkSubscriptions(json: string): BulkResult {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    return { ok: false, message: "Nieprawidłowe dane formularza.", itemErrors: {} };
+  }
+  const list = z.array(bulkItemSchema).min(1).max(MAX_BULK_SUBSCRIPTIONS).safeParse(raw);
+  if (!list.success) {
+    return {
+      ok: false,
+      message: `Wybierz od 1 do ${MAX_BULK_SUBSCRIPTIONS} subskrypcji.`,
+      itemErrors: {},
+    };
+  }
+
+  const values: SubscriptionValues[] = [];
+  const itemErrors: Record<number, Partial<Record<SubscriptionField, string>>> = {};
+  list.data.forEach((item, index) => {
+    const parsed = subscriptionSchema.safeParse(bulkItemToInput(item));
+    if (parsed.success) {
+      values.push(parsed.data);
+      return;
+    }
+    const fieldErrors = z.flattenError(parsed.error).fieldErrors as Partial<Record<SubscriptionField, string[]>>;
+    itemErrors[index] = Object.fromEntries(
+      Object.entries(fieldErrors).map(([field, messages]) => [field, messages?.[0] ?? ""]),
+    );
+  });
+
+  if (Object.keys(itemErrors).length > 0) {
+    return { ok: false, message: "Uzupełnij zaznaczone pola.", itemErrors };
+  }
+  return { ok: true, values };
+}

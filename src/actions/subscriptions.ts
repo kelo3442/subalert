@@ -6,7 +6,9 @@ import { z } from "zod";
 import { isUuid } from "@/lib/data/subscriptions";
 import { requireUser } from "@/lib/data/user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readString } from "@/lib/validation/shared";
 import {
+  parseBulkSubscriptions,
   subscriptionInputFromFormData,
   subscriptionSchema,
   type SubscriptionField,
@@ -136,4 +138,26 @@ export async function deleteSubscription(id: string): Promise<{ error?: string }
   if (error) return { error: "Nie udało się usunąć subskrypcji. Spróbuj ponownie." };
   revalidateApp();
   redirect("/panel/subskrypcje?usunieto=1");
+}
+
+export interface BulkFormState {
+  status: "idle" | "error";
+  message?: string;
+  itemErrors?: Record<number, Partial<Record<SubscriptionField, string>>>;
+}
+
+/** Quick start: adds several subscriptions at once, validated like the single form. */
+export async function createSubscriptionsBulk(_prev: BulkFormState, formData: FormData): Promise<BulkFormState> {
+  const user = await requireUser();
+  const result = parseBulkSubscriptions(readString(formData, "items"));
+  if (!result.ok) return { status: "error", message: result.message, itemErrors: result.itemErrors };
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("subscriptions")
+    .insert(result.values.map((values) => ({ ...toColumns(values), user_id: user.id, cancelled_at: null })));
+  if (error) return { status: "error", message: "Nie udało się zapisać subskrypcji. Spróbuj ponownie." };
+
+  revalidateApp();
+  redirect(`/panel?dodano=${result.values.length}`);
 }

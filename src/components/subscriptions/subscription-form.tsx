@@ -12,7 +12,7 @@ import { cn } from "@/components/ui/cn";
 import { describedBy, Field, Input, Select, Textarea } from "@/components/ui/field";
 import { BILLING_CYCLE_LABELS, BILLING_CYCLES, type BillingCycle } from "@/lib/subscriptions/billing";
 import { CATEGORY_KEYS, CATEGORY_LABELS } from "@/lib/subscriptions/categories";
-import { POPULAR_SERVICES, type PopularService } from "@/lib/subscriptions/popular-services";
+import { FEATURED_SERVICES, type PopularService } from "@/lib/subscriptions/popular-services";
 import {
   subscriptionInputFromFormData,
   subscriptionSchema,
@@ -101,7 +101,7 @@ export function SubscriptionForm({ mode, subscriptionId, initialValues }: Props)
           </h2>
           <p className="mt-0.5 text-xs text-muted">Uzupełnimy nazwę, kategorię i link. Kwotę wpisujesz sam — ceny planów się różnią.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {POPULAR_SERVICES.map((service) => {
+            {FEATURED_SERVICES.map((service) => {
               const selected = values.name === service.name;
               return (
                 <button

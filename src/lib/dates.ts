@@ -57,6 +57,19 @@ export function addMonthsClamped(iso: ISODate, months: number): ISODate {
   return fromUTCDate(new Date(Date.UTC(year, monthIndex, clampedDay)));
 }
 
+/**
+ * The next date (today or later) falling on `dayOfMonth`, clamped to the
+ * month's length — e.g. day 31 in February gives Feb 28/29.
+ */
+export function nextDateForDayOfMonth(today: ISODate, dayOfMonth: number): ISODate {
+  const [y, m, d] = today.split("-").map(Number);
+  const thisMonth = Math.min(dayOfMonth, daysInMonth(y, m - 1));
+  if (thisMonth >= d) return fromUTCDate(new Date(Date.UTC(y, m - 1, thisMonth)));
+  const next = new Date(Date.UTC(y, m, 1));
+  const nextDay = Math.min(dayOfMonth, daysInMonth(next.getUTCFullYear(), next.getUTCMonth()));
+  return fromUTCDate(new Date(Date.UTC(next.getUTCFullYear(), next.getUTCMonth(), nextDay)));
+}
+
 /** Whole days from `from` to `to` (negative when `to` is earlier). */
 export function daysBetween(from: ISODate, to: ISODate): number {
   return Math.round((toUTCDate(to).getTime() - toUTCDate(from).getTime()) / MS_PER_DAY);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deleteAccountSchema, forgotPasswordSchema, loginSchema, newPasswordSchema, registerSchema } from "./auth";
 import { reminderSettingsSchema } from "./settings";
-import { subscriptionInputFromFormData, subscriptionSchema } from "./subscription";
+import { parseBulkSubscriptions, subscriptionInputFromFormData, subscriptionSchema } from "./subscription";
 
 function form(entries: Record<string, string>): FormData {
   const data = new FormData();
@@ -136,5 +136,45 @@ describe("reminderSettingsSchema", () => {
   it("rejects bad values", () => {
     expect(reminderSettingsSchema.safeParse({ remindersEnabled: true, daysBefore: "30", timeZone: "Europe/Warsaw" }).success).toBe(false);
     expect(reminderSettingsSchema.safeParse({ remindersEnabled: true, daysBefore: "3", timeZone: "Mars/Base" }).success).toBe(false);
+  });
+});
+
+describe("parseBulkSubscriptions", () => {
+  const item = { name: "Netflix", amount: "49", billingCycle: "monthly", nextPaymentDate: "2026-10-20", category: "video" };
+
+  it("accepts a valid list", () => {
+    const result = parseBulkSubscriptions(JSON.stringify([item, { ...item, name: "Własna", category: "" }]));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.values).toHaveLength(2);
+      expect(result.values[0]).toMatchObject({ name: "Netflix", amountCents: 4900, status: "active", trialEndsAt: null });
+      expect(result.values[1].category).toBeNull();
+    }
+  });
+
+  it("reports errors per item", () => {
+    const result = parseBulkSubscriptions(
+      JSON.stringify([item, { ...item, amount: "" }, { ...item, name: "", nextPaymentDate: "2026-02-30" }]),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(Object.keys(result.itemErrors)).toEqual(["1", "2"]);
+      expect(result.itemErrors[1].amount).toBe("Podaj kwotę.");
+      expect(result.itemErrors[2].name).toBe("Podaj nazwę usługi.");
+      expect(result.itemErrors[2].nextPaymentDate).toBe("Podaj poprawną datę.");
+    }
+  });
+
+  it("rejects malformed, empty and oversized payloads", () => {
+    expect(parseBulkSubscriptions("not json").ok).toBe(false);
+    expect(parseBulkSubscriptions("[]").ok).toBe(false);
+    expect(parseBulkSubscriptions(JSON.stringify(Array(41).fill(item))).ok).toBe(false);
+    expect(parseBulkSubscriptions(JSON.stringify([{ name: 1 }])).ok).toBe(false);
+  });
+
+  it("cannot smuggle in other fields such as status or user_id", () => {
+    const result = parseBulkSubscriptions(JSON.stringify([{ ...item, status: "cancelled", user_id: "x" }]));
+    expect(result.ok && result.values[0].status).toBe("active");
+    expect(result.ok && "user_id" in result.values[0]).toBe(false);
   });
 });
