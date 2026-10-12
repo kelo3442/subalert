@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { PASSWORD_PAGE } from "@/lib/auth-confirm";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { getSiteUrl, isSupabaseConfigured } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
@@ -84,7 +85,6 @@ export async function signUp(
   };
 }
 
-const PASSWORD_PAGE = "/panel/ustawienia/haslo";
 
 export async function requestPasswordReset(
   _prev: FormState<ForgotPasswordField>,

@@ -10,6 +10,9 @@ export const metadata: Metadata = { title: "Logowanie" };
 
 const NOTICES: Record<string, string> = {
   link: "Link jest nieprawidłowy lub wygasł. Zaloguj się albo poproś o nowy link.",
+  potwierdzono: "Adres e-mail został potwierdzony. Zaloguj się, aby przejść do panelu.",
+  "inna-przegladarka":
+    "Otwórz link w tej samej przeglądarce, w której prosiłeś o reset hasła, albo poproś o nowy link.",
   "konto-usuniete": "Twoje konto i wszystkie dane zostały usunięte.",
 };
 
