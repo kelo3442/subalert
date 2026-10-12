@@ -1,13 +1,14 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, LoaderCircle, Plus, Search, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileSearch, LoaderCircle, MousePointerClick, Plus, Search, ShieldCheck } from "lucide-react";
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { createSubscriptionsBulk, type BulkFormState } from "@/actions/subscriptions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { nextDateForDayOfMonth, type ISODate } from "@/lib/dates";
-import { formatPLN, parseAmountToCents } from "@/lib/money";
+import type { RecurringCandidate } from "@/lib/import/recurring";
+import { centsToInputValue, formatPLN, parseAmountToCents } from "@/lib/money";
 import { totalCosts } from "@/lib/subscriptions/billing";
 import { CATEGORY_KEYS, CATEGORY_LABELS } from "@/lib/subscriptions/categories";
 import { POPULAR_SERVICES, type PopularService } from "@/lib/subscriptions/popular-services";
@@ -17,6 +18,7 @@ import {
   type BulkSubscriptionItem,
   type SubscriptionField,
 } from "@/lib/validation/subscription";
+import { BankImport } from "./bank-import";
 import { QuickStartItem } from "./quick-start-item";
 import { ServiceTile } from "./service-tile";
 import type { QuickStartEntry } from "./types";
@@ -43,7 +45,7 @@ function toItem(entry: QuickStartEntry, today: ISODate): BulkSubscriptionItem {
 
 export function QuickStart({ today, existingNames }: { today: ISODate; existingNames: string[] }) {
   const [state, formAction, isPending] = useActionState(createSubscriptionsBulk, initialState);
-  const [step, setStep] = useState<"pick" | "details">("pick");
+  const [step, setStep] = useState<"choose" | "pick" | "import" | "details">("choose");
   const [entries, setEntries] = useState<QuickStartEntry[]>([]);
   const [query, setQuery] = useState("");
   const [customCount, setCustomCount] = useState(0);
@@ -100,6 +102,28 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
     setStep("details");
   };
 
+  const addImported = (candidates: RecurringCandidate[]) => {
+    const taken = new Set(entries.map((entry) => normalize(entry.name)));
+    const imported = candidates
+      .filter((candidate) => !taken.has(normalize(candidate.name)))
+      .map(
+        (candidate): QuickStartEntry => ({
+          key: `import-${candidate.key}`,
+          name: candidate.name,
+          category: candidate.category,
+          manageUrl: candidate.manageUrl,
+          // Names guessed from bank descriptions stay editable.
+          custom: !candidate.knownService,
+          amount: centsToInputValue(candidate.amountCents),
+          cycle: candidate.cycle,
+          day: candidate.cycle === "monthly" ? String(Number(candidate.nextPaymentDate.slice(8, 10))) : "",
+          date: candidate.cycle === "monthly" ? "" : candidate.nextPaymentDate,
+        }),
+      );
+    setEntries([...entries, ...imported].slice(0, MAX_BULK_SUBSCRIPTIONS));
+    setStep("details");
+  };
+
   const update = (key: string, patch: Partial<QuickStartEntry>) => {
     setEntries((current) => current.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)));
     setClientErrors(null);
@@ -138,6 +162,58 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
       )}
     </p>
   );
+
+  if (step === "choose") {
+    const choiceClass =
+      "group flex flex-col items-start gap-3 rounded-2xl border border-line bg-surface p-5 text-left transition-colors hover:border-accent/50 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-3 md:grid-cols-2">
+          <button type="button" className={choiceClass} onClick={() => setStep("pick")}>
+            <span className="grid size-11 place-items-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
+              <MousePointerClick className="size-5" aria-hidden />
+            </span>
+            <span className="text-lg font-semibold text-fg">Wybiorę sam</span>
+            <span className="text-sm leading-relaxed text-muted">
+              Zaznacz usługi z listy ok. 30 popularnych (Netflix, Spotify, siłownia, telefon…) i wpisz kwoty. Około minuty.
+            </span>
+            <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-accent">
+              Zaczynam <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </span>
+          </button>
+          <button type="button" className={choiceClass} onClick={() => setStep("import")}>
+            <span className="grid size-11 place-items-center rounded-xl border border-accent/25 bg-accent/10 text-accent">
+              <FileSearch className="size-5" aria-hidden />
+            </span>
+            <span className="text-lg font-semibold text-fg">Znajdź w historii konta</span>
+            <span className="text-sm leading-relaxed text-muted">
+              Wgraj plik CSV pobrany z bankowości internetowej, a wykryjemy powtarzające się płatności — także te, o
+              których zapomniałeś. Bez logowania do banku.
+            </span>
+            <span className="mt-auto inline-flex items-center gap-1 text-sm font-medium text-accent">
+              Wgraj plik <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </span>
+          </button>
+        </div>
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-subtle">
+          <ShieldCheck className="mt-px size-4 shrink-0 text-accent" aria-hidden />
+          SubAlert nie łączy się z Twoim bankiem ani skrzynką e-mail. Plik z historią analizujemy wyłącznie w
+          przeglądarce i nigdzie go nie wysyłamy. Zapisujemy tylko to, co zatwierdzisz.
+        </p>
+      </div>
+    );
+  }
+
+  if (step === "import") {
+    return (
+      <BankImport
+        today={today}
+        isExisting={(name) => existing.has(normalize(name))}
+        onConfirm={addImported}
+        onManual={() => setStep("pick")}
+      />
+    );
+  }
 
   if (step === "pick") {
     return (
@@ -187,7 +263,10 @@ export function QuickStart({ today, existingNames }: { today: ISODate; existingN
 
         <p className="flex items-start gap-2 text-xs leading-relaxed text-subtle">
           <ShieldCheck className="mt-px size-4 shrink-0 text-accent" aria-hidden />
-          Nie potrzebujemy dostępu do banku ani skrzynki e-mail. Zapisujemy tylko to, co tu wybierzesz.
+          Nie potrzebujemy dostępu do banku ani skrzynki e-mail. Zapisujemy tylko to, co tu wybierzesz.{" "}
+          <button type="button" onClick={() => setStep("import")} className="text-accent hover:underline">
+            Masz plik z historią konta?
+          </button>
         </p>
 
         <div className="sticky bottom-20 z-10 flex items-center justify-between gap-3 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl lg:bottom-4">

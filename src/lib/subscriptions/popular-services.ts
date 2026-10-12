@@ -11,6 +11,38 @@ export interface PopularService {
   featured?: boolean;
 }
 
+/** How each service usually appears in bank transaction descriptions. */
+const BANK_PATTERNS: Record<string, RegExp> = {
+  Netflix: /netflix/,
+  "Spotify Premium": /spotify/,
+  "YouTube Premium": /youtube/,
+  "ChatGPT Plus": /openai|chatgpt/,
+  "Claude Pro": /anthropic|claude\.ai/,
+  "Disney+": /disney/,
+  "HBO Max": /hbo ?max|hbomax/,
+  "Amazon Prime": /amazon ?prime|prime ?video|amzn.{0,20}prime/,
+  "Apple (iCloud+, Music, TV+)": /apple\.com|itunes/,
+  "Google One": /google ?one|google ?storage/,
+  "Microsoft 365": /microsoft ?365|office ?365/,
+  "Xbox Game Pass": /xbox/,
+  "Adobe Creative Cloud": /adobe/,
+  Dropbox: /dropbox/,
+  Tidal: /tidal/,
+  "Canva Pro": /canva/,
+  "PlayStation Plus": /playstation|sony interactive/,
+  "Discord Nitro": /discord/,
+  "Canal+ Online": /canal ?\+|canal ?plus/,
+  Player: /player\.pl/,
+  SkyShowtime: /skyshowtime/,
+  Audioteka: /audioteka/,
+  Storytel: /storytel/,
+  Legimi: /legimi/,
+  "Empik Go": /empik ?go/,
+  "Allegro Smart!": /allegro ?smart/,
+  "Duolingo Super": /duolingo/,
+  Midjourney: /midjourney/,
+};
+
 const APP_STORE_NOTE =
   "Jeśli płacisz przez App Store lub Google Play, anulujesz w ustawieniach subskrypcji sklepu, a nie w samej usłudze.";
 
@@ -157,4 +189,11 @@ export const GENERIC_CANCEL_STEPS = [
 export function findPopularService(name: string): PopularService | undefined {
   const normalized = name.trim().toLowerCase();
   return POPULAR_SERVICES.find((service) => service.name.toLowerCase() === normalized);
+}
+
+/** Recognises a known service in a bank transaction description. */
+export function matchServiceInDescription(description: string): PopularService | undefined {
+  const text = description.toLocaleLowerCase("pl");
+  const name = Object.keys(BANK_PATTERNS).find((key) => BANK_PATTERNS[key].test(text));
+  return name ? POPULAR_SERVICES.find((service) => service.name === name) : undefined;
 }

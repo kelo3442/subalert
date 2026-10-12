@@ -16,10 +16,10 @@ export default async function QuickStartPage() {
       <PageHeader
         title={
           <span className="flex items-center gap-2">
-            <Zap className="size-6 text-accent" aria-hidden /> Z czego korzystasz?
+            <Zap className="size-6 text-accent" aria-hidden /> Dodaj swoje subskrypcje
           </span>
         }
-        description="Zaznacz usługi, za które płacisz cyklicznie. W następnym kroku wpiszesz kwoty — zobaczysz od razu, ile to rocznie."
+        description="Zaznacz usługi z listy albo znajdź je w historii konta. Na koniec zobaczysz, ile wydajesz miesięcznie i rocznie."
       />
       <QuickStart
         today={todayInTimeZone(profile.timeZone)}
