@@ -115,6 +115,10 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      delete_own_account: {
+        Args: Record<never, never>;
+        Returns: undefined;
+      };
       claim_reminder: {
         Args: { p_reminder_id: string };
         Returns: ReminderRow[];

@@ -1,8 +1,11 @@
-import { BellRing, CircleCheck, CircleDashed, UserRound } from "lucide-react";
+import { BellRing, CircleCheck, CircleDashed, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import type { Metadata } from "next";
+import { DeleteAccountForm } from "@/components/app/delete-account-form";
 import { PageHeader } from "@/components/app/page-header";
 import { ReminderSettingsForm } from "@/components/app/reminder-settings-form";
 import { SignOutButton } from "@/components/app/sign-out-button";
+import { Alert } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getEmailConfig } from "@/lib/email/resend";
 import { getUserProfile } from "@/lib/data/user";
@@ -16,13 +19,18 @@ function timeZoneOptions(current: string): string[] {
   return [...new Set([current, ...PREFERRED_ZONES, ...all])];
 }
 
-export default async function SettingsPage() {
-  const profile = await getUserProfile();
+export default async function SettingsPage({ searchParams }: PageProps<"/panel/ustawienia">) {
+  const [profile, params] = await Promise.all([getUserProfile(), searchParams]);
   const emailEnabled = getEmailConfig() !== null;
 
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title="Ustawienia" />
+      {params.haslo === "zmienione" && (
+        <Alert tone="success" className="mb-4">
+          Hasło zostało zmienione.
+        </Alert>
+      )}
       <div className="flex flex-col gap-4">
         <Card>
           <CardHeader icon={<BellRing className="size-5" aria-hidden />} title="Przypomnienia" description="Przypomnienie nie anuluje subskrypcji — tylko daje Ci czas na decyzję." />
@@ -56,8 +64,22 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader icon={<UserRound className="size-5" aria-hidden />} title="Konto" description={profile.email} />
-          <div className="p-3">
+          <div className="flex flex-col gap-1 p-3">
+            <ButtonLink href="/panel/ustawienia/haslo" variant="ghost" className="justify-start px-3">
+              <KeyRound className="size-[18px]" aria-hidden /> Zmień hasło
+            </ButtonLink>
             <SignOutButton />
+          </div>
+        </Card>
+
+        <Card className="border-danger/25">
+          <CardHeader
+            icon={<TriangleAlert className="size-5 text-danger" aria-hidden />}
+            title="Usunięcie konta"
+            description="Trwale usuwa konto i wszystkie dane z SubAlert. Nie anuluje usług u dostawców."
+          />
+          <div className="p-5">
+            <DeleteAccountForm />
           </div>
         </Card>
       </div>

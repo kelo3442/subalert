@@ -134,5 +134,32 @@ do $$ begin
   end;
 end $$;
 
+-- Account deletion removes only the caller and cascades to their data.
+reset role;
+set role anon;
+select set_config('request.jwt.claim.sub', '', false);
+do $$ begin
+  begin
+    perform public.delete_own_account();
+    raise exception 'FAIL: anon called delete_own_account';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'bob', false);
+select public.delete_own_account();
+
+reset role;
+do $$ begin
+  assert (select count(*) from auth.users) = 1, 'FAIL: wrong number of users after deletion';
+  assert not exists (select from auth.users where id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob still exists';
+  assert exists (select from auth.users where id = '00000000-0000-0000-0000-00000000000a'), 'FAIL: alice was deleted';
+  assert not exists (select from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob data left behind';
+  assert not exists (select from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob profile left behind';
+  assert exists (select from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000a'), 'FAIL: alice data deleted';
+end $$;
+
 reset role;
 \echo 'RLS tests passed'

@@ -8,6 +8,7 @@ const MESSAGES: Record<string, string> = {
   over_email_send_rate_limit: "Wysłaliśmy już kilka wiadomości. Spróbuj ponownie za kilka minut.",
   over_request_rate_limit: "Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.",
   signup_disabled: "Rejestracja jest obecnie wyłączona.",
+  same_password: "Nowe hasło musi różnić się od obecnego.",
   email_address_invalid: "Ten adres e-mail nie jest akceptowany. Użyj innego adresu.",
 };
 

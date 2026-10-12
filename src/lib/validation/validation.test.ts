@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, registerSchema } from "./auth";
+import { deleteAccountSchema, forgotPasswordSchema, loginSchema, newPasswordSchema, registerSchema } from "./auth";
 import { reminderSettingsSchema } from "./settings";
 import { subscriptionInputFromFormData, subscriptionSchema } from "./subscription";
 
@@ -102,6 +102,27 @@ describe("auth schemas", () => {
       passwordConfirm: "innehaslo",
     });
     expect(mismatch.error?.issues[0].path).toEqual(["passwordConfirm"]);
+  });
+});
+
+describe("password and account schemas", () => {
+  it("validates the forgot-password e-mail", () => {
+    expect(forgotPasswordSchema.safeParse({ email: " jan@example.pl " }).data).toEqual({ email: "jan@example.pl" });
+    expect(forgotPasswordSchema.safeParse({ email: "" }).success).toBe(false);
+  });
+
+  it("requires a strong, confirmed new password", () => {
+    expect(newPasswordSchema.safeParse({ password: "noweHaslo1", passwordConfirm: "noweHaslo1" }).success).toBe(true);
+    expect(newPasswordSchema.safeParse({ password: "krotkie", passwordConfirm: "krotkie" }).success).toBe(false);
+    expect(newPasswordSchema.safeParse({ password: "noweHaslo1", passwordConfirm: "inne" }).error?.issues[0].path).toEqual([
+      "passwordConfirm",
+    ]);
+  });
+
+  it("requires typing the confirmation word to delete the account", () => {
+    expect(deleteAccountSchema.safeParse({ confirmation: "USUŃ" }).success).toBe(true);
+    expect(deleteAccountSchema.safeParse({ confirmation: " usuń " }).success).toBe(true);
+    expect(deleteAccountSchema.safeParse({ confirmation: "tak" }).success).toBe(false);
   });
 });
 

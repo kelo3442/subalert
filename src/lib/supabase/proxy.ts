@@ -4,7 +4,7 @@ import { getSupabasePublicEnv } from "@/lib/env";
 import type { Database } from "./database.types";
 
 const PROTECTED_PREFIX = "/panel";
-const AUTH_PAGES = ["/logowanie", "/rejestracja"];
+const AUTH_PAGES = ["/logowanie", "/rejestracja", "/zapomnialem-hasla"];
 
 /** Refreshes the auth session cookie and guards the app routes. */
 export async function updateSession(request: NextRequest) {

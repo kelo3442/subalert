@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signIn } from "@/actions/auth";
 import type { FormState } from "@/actions/form-state";
@@ -43,7 +44,10 @@ export function LoginForm({ next, notice }: { next?: string; notice?: string }) 
           aria-describedby={describedBy("password", errors.password)}
         />
       </Field>
-      <SubmitButton size="lg" className="mt-2 w-full" pendingText="Logowanie…">
+      <Link href="/zapomnialem-hasla" className="-mt-1 self-end text-sm text-accent hover:underline">
+        Nie pamiętasz hasła?
+      </Link>
+      <SubmitButton size="lg" className="w-full" pendingText="Logowanie…">
         Zaloguj się
       </SubmitButton>
     </form>

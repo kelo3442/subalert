@@ -24,7 +24,7 @@ przypomnienia e-mail przed obciążeniem.
 | Obszar | Co działa |
 | --- | --- |
 | Landing | Hero, funkcje, kalkulator kosztów bez rejestracji, sekcja o przypomnieniach, FAQ |
-| Konto | Rejestracja, logowanie, wylogowanie (Supabase Auth), potwierdzenie e-mail, bezpieczne przekierowanie `?next=` |
+| Konto | Rejestracja, logowanie, wylogowanie (Supabase Auth), potwierdzenie e-mail, bezpieczne przekierowanie `?next=`, reset hasła e-mailem, zmiana hasła, usunięcie konta wraz z danymi |
 | Pulpit | Suma miesięczna i roczna, liczba aktywnych, najbliższa płatność, nadchodzące odnowienia (30 dni), wydatki wg kategorii, lista subskrypcji |
 | Subskrypcje | Dodawanie (szybki wybór popularnych usług lub własna), edycja, usuwanie z potwierdzeniem, filtr aktywne/anulowane |
 | Trial Guard | Data końca okresu próbnego, liczba dni do końca, wyróżnienie w panelu, komunikat, że przypomnienie nie anuluje usługi |
@@ -78,18 +78,24 @@ Nigdy nie dodawaj prefiksu `NEXT_PUBLIC_` do kluczy sekretnych.
 ## Konfiguracja Supabase
 
 1. Załóż projekt na https://supabase.com (region np. `eu-central-1` — Frankfurt).
-2. **Schemat bazy** — uruchom migrację jednym ze sposobów:
-   - *SQL Editor* w panelu Supabase → wklej i uruchom zawartość `supabase/migrations/20261012000000_init.sql`, albo
+2. **Schemat bazy** — uruchom migracje (po kolei) jednym ze sposobów:
+   - *SQL Editor* w panelu Supabase → wklej i uruchom zawartość każdego pliku z `supabase/migrations/`
+     w kolejności nazw (`20261012000000_init.sql`, potem `20261013000000_delete_own_account.sql`), albo
    - Supabase CLI: `npx supabase link --project-ref <ref>` i `npx supabase db push`.
 3. **Klucze** — *Project Settings → API Keys*: skopiuj URL, klucz publishable (do `.env.local`) oraz secret
    (tylko jeśli uruchamiasz przypomnienia).
 4. **Auth → URL Configuration**:
    - *Site URL*: `http://localhost:3000` lokalnie, a na produkcji adres z Vercel.
-   - *Redirect URLs*: dodaj `http://localhost:3000/auth/confirm` oraz `https://<twoja-domena>/auth/confirm`.
+   - *Redirect URLs*: dodaj `http://localhost:3000/**` oraz `https://<twoja-domena>/**`
+     (linki z e-maili prowadzą do `/auth/confirm?next=…`, więc potrzebny jest wzorzec z `**`).
 5. **Auth → Providers → Email**: zostaw włączone. Przy włączonym „Confirm email” użytkownik po rejestracji
    dostaje link aktywacyjny prowadzący do `/auth/confirm`. Domyślny serwer pocztowy Supabase ma niskie limity —
    na produkcji skonfiguruj własny SMTP (*Auth → SMTP Settings*, np. ten sam Resend).
 6. Opcjonalnie: *Auth → Policies* → minimalna długość hasła 8 znaków (aplikacja i tak to wymusza).
+7. Opcjonalnie: *Auth → Email Templates → Reset Password* — domyślny link działa, gdy użytkownik otworzy go
+   w tej samej przeglądarce, w której poprosił o reset. Aby działał też na innym urządzeniu, zamień link na:
+   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/panel/ustawienia/haslo`
+   (analogicznie dla *Confirm signup*: `type=email&next=/panel`).
 
 ### Model danych
 
@@ -98,6 +104,8 @@ Nigdy nie dodawaj prefiksu `NEXT_PUBLIC_` do kluczy sekretnych.
 - `subscriptions` — subskrypcje. Kwoty w groszach (`amount_cents`), waluta wyłącznie PLN, cykle
   `weekly|monthly|quarterly|yearly`, `next_payment_date` jako data (bez godziny), opcjonalne
   `trial_ends_at`, `category`, `manage_url` (tylko `http(s)://`), status `active|cancelled`.
+- `delete_own_account()` — funkcja, przez którą zalogowany użytkownik usuwa wyłącznie własne konto
+  (kaskadowo znikają profil, subskrypcje i przypomnienia).
 - `reminders` — dziennik wysyłek; unikalny klucz `(subscription_id, kind, event_date)` gwarantuje, że
   przypomnienie o danym terminie trafi do skrzynki najwyżej raz. Użytkownik może je tylko czytać.
 
@@ -145,7 +153,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
 
 ## Testy
 
-- `npm test` — 91 testów jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
+- `npm test` — 94 testy jednostkowych: koszty i cykle, przesuwanie dat (koniec miesiąca, lata przestępne,
   przełom roku, DST), okresy próbne, harmonogram i deduplikacja przypomnień, strefy czasowe, walidacja
   formularzy, kwoty, bezpieczne przekierowania, mapowanie błędów Auth, szablon e-maila (escapowanie HTML).
 - `supabase/tests/rls.test.sql` — test izolacji danych (RLS) na czystym PostgreSQL. Uruchomienie lokalne
@@ -155,6 +163,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
   createdb subalert_test
   psql -d subalert_test -f supabase/tests/auth_stub.sql
   psql -d subalert_test -f supabase/migrations/20261012000000_init.sql
+  psql -d subalert_test -f supabase/migrations/20261013000000_delete_own_account.sql
   psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 
@@ -163,7 +172,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<twoja-domena>/api/cron/rem
 ```
 src/
   actions/           Server Actions (auth, subskrypcje, ustawienia)
-  app/               trasy: / , /logowanie, /rejestracja, /panel/*, /auth/confirm, /api/cron/reminders
+  app/               trasy: / , /logowanie, /rejestracja, /zapomnialem-hasla, /panel/*, /auth/confirm, /api/cron/reminders
   components/        ui/ (prymitywy), landing/, app/ (panel), subscriptions/, auth/
   lib/
     dates.ts, money.ts             daty bez godzin (UTC), kwoty w groszach
@@ -180,10 +189,9 @@ supabase/
 
 ## Ograniczenia i kolejne kroki
 
-- Brak resetu hasła („Nie pamiętam hasła”) i zmiany adresu e-mail w aplikacji.
+- Brak zmiany adresu e-mail w aplikacji; zmiana hasła nie wymaga podania obecnego hasła (domyślne zachowanie Supabase).
 - Tylko waluta PLN; tylko jasno określone cykle (bez np. co 2 miesiące).
-- Brak eksportu danych i usuwania konta z poziomu aplikacji (można usunąć użytkownika w panelu Supabase —
-  dane kaskadowo znikną).
+- Brak eksportu danych.
 - Interfejs ma tylko motyw ciemny.
 - Linki i instrukcje anulowania dla popularnych usług są ogólne; dostawcy zmieniają swoje strony, więc warto
   je okresowo weryfikować (`src/lib/subscriptions/popular-services.ts`).

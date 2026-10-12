@@ -9,7 +9,8 @@ import { safeRedirectPath } from "@/lib/safe-redirect";
 export const metadata: Metadata = { title: "Logowanie" };
 
 const NOTICES: Record<string, string> = {
-  link: "Link aktywacyjny jest nieprawidłowy lub wygasł. Zaloguj się albo zarejestruj ponownie.",
+  link: "Link jest nieprawidłowy lub wygasł. Zaloguj się albo poproś o nowy link.",
+  "konto-usuniete": "Twoje konto i wszystkie dane zostały usunięte.",
 };
 
 export default async function LoginPage({ searchParams }: PageProps<"/logowanie">) {
@@ -17,7 +18,8 @@ export default async function LoginPage({ searchParams }: PageProps<"/logowanie"
 
   const params = await searchParams;
   const next = typeof params.next === "string" ? safeRedirectPath(params.next) : undefined;
-  const notice = typeof params.blad === "string" ? NOTICES[params.blad] : undefined;
+  const noticeKey = typeof params.blad === "string" ? params.blad : typeof params.info === "string" ? params.info : "";
+  const notice = NOTICES[noticeKey];
 
   return (
     <AuthCard
