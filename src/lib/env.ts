@@ -26,6 +26,14 @@ export function getSiteUrl(): string {
   return withProtocol.replace(/\/$/, "");
 }
 
+/**
+ * Premium can be bought only after the operator switches sales on. Until then
+ * the app shows Premium as "coming soon" and collects a waitlist.
+ */
+export function isPremiumSalesOpen(): boolean {
+  return process.env.NEXT_PUBLIC_PREMIUM_SALES_ENABLED === "true";
+}
+
 /** Show "Sign in with Google" only once the provider is enabled in Supabase. */
 export function isGoogleAuthEnabled(): boolean {
   return process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED === "true";

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data/user";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, isPremiumSalesOpen } from "@/lib/env";
 import { PREMIUM_PLANS, type PremiumPlan } from "@/lib/premium/plan";
 import { createCheckoutSession, createPortalSession, getStripeConfig } from "@/lib/premium/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -15,6 +15,7 @@ async function stripeCustomerId(userId: string): Promise<string | null> {
 
 export async function startCheckout(plan: PremiumPlan): Promise<void> {
   const user = await requireUser();
+  if (!isPremiumSalesOpen()) redirect("/panel/premium");
   const config = getStripeConfig();
   if (!config || !(plan in PREMIUM_PLANS)) redirect("/panel/premium?blad=konfiguracja");
 
@@ -49,4 +50,20 @@ export async function openBillingPortal(): Promise<void> {
     redirect("/panel/premium?blad=platnosc");
   }
   redirect(url);
+}
+
+/** "Tell me when Premium launches": a timestamp in the user's own auth metadata. */
+export async function joinPremiumWaitlist(): Promise<void> {
+  const user = await requireUser();
+  if (!user.premiumWaitlist) {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.updateUser({
+      data: { premium_waitlist_at: new Date().toISOString() },
+    });
+    if (error) {
+      console.error("Premium waitlist failed", error.message);
+      redirect("/panel/premium?blad=lista");
+    }
+  }
+  redirect("/panel/premium?lista=ok");
 }

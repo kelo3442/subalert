@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Polityka prywatności" };
 
 const PROCESSORS = [
   ["Supabase", "baza danych, logowanie i przechowywanie kont"],
-  ["Vercel", "hosting aplikacji"],
+  ["Vercel", "hosting aplikacji i anonimowe statystyki odwiedzin (Vercel Web Analytics)"],
   ["Stripe", "obsługa płatności za Premium (dane karty trafiają wyłącznie do Stripe)"],
   ["Resend", "wysyłka przypomnień e-mail"],
   ["Postmark", "odbiór wiadomości przekazywanych do automatycznego dodawania (tylko w Premium, jeśli z niego korzystasz)"],
@@ -36,6 +36,12 @@ export default function PrivacyPage() {
           </li>
           <li>Dane płatności (Premium): status planu, daty ważności oraz identyfikatory klienta i subskrypcji w Stripe. Numerów kart nie otrzymujemy.</li>
           <li>Dane techniczne: adres IP i informacje o przeglądarce w logach serwera, niezbędne do działania i zabezpieczenia Serwisu.</li>
+          <li>
+            Statystyki odwiedzin: odwiedzona podstrona (bez parametrów i identyfikatorów), strona, z której przyszedłeś, kraj oraz typ
+            urządzenia i przeglądarki. Statystyki są zbiorcze i anonimowe — nie używają plików cookies i nie pozwalają nam rozpoznać,
+            kim jesteś.
+          </li>
+          <li>Lista chętnych na Premium: data zapisu, jeśli klikniesz „Powiadom mnie”. Wypiszesz się, pisząc do nas.</li>
         </List>
       </Section>
 
@@ -44,6 +50,8 @@ export default function PrivacyPage() {
           <li>Prowadzenie konta i świadczenie usług, w tym przypomnień i Premium — art. 6 ust. 1 lit. b RODO (umowa).</li>
           <li>Rozliczenia i obowiązki podatkowo-księgowe — art. 6 ust. 1 lit. c RODO (obowiązek prawny).</li>
           <li>Zapewnienie bezpieczeństwa, zapobieganie nadużyciom oraz ustalanie i dochodzenie roszczeń — art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes).</li>
+          <li>Anonimowe statystyki odwiedzin, służące ulepszaniu Serwisu — art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes).</li>
+          <li>Powiadomienie o starcie Premium, jeśli o nie poprosisz — art. 6 ust. 1 lit. a RODO (zgoda, którą możesz wycofać w każdej chwili).</li>
         </List>
         <p>Podanie adresu e-mail jest niezbędne do założenia konta. Nie podejmujemy decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu, w tym profilowania, wywołujących skutki prawne.</p>
       </Section>
@@ -84,7 +92,7 @@ export default function PrivacyPage() {
       <Section title="7. Pliki cookies">
         <p>
           Używamy wyłącznie niezbędnych plików cookies, które utrzymują Twoją sesję logowania. Nie używamy cookies reklamowych ani
-          analitycznych firm trzecich. Cookies możesz usunąć w ustawieniach przeglądarki — spowoduje to wylogowanie.
+          analitycznych — statystyki odwiedzin działają bez cookies. Cookies możesz usunąć w ustawieniach przeglądarki — spowoduje to wylogowanie.
         </p>
       </Section>
 

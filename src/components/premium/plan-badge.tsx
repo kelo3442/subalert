@@ -2,11 +2,16 @@ import { Crown } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/components/ui/cn";
 import type { PlanStatus } from "@/lib/data/plan";
+import { isPremiumSalesOpen } from "@/lib/env";
 
 /** Current plan with a link to /panel/premium — compact in the sidebar, a card in settings. */
 export function PlanBadge({ plan, variant = "compact" }: { plan: PlanStatus; variant?: "compact" | "card" }) {
   const label = plan.premium ? "Premium" : `Plan darmowy · ${plan.activeCount}/${plan.limit}`;
-  const hint = plan.premium ? "Bez limitu pozycji" : "Przejdź na Premium — bez limitu";
+  const hint = plan.premium
+    ? "Bez limitu pozycji"
+    : isPremiumSalesOpen()
+      ? "Przejdź na Premium — bez limitu"
+      : "Premium bez limitu — wkrótce";
   return (
     <Link
       href="/panel/premium"

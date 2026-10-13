@@ -192,11 +192,15 @@ w ustawieniach wygenerować nowy adres, co unieważnia stary.
    zdefiniowane w kodzie (`src/lib/premium/plan.ts`) — nie trzeba tworzyć produktów w Stripe.
 6. Testy: klucze `sk_test_...` i karta `4242 4242 4242 4242`; lokalnie webhooki przekażesz poleceniem
    `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
+7. Sprzedaż włącza `NEXT_PUBLIC_PREMIUM_SALES_ENABLED=true` (potem nowy deploy). Bez tej zmiennej Premium jest
+   pokazywane jako „wkrótce”: nie da się go kupić, a zalogowani mogą kliknąć „Powiadom mnie”. Zapis trafia do metadanych
+   konta (`premium_waitlist_at`); listę chętnych zobaczysz w Supabase → SQL Editor:
+   `select email, raw_user_meta_data->>'premium_waitlist_at' as zapis from auth.users where raw_user_meta_data ? 'premium_waitlist_at' order by 2;`
 
 Webhook weryfikuje podpis Stripe (HMAC, tolerancja 5 minut), każde zdarzenie przetwarza raz (tabela `stripe_events`)
 i tylko on może nadać Premium — użytkownik nie może zmienić `premium_until` w bazie.
 
-Przed uruchomieniem sprzedaży potrzebne są też **regulamin** i **polityka prywatności** (nie są częścią tego repozytorium).
+Webhook przy zdarzeniach subskrypcji pobiera jej aktualny stan ze Stripe, więc kolejność zdarzeń nie ma znaczenia.
 
 ## Regulamin i polityka prywatności
 
@@ -205,6 +209,12 @@ Strony `/regulamin` i `/prywatnosc` są gotowe; dane sprzedawcy/administratora p
 (dzięki temu dane osobowe nie trafiają do repozytorium). Dopóki nie są ustawione, strony pokazują komunikat
 „Dokument w przygotowaniu”. Treść to rzetelny wzór oparty na polskich przepisach, ale przed rozpoczęciem sprzedaży
 warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia akceptacji regulaminu (sprawdzane też na serwerze).
+
+## Statystyki odwiedzin
+
+Aplikacja ma wbudowane [Vercel Web Analytics](https://vercel.com/docs/analytics): bez cookies, bez parametrów adresu
+i identyfikatorów z panelu. Włączasz je w Vercel → projekt → **Analytics → Enable**; dane pojawiają się po kolejnym
+deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
 
 ## Wdrożenie na Vercel
 

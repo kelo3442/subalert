@@ -1,3 +1,5 @@
+import { isPremiumSalesOpen } from "@/lib/env";
+
 /** Active subscriptions allowed on the free plan. Keep in sync with the SQL trigger. */
 export const FREE_PLAN_LIMIT = 3;
 
@@ -7,7 +9,9 @@ export const PREMIUM_PLANS = {
 } as const;
 export type PremiumPlan = keyof typeof PREMIUM_PLANS;
 
-export const FREE_PLAN_LIMIT_MESSAGE = `Darmowy plan obejmuje ${FREE_PLAN_LIMIT} aktywne pozycje. Przejdź na Premium, aby dodać więcej bez limitu.`;
+export const FREE_PLAN_LIMIT_MESSAGE = isPremiumSalesOpen()
+  ? `Darmowy plan obejmuje ${FREE_PLAN_LIMIT} aktywne pozycje. Przejdź na Premium, aby dodać więcej bez limitu.`
+  : `Darmowy plan obejmuje ${FREE_PLAN_LIMIT} aktywne pozycje. Premium bez limitu będzie dostępne wkrótce — zapisz się, a damy Ci znać.`;
 
 export function isPremiumActive(premiumUntil: string | null, now: Date = new Date()): boolean {
   return premiumUntil !== null && new Date(premiumUntil).getTime() > now.getTime();

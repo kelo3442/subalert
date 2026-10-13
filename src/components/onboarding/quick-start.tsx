@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { nextDateForDayOfMonth, type ISODate } from "@/lib/dates";
+import { isPremiumSalesOpen } from "@/lib/env";
 import type { RecurringCandidate } from "@/lib/import/recurring";
 import { centsToInputValue, formatPLN, parseAmountToCents } from "@/lib/money";
 import { totalCosts } from "@/lib/subscriptions/billing";
@@ -180,7 +181,7 @@ export function QuickStart({
     const json = JSON.stringify(items);
     if (overLimit) {
       setClientErrors({
-        message: `Darmowy plan pozwala dodać jeszcze ${freeSlots} ${itemsWord(freeSlots)}. Usuń nadmiarowe albo przejdź na Premium.`,
+        message: `Darmowy plan pozwala dodać jeszcze ${freeSlots} ${itemsWord(freeSlots)}. ${isPremiumSalesOpen() ? "Usuń nadmiarowe albo przejdź na Premium." : "Usuń nadmiarowe — Premium bez limitu będzie dostępne wkrótce."}`,
         itemErrors: {},
         upgrade: true,
       });
@@ -365,7 +366,7 @@ export function QuickStart({
           {errors.message}
           {errors.upgrade && (
             <Link href="/panel/premium" className="mt-2 block font-semibold underline underline-offset-2">
-              Przejdź na Premium — 9,99 zł/mies. lub 79 zł/rok
+              {isPremiumSalesOpen() ? "Przejdź na Premium — 9,99 zł/mies. lub 79 zł/rok" : "Premium bez limitu — wkrótce"}
             </Link>
           )}
         </Alert>

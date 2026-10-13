@@ -1,4 +1,7 @@
 import { ChevronDown } from "lucide-react";
+import { isPremiumSalesOpen } from "@/lib/env";
+
+const premiumOpen = isPremiumSalesOpen();
 
 const QUESTIONS = [
   {
@@ -35,7 +38,9 @@ const QUESTIONS = [
   },
   {
     q: "Ile to kosztuje?",
-    a: "Plan darmowy obejmuje 3 subskrypcje lub rachunki ze wszystkimi podstawowymi funkcjami. Premium kosztuje 9,99 zł miesięcznie albo 79 zł za rok i daje brak limitu oraz automatyczne dodawanie z e-maili.",
+    a: premiumOpen
+      ? "Plan darmowy obejmuje 3 subskrypcje lub rachunki ze wszystkimi podstawowymi funkcjami. Premium kosztuje 9,99 zł miesięcznie albo 79 zł za rok i daje brak limitu oraz automatyczne dodawanie z e-maili."
+      : "Plan darmowy obejmuje 3 subskrypcje lub rachunki ze wszystkimi podstawowymi funkcjami. Premium bez limitu i z automatycznym dodawaniem z e-maili startuje wkrótce — planowana cena to 9,99 zł miesięcznie albo 79 zł za rok.",
   },
   {
     q: "Czy Premium odnawia się samo?",

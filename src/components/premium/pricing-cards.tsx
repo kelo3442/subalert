@@ -36,15 +36,23 @@ export function PricingCards({
   monthlyAction,
   yearlyAction,
   current,
+  soon = false,
 }: {
   freeAction?: ReactNode;
   monthlyAction?: ReactNode;
   yearlyAction?: ReactNode;
   current?: "free" | "premium";
+  /** Premium is announced but cannot be bought yet. */
+  soon?: boolean;
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
-      <div className={cn("order-2 flex flex-col rounded-3xl border bg-surface p-6 lg:order-1", current === "free" ? "border-line-strong" : "border-line")}>
+      <div
+        className={cn(
+          "order-2 flex flex-col rounded-3xl border bg-surface p-6 lg:order-1",
+          current === "free" ? "border-line-strong" : "border-line",
+        )}
+      >
         <p className="text-sm font-medium text-muted">Darmowy</p>
         <p className="mt-2 text-4xl font-semibold tracking-tight text-fg">0 zł</p>
         <p className="mt-1 text-sm text-subtle">na zawsze</p>
@@ -55,7 +63,16 @@ export function PricingCards({
       <div className="relative order-1 flex flex-col overflow-hidden rounded-3xl border-2 border-accent/50 lg:order-2 bg-gradient-to-b from-accent/[0.10] to-surface p-6">
         <p className="flex items-center gap-2 text-sm font-medium text-accent">
           <Crown className="size-4" aria-hidden /> Premium
+          {soon && (
+            <span
+              className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-xs font-semibold"
+              data-testid="premium-soon"
+            >
+              Wkrótce
+            </span>
+          )}
         </p>
+        {soon && <p className="mt-1 text-xs text-subtle">Planowane ceny — zakup będzie możliwy po starcie Premium.</p>}
         <div className="mt-2 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-line bg-bg/60 p-4">
             <p className="text-3xl font-semibold tracking-tight text-fg">
@@ -69,8 +86,8 @@ export function PricingCards({
               79 zł <span className="text-base font-normal text-muted">/ rok</span>
             </p>
             <p className="mt-1 text-xs text-subtle">
-              BLIK, Przelewy24 lub karta. Płacisz raz — <strong className="text-muted">bez automatycznego odnawiania</strong>.
-              Taniej o ok. 34%.
+              BLIK, Przelewy24 lub karta. Płacisz raz — <strong className="text-muted">bez automatycznego odnawiania</strong>. Taniej o ok.
+              34%.
             </p>
             {yearlyAction && <div className="mt-4">{yearlyAction}</div>}
           </div>

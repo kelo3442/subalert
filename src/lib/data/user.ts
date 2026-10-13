@@ -9,6 +9,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export interface CurrentUser {
   id: string;
   email: string;
+  /** Asked to be told when Premium can be bought (stored in the user's auth metadata). */
+  premiumWaitlist: boolean;
 }
 
 /** Verifies the session with Supabase Auth (not just the cookie contents). */
@@ -20,7 +22,11 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     if (error && error.name !== "AuthSessionMissingError") console.warn("Session rejected by Supabase Auth:", error.message);
     return null;
   }
-  return { id: data.user.id, email: data.user.email ?? "" };
+  return {
+    id: data.user.id,
+    email: data.user.email ?? "",
+    premiumWaitlist: typeof data.user.user_metadata?.premium_waitlist_at === "string",
+  };
 });
 
 export async function requireUser(): Promise<CurrentUser> {
