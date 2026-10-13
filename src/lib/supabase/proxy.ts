@@ -47,7 +47,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (isSignedIn && AUTH_PAGES.includes(pathname)) {
-    return redirectTo("/panel");
+    // The panel verifies the session with Supabase Auth and sends rejected
+    // sessions back here, so check the same way to avoid a redirect loop when
+    // the cookie still holds a valid JWT for a revoked session or deleted user.
+    const { data: verified } = await supabase.auth.getUser();
+    if (verified.user) return redirectTo("/panel");
   }
 
   return response;

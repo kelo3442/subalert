@@ -16,7 +16,10 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
+  if (error || !data.user) {
+    if (error && error.name !== "AuthSessionMissingError") console.warn("Session rejected by Supabase Auth:", error.message);
+    return null;
+  }
   return { id: data.user.id, email: data.user.email ?? "" };
 });
 
