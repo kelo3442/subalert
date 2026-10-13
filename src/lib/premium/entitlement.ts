@@ -36,6 +36,7 @@ function periodEnd(subscription: Record<string, unknown>): number | null {
 }
 
 const ACTIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
+const ENDED_STATUSES = new Set(["canceled", "unpaid", "incomplete_expired", "paused"]);
 
 /** What the webhook should write for an event; null for events that change nothing. */
 export function entitlementChange(
@@ -80,7 +81,9 @@ export function entitlementChange(
     const customerId = str(object.customer);
     const status = str(object.status) ?? "";
     const end = periodEnd(object);
-    const ended = event.type === "customer.subscription.deleted" || !ACTIVE_STATUSES.has(status);
+    const ended = event.type === "customer.subscription.deleted" || ENDED_STATUSES.has(status);
+    // "incomplete": the first payment is still being processed; wait for the next event.
+    if (!ended && !ACTIVE_STATUSES.has(status)) return null;
 
     if (ended) {
       // Do not cut short a separately bought one-time year.

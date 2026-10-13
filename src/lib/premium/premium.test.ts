@@ -119,6 +119,11 @@ describe("entitlementChange", () => {
     expect(entitlementChange(deleted, { premiumUntil: "2027-10-01T00:00:00Z", premiumSource: "one_time" }, now)).toBeNull();
   });
 
+  it("waits while the first subscription payment is still incomplete", () => {
+    const incomplete = event("customer.subscription.created", { id: "sub_1", customer: "cus_1", status: "incomplete", metadata: { user_id: "u" } });
+    expect(entitlementChange(incomplete, null, now)).toBeNull();
+  });
+
   it("ignores unrelated events", () => {
     expect(entitlementChange(event("invoice.created", {}), null, now)).toBeNull();
   });

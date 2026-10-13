@@ -30,6 +30,21 @@ async function stripePost(config: StripeConfig, path: string, params: Record<str
 }
 
 /**
+ * Current state of a subscription. Webhook events can arrive out of order, so
+ * the webhook applies this rather than the (possibly stale) event payload.
+ */
+export async function retrieveSubscription(config: StripeConfig, id: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${config.secretKey}` },
+  });
+  const body = (await response.json().catch(() => ({}))) as Record<string, unknown> & { error?: { message?: string } };
+  if (!response.ok || body.object !== "subscription") {
+    throw new Error(`Stripe subscriptions ${response.status}: ${body.error?.message ?? "unknown error"}`);
+  }
+  return body;
+}
+
+/**
  * Monthly: card subscription renewed automatically (BLIK and Przelewy24 do not
  * support recurring payments). Yearly: one-time payment for 12 months, which
  * can be paid with BLIK, Przelewy24 or a card, and does not renew by itself.

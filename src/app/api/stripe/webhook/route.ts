@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { entitlementChange, type StripeEvent } from "@/lib/premium/entitlement";
-import { getStripeConfig } from "@/lib/premium/stripe";
+import { getStripeConfig, retrieveSubscription } from "@/lib/premium/stripe";
 import { verifyStripeSignature } from "@/lib/premium/stripe-signature";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -46,6 +46,17 @@ export async function POST(request: NextRequest) {
         ? await query.eq("stripe_customer_id", customerHint).maybeSingle()
         : { data: null };
     if (!profile) return NextResponse.json({ status: "ignored" });
+
+    // Subscription events (and the checkout that starts one) are applied from
+    // the subscription's current state, so late or reordered events cannot
+    // undo a newer change, and the checkout alone is enough to grant Premium.
+    const subscriptionId = event.type.startsWith("customer.subscription.")
+      ? typeof object.id === "string" ? object.id : null
+      : object.mode === "subscription" && typeof object.subscription === "string" ? object.subscription : null;
+    if (subscriptionId) {
+      const subscription = await retrieveSubscription(config, subscriptionId);
+      event = { id: event.id, type: "customer.subscription.updated", data: { object: subscription } };
+    }
 
     const change = entitlementChange(event, { premiumUntil: profile.premium_until, premiumSource: profile.premium_source });
     if (!change) return NextResponse.json({ status: "ignored" });
