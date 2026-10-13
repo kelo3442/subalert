@@ -57,6 +57,9 @@ export async function createCheckoutSession(
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": "pln",
     "line_items[0][price_data][unit_amount]": String(PREMIUM_PLANS[plan].cents),
+    // Software as a service, personal use. Required when Stripe Managed Payments
+    // is enabled on the account; harmless otherwise.
+    "line_items[0][price_data][product_data][tax_code]": "txcd_10103000",
   };
   if (options.customerId) params.customer = options.customerId;
   else params.customer_email = options.email;
