@@ -40,3 +40,11 @@ export async function updateReminderSettings(
   revalidatePath("/panel", "layout");
   return { status: "success", message: "Ustawienia zapisane." };
 }
+
+/** Invalidates the calendar feed link (e.g. if it was shared by mistake). */
+export async function rotateCalendarLink(): Promise<void> {
+  await requireUser();
+  const supabase = await createSupabaseServerClient();
+  await supabase.rpc("rotate_calendar_token");
+  revalidatePath("/panel/ustawienia");
+}

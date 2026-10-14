@@ -1,9 +1,11 @@
 import { BellRing, CircleCheck, CircleDashed, Download, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CalendarFeedSettings } from "@/components/app/calendar-feed-settings";
 import { DeleteAccountForm } from "@/components/app/delete-account-form";
 import { EmailImportSettings } from "@/components/app/email-import-settings";
 import { PlanBadge } from "@/components/premium/plan-badge";
+import { AppSettings } from "@/components/pwa/app-settings";
 import { getInboundSettings } from "@/lib/data/detected";
 import { getPlanStatus } from "@/lib/data/plan";
 import { getInboundConfig, inboundAddress } from "@/lib/email-import/config";
@@ -14,7 +16,9 @@ import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { getEmailConfig } from "@/lib/email/resend";
-import { getUserProfile } from "@/lib/data/user";
+import { getCalendarToken, getUserProfile } from "@/lib/data/user";
+import { getSiteUrl } from "@/lib/env";
+import { getPushConfig } from "@/lib/push/send";
 
 export const metadata: Metadata = { title: "Ustawienia" };
 
@@ -26,7 +30,14 @@ function timeZoneOptions(current: string): string[] {
 }
 
 export default async function SettingsPage({ searchParams }: PageProps<"/panel/ustawienia">) {
-  const [profile, params, inbound, plan] = await Promise.all([getUserProfile(), searchParams, getInboundSettings(), getPlanStatus()]);
+  const [profile, params, inbound, plan, calendarToken] = await Promise.all([
+    getUserProfile(),
+    searchParams,
+    getInboundSettings(),
+    getPlanStatus(),
+    getCalendarToken(),
+  ]);
+  const pushConfig = getPushConfig();
   const emailEnabled = getEmailConfig() !== null;
   const inboundConfig = getInboundConfig();
   const address = inboundConfig && inbound ? inboundAddress(inboundConfig, inbound.token) : null;
@@ -72,6 +83,9 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
             />
           </div>
         </Card>
+
+        <AppSettings pushPublicKey={pushConfig?.publicKey ?? null} />
+        {calendarToken && <CalendarFeedSettings feedUrl={`${getSiteUrl()}/api/kalendarz/${calendarToken}.ics`} />}
 
         <Card>
           <CardHeader icon={<UserRound className="size-5" aria-hidden />} title="Konto" description={profile.email} />

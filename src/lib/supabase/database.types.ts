@@ -50,6 +50,7 @@ export type Database = {
           reminders_enabled: boolean;
           reminder_days_before: number;
           inbound_token: string;
+          calendar_token: string;
           auto_add_detected: boolean;
           gmail_forwarding_code: string | null;
           gmail_forwarding_link: string | null;
@@ -133,6 +134,19 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        };
+        Insert: Record<never, never>;
+        Update: Record<never, never>;
+        Relationships: [];
+      };
       detected_subscriptions: {
         Row: DetectedRow;
         Insert: Omit<DetectedRow, "id" | "created_at" | "status" | "auto_added" | "subscription_id" | "received_at"> & {
@@ -180,6 +194,14 @@ export type Database = {
       rotate_inbound_token: {
         Args: Record<never, never>;
         Returns: string;
+      };
+      rotate_calendar_token: {
+        Args: Record<never, never>;
+        Returns: string;
+      };
+      save_push_subscription: {
+        Args: { p_endpoint: string; p_p256dh: string; p_auth: string };
+        Returns: undefined;
       };
       delete_own_account: {
         Args: Record<never, never>;

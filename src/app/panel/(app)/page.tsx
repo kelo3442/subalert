@@ -10,6 +10,7 @@ import { StatCard } from "@/components/app/stat-card";
 import { SubscriptionList } from "@/components/app/subscription-list";
 import { TrialGuardPanel } from "@/components/app/trial-guard-panel";
 import { UpcomingList } from "@/components/app/upcoming-list";
+import { InstallBanner } from "@/components/pwa/install-banner";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -108,6 +109,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
         </Alert>
       )}
 
+      <InstallBanner />
       {detectedPanel}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

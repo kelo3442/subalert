@@ -264,6 +264,74 @@ do $$ begin
   end;
 end $$;
 
+-- Calendar feed token: private per user, rotatable only by its owner.
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$
+declare old_token text;
+begin
+  assert (select count(*) from public.profiles) = 1, 'FAIL: sees other calendar tokens';
+  select calendar_token into old_token from public.profiles;
+  assert char_length(old_token) = 32, 'FAIL: calendar token length';
+  perform public.rotate_calendar_token();
+  assert (select calendar_token from public.profiles) <> old_token, 'FAIL: calendar token not rotated';
+  begin
+    update public.profiles set calendar_token = 'x';
+    raise exception 'FAIL: user can set calendar token directly';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
+-- Push subscriptions: written only through save_push_subscription, visible to the owner only;
+-- a device that signs in to another account moves to that account.
+select public.save_push_subscription('https://push.example/device-1', 'p256', 'auth');
+select public.save_push_subscription('https://push.example/device-1', 'p256-new', 'auth-new');
+do $$ begin
+  assert (select count(*) from public.push_subscriptions) = 1, 'FAIL: push upsert';
+  assert (select p256dh from public.push_subscriptions) = 'p256-new', 'FAIL: push keys not updated';
+  begin
+    insert into public.push_subscriptions (user_id, endpoint, p256dh, auth)
+    values (auth.uid(), 'https://push.example/direct', 'a', 'b');
+    raise exception 'FAIL: direct push insert allowed';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform public.save_push_subscription('http://insecure.example', 'a', 'b');
+    raise exception 'FAIL: non-https endpoint accepted';
+  exception when check_violation then null;
+  end;
+end $$;
+
+select set_config('request.jwt.claim.sub', :'bob', false);
+do $$ begin
+  assert (select count(*) from public.push_subscriptions) = 0, 'FAIL: bob sees alice devices';
+  delete from public.push_subscriptions;
+end $$;
+select public.save_push_subscription('https://push.example/device-1', 'k', 'a');
+do $$ begin
+  assert (select count(*) from public.push_subscriptions) = 1, 'FAIL: device not moved to bob';
+end $$;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$ begin
+  assert (select count(*) from public.push_subscriptions) = 0, 'FAIL: alice still owns moved device';
+end $$;
+
+reset role;
+set role anon;
+do $$ begin
+  begin
+    perform public.save_push_subscription('https://push.example/anon', 'a', 'b');
+    raise exception 'FAIL: anon saved push subscription';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform public.rotate_calendar_token();
+    raise exception 'FAIL: anon rotated calendar token';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- Account deletion removes only the caller and cascades to their data.
 reset role;
 set role anon;
@@ -289,6 +357,7 @@ do $$ begin
   assert not exists (select from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob data left behind';
   assert not exists (select from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob profile left behind';
   assert exists (select from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000a'), 'FAIL: alice data deleted';
+  assert not exists (select from public.push_subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob devices left behind';
 end $$;
 
 reset role;

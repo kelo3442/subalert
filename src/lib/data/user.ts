@@ -55,3 +55,11 @@ export const getUserProfile = cache(async (): Promise<UserProfile> => {
     daysBefore: data?.reminder_days_before ?? DEFAULT_REMINDER_DAYS_BEFORE,
   };
 });
+
+/** Token in the user's private calendar feed URL. */
+export const getCalendarToken = cache(async (): Promise<string | null> => {
+  const user = await requireUser();
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.from("profiles").select("calendar_token").eq("id", user.id).maybeSingle();
+  return data?.calendar_token ?? null;
+});

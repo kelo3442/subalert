@@ -64,3 +64,18 @@ ${manageLink}
 
   return { subject, html, text: lines.join("\n") };
 }
+
+/** Short version of the reminder for a push notification. */
+export function buildReminderPush(input: Omit<ReminderEmailInput, "appUrl" | "manageUrl">) {
+  const when = formatRelativeDays(daysBetween(input.today, input.eventDate));
+  const amount = formatPLN(input.amountCents);
+  const isTrial = input.kind === "trial_end";
+  return {
+    title: isTrial ? `${input.subscriptionName}: okres próbny kończy się ${when}` : `${input.subscriptionName}: płatność ${when}`,
+    body: isTrial
+      ? `Potem ${amount}. Jeśli nie chcesz płacić, anuluj usługę u dostawcy.`
+      : `${amount} · ${formatDateLong(input.eventDate)}`,
+    url: `/panel/subskrypcje/${input.subscriptionId}`,
+    tag: `${input.kind}-${input.subscriptionId}-${input.eventDate}`,
+  };
+}

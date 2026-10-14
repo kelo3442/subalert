@@ -210,6 +210,19 @@ domyślne w `src/lib/legal.ts`; zmienne `LEGAL_OPERATOR_NAME`, `LEGAL_OPERATOR_A
 trzeba go podać (wymóg ustawy o prawach konsumenta). Treść to rzetelny wzór oparty na polskich przepisach, ale przed rozpoczęciem sprzedaży
 warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia akceptacji regulaminu (sprawdzane też na serwerze).
 
+## Aplikacja na telefon (PWA) i kalendarz
+
+- **Instalacja:** `src/app/manifest.ts`, ikony w `public/icons/`, service worker `public/sw.js` (powiadomienia push i strona
+  offline; strony z danymi konta nie są zapisywane w pamięci podręcznej). W ustawieniach jest przycisk „Zainstaluj aplikację”
+  (Chrome/Android) lub instrukcja dla iPhone’a, a na pulpicie telefonu — baner, który można zamknąć.
+- **Powiadomienia push:** ustaw `NEXT_PUBLIC_VAPID_PUBLIC_KEY` i `VAPID_PRIVATE_KEY` (`npx web-push generate-vapid-keys`),
+  potem nowy deploy. Przypomnienia z crona trafiają wtedy także na urządzenia, które włączyły powiadomienia
+  (tabela `push_subscriptions`; wygasłe urządzenia są usuwane automatycznie). Na iPhonie push działa po dodaniu do ekranu
+  początkowego (iOS 16.4+).
+- **Kalendarz:** każdy użytkownik ma prywatny link `/api/kalendarz/<token>.ics` (iCalendar) z płatnościami i końcami okresów
+  próbnych na ~13 miesięcy. Google, Apple i Outlook subskrybują go i same odświeżają. Link można unieważnić w ustawieniach.
+- Migracja: `supabase/migrations/20261016000000_calendar_and_push.sql`.
+
 ## Statystyki odwiedzin
 
 Aplikacja ma wbudowane [Vercel Web Analytics](https://vercel.com/docs/analytics): bez cookies, bez parametrów adresu
@@ -249,6 +262,7 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
   psql -d subalert_test -f supabase/migrations/20261013000000_delete_own_account.sql
   psql -d subalert_test -f supabase/migrations/20261014000000_email_import.sql
   psql -d subalert_test -f supabase/migrations/20261015000000_premium_and_bills.sql
+  psql -d subalert_test -f supabase/migrations/20261016000000_calendar_and_push.sql
   psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 

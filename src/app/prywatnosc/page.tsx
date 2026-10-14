@@ -8,6 +8,7 @@ const PROCESSORS = [
   ["Vercel", "hosting aplikacji i anonimowe statystyki odwiedzin (Vercel Web Analytics)"],
   ["Stripe", "obsługa płatności za Premium (dane karty trafiają wyłącznie do Stripe)"],
   ["Resend", "wysyłka przypomnień e-mail"],
+  ["Google, Apple, Mozilla, Microsoft", "dostarczanie powiadomień push na Twoje urządzenie (usługa przeglądarki, której używasz; treść jest szyfrowana)"],
   ["Postmark", "odbiór wiadomości przekazywanych do automatycznego dodawania (tylko w Premium, jeśli z niego korzystasz)"],
   ["Google", "logowanie kontem Google (tylko jeśli wybierzesz tę metodę)"],
 ];
@@ -40,6 +41,14 @@ export default function PrivacyPage() {
             Statystyki odwiedzin: odwiedzona podstrona (bez parametrów i identyfikatorów), strona, z której przyszedłeś, kraj oraz typ
             urządzenia i przeglądarki. Statystyki są zbiorcze i anonimowe — nie używają plików cookies i nie pozwalają nam rozpoznać,
             kim jesteś.
+          </li>
+          <li>
+            Powiadomienia push (jeśli je włączysz): techniczny adres i klucze szyfrujące urządzenia, nadane przez przeglądarkę. Usuwamy je,
+            gdy wyłączysz powiadomienia lub gdy przeglądarka je unieważni.
+          </li>
+          <li>
+            Link do kalendarza: losowy, prywatny adres, pod którym Twoja aplikacja kalendarza pobiera terminy płatności. W każdej chwili
+            możesz wygenerować nowy w ustawieniach — stary przestaje działać.
           </li>
           <li>Lista chętnych na Premium: data zapisu, jeśli klikniesz „Powiadom mnie”. Wypiszesz się, pisząc do nas.</li>
         </List>

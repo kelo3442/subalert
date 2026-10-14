@@ -1,9 +1,10 @@
 import "server-only";
 import { getEmailConfig, sendEmail } from "@/lib/email/resend";
 import { getSiteUrl } from "@/lib/env";
+import { getPushConfig, sendPushToUser } from "@/lib/push/send";
 import { subscriptionFromRow, SUBSCRIPTION_COLUMNS } from "@/lib/subscriptions/mapping";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { buildReminderEmail } from "./email-template";
+import { buildReminderEmail, buildReminderPush } from "./email-template";
 import { planReminders, reminderKey, type PlanProfile, type PlanSubscription } from "./plan";
 
 const PAGE_SIZE = 1000;
@@ -12,7 +13,7 @@ const MAX_SENDS_PER_RUN = 300;
 
 export type DispatchResult =
   | { status: "not_configured"; missing: string[] }
-  | { status: "ok"; due: number; sent: number; failed: number; skipped: number };
+  | { status: "ok"; due: number; sent: number; failed: number; skipped: number; pushed: number };
 
 function chunk<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -79,7 +80,7 @@ export async function dispatchReminders(now: Date = new Date()): Promise<Dispatc
   const profiles = await loadProfiles(admin);
   const subscriptions = await loadSubscriptions(admin, profiles.map((p) => p.id));
   const planned = planReminders(profiles, subscriptions, now);
-  const result = { status: "ok" as const, due: planned.length, sent: 0, failed: 0, skipped: 0 };
+  const result = { status: "ok" as const, due: planned.length, sent: 0, failed: 0, skipped: 0, pushed: 0 };
   if (planned.length === 0) return result;
 
   for (const batch of chunk(planned, ID_CHUNK)) {
@@ -115,6 +116,7 @@ export async function dispatchReminders(now: Date = new Date()): Promise<Dispatc
   }
 
   const appUrl = getSiteUrl();
+  const pushConfig = getPushConfig();
   for (const row of openRows.slice(0, MAX_SENDS_PER_RUN)) {
     const { data: claimed, error: claimError } = await admin.rpc("claim_reminder", { p_reminder_id: row.id });
     if (claimError || !claimed || claimed.length === 0) {
@@ -138,6 +140,19 @@ export async function dispatchReminders(now: Date = new Date()): Promise<Dispatc
       ...email,
       idempotencyKey: `reminder-${row.id}`,
     });
+
+    // Push is best effort and goes to the user's devices alongside the e-mail.
+    if (pushConfig) {
+      const push = buildReminderPush({
+        kind: reminder.kind,
+        subscriptionName: reminder.subscription.name,
+        amountCents: reminder.subscription.amountCents,
+        eventDate: reminder.eventDate,
+        today: reminder.today,
+        subscriptionId: reminder.subscriptionId,
+      });
+      result.pushed += await sendPushToUser(admin, pushConfig, reminder.userId, push).catch(() => 0);
+    }
 
     if (sendResult.ok) {
       result.sent += 1;

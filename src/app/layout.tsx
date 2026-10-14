@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteAnalytics } from "@/components/analytics";
+import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
@@ -16,6 +17,9 @@ export const metadata: Metadata = {
   description:
     "Przestań tracić pieniądze na subskrypcje, o których zapominasz. Subskrypcje i rachunki domowe w jednym miejscu, koszty miesięczne i roczne oraz przypomnienia przed płatnością.",
   openGraph: { locale: "pl_PL", siteName: "SubAlert", type: "website" },
+  applicationName: "SubAlert",
+  appleWebApp: { capable: true, title: "SubAlert", statusBarStyle: "black" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -29,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         {children}
         <SiteAnalytics />
+        <RegisterServiceWorker />
       </body>
     </html>
   );
