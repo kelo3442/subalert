@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   try {
     // Always 200 for handled mail (even unknown recipients) so the provider does not retry.
     const status = await processInboundEmail(payload);
+    console.info("Inbound e-mail result:", status);
     return NextResponse.json({ status }, { status: status === "not_configured" ? 503 : 200 });
   } catch (error) {
     console.error("Inbound e-mail processing failed", error);
