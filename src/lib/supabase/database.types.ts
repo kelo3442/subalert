@@ -136,6 +136,21 @@ export type Database = {
         };
         Relationships: [];
       };
+      premium_waitlist: {
+        Row: {
+          id: string;
+          email: string;
+          user_id: string | null;
+          source: "landing" | "app";
+          unsubscribe_token: string;
+          created_at: string;
+          notified_at: string | null;
+          unsubscribed_at: string | null;
+        };
+        Insert: { email: string; user_id?: string | null; source?: "landing" | "app" };
+        Update: { notified_at?: string | null; unsubscribed_at?: string | null };
+        Relationships: [];
+      };
       feedback: {
         Row: { id: string; user_id: string; message: string; page: string | null; created_at: string };
         Insert: { user_id: string; message: string; page?: string | null };

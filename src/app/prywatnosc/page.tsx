@@ -55,7 +55,11 @@ export default function PrivacyPage() {
             Opinie wysłane przyciskiem „Zgłoś opinię”: treść wiadomości, adres e-mail konta i podstrona, z której ją wysłano. Trafiają też
             na naszą skrzynkę kontaktową, żebyśmy mogli odpowiedzieć.
           </li>
-          <li>Lista chętnych na Premium: data zapisu, jeśli klikniesz „Powiadom mnie”. Wypiszesz się, pisząc do nas.</li>
+          <li>
+            Lista chętnych na Premium: adres e-mail i data zapisu, jeśli zostawisz e-mail na stronie głównej lub klikniesz „Powiadom mnie”
+            w aplikacji. Wysyłamy na niego potwierdzenie i jedną wiadomość, gdy Premium wystartuje. Wypiszesz się linkiem z każdej
+            wiadomości albo pisząc do nas; wpis znika też razem z kontem.
+          </li>
         </List>
       </Section>
 

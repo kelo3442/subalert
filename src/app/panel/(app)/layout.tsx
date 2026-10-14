@@ -7,10 +7,13 @@ import { Logo } from "@/components/ui/logo";
 import { PlanBadge } from "@/components/premium/plan-badge";
 import { getPlanStatus } from "@/lib/data/plan";
 import { requireUser } from "@/lib/data/user";
-import { Plus } from "lucide-react";
+import { isAdminEmail } from "@/lib/waitlist";
+import { Plus, Shield } from "lucide-react";
+import Link from "next/link";
 
 export default async function AppShellLayout({ children }: { children: ReactNode }) {
   const [user, plan] = await Promise.all([requireUser(), getPlanStatus()]);
+  const isAdmin = isAdminEmail(user.email);
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[260px_1fr]">
@@ -20,7 +23,12 @@ export default async function AppShellLayout({ children }: { children: ReactNode
           <Plus className="size-4" aria-hidden /> Dodaj subskrypcję
         </ButtonLink>
         <SidebarNav />
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-1">
+          {isAdmin && (
+            <Link href="/panel/admin" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg">
+              <Shield className="size-4" aria-hidden /> Lista Premium
+            </Link>
+          )}
           <FeedbackButton />
         </div>
         <div className="mt-3 flex flex-col gap-3 border-t border-line pt-4">
@@ -35,7 +43,14 @@ export default async function AppShellLayout({ children }: { children: ReactNode
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur-xl lg:hidden">
           <Logo href="/panel" />
-          <FeedbackButton variant="icon" />
+          <div className="flex items-center gap-1">
+            {isAdmin && (
+              <Link href="/panel/admin" aria-label="Lista Premium" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">
+                <Shield className="size-5" aria-hidden />
+              </Link>
+            )}
+            <FeedbackButton variant="icon" />
+          </div>
         </header>
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
       </div>

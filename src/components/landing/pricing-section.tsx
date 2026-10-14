@@ -1,4 +1,5 @@
 import { PricingCards } from "@/components/premium/pricing-cards";
+import { WaitlistForm } from "@/components/premium/waitlist-form";
 import { ButtonLink } from "@/components/ui/button";
 import { isPremiumSalesOpen } from "@/lib/env";
 
@@ -13,7 +14,7 @@ export function PricingSection() {
           <p className="mt-3 text-muted">
             {salesOpen
               ? "Bez karty przy rejestracji. Na Premium przejdziesz, kiedy zechcesz."
-              : "Bez karty przy rejestracji. Premium startuje wkrótce — po założeniu konta możesz zapisać się na listę chętnych."}
+              : "Bez karty przy rejestracji. Premium startuje wkrótce — zostaw e-mail, a damy znać jako pierwszym."}
           </p>
         </div>
         <PricingCards
@@ -38,6 +39,7 @@ export function PricingSection() {
             ) : null
           }
         />
+        {!salesOpen && <WaitlistForm />}
       </div>
     </section>
   );

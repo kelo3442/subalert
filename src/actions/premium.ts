@@ -6,6 +6,7 @@ import { getSiteUrl, isPremiumSalesOpen } from "@/lib/env";
 import { PREMIUM_PLANS, type PremiumPlan } from "@/lib/premium/plan";
 import { createCheckoutSession, createPortalSession, getStripeConfig } from "@/lib/premium/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { addToWaitlist } from "@/lib/waitlist";
 
 async function stripeCustomerId(userId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
@@ -64,6 +65,7 @@ export async function joinPremiumWaitlist(): Promise<void> {
       console.error("Premium waitlist failed", error.message);
       redirect("/panel/premium?blad=lista");
     }
+    if (user.email) await addToWaitlist({ email: user.email, userId: user.id, source: "app" });
   }
   redirect("/panel/premium?lista=ok");
 }

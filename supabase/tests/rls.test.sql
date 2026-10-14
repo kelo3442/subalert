@@ -386,6 +386,40 @@ do $$ begin
   end;
 end $$;
 
+-- Premium waitlist: only the server (service role) reads or writes it.
+reset role;
+insert into public.premium_waitlist (email, user_id, source) values ('bob@example.pl', :'bob', 'app'), ('gosc@example.pl', null, 'landing');
+do $$ begin
+  begin
+    insert into public.premium_waitlist (email) values ('dup@example.pl'), ('DUP@example.pl');
+    raise exception 'FAIL: duplicate waitlist email (case-insensitive)';
+  exception when unique_violation then null;
+  end;
+end $$;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'bob', false);
+do $$ begin
+  begin
+    perform count(*) from public.premium_waitlist;
+    raise exception 'FAIL: authenticated reads waitlist';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.premium_waitlist (email) values ('x@example.pl');
+    raise exception 'FAIL: authenticated writes waitlist';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
+set role anon;
+do $$ begin
+  begin
+    perform count(*) from public.premium_waitlist;
+    raise exception 'FAIL: anon reads waitlist';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub', :'bob', false);
@@ -400,6 +434,8 @@ do $$ begin
   assert not exists (select from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob profile left behind';
   assert exists (select from public.subscriptions where user_id = '00000000-0000-0000-0000-00000000000a'), 'FAIL: alice data deleted';
   assert not exists (select from public.push_subscriptions where user_id = '00000000-0000-0000-0000-00000000000b'), 'FAIL: bob devices left behind';
+  assert not exists (select from public.premium_waitlist where email = 'bob@example.pl'), 'FAIL: bob waitlist entry left behind';
+  assert exists (select from public.premium_waitlist where email = 'gosc@example.pl'), 'FAIL: guest waitlist entry deleted';
 end $$;
 
 reset role;

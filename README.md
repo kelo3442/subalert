@@ -201,9 +201,11 @@ w ustawieniach wygenerować nowy adres, co unieważnia stary.
 6. Testy: klucze `sk_test_...` i karta `4242 4242 4242 4242`; lokalnie webhooki przekażesz poleceniem
    `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 7. Sprzedaż włącza `NEXT_PUBLIC_PREMIUM_SALES_ENABLED=true` (potem nowy deploy). Bez tej zmiennej Premium jest
-   pokazywane jako „wkrótce”: nie da się go kupić, a zalogowani mogą kliknąć „Powiadom mnie”. Zapis trafia do metadanych
-   konta (`premium_waitlist_at`); listę chętnych zobaczysz w Supabase → SQL Editor:
-   `select email, raw_user_meta_data->>'premium_waitlist_at' as zapis from auth.users where raw_user_meta_data ? 'premium_waitlist_at' order by 2;`
+   pokazywane jako „wkrótce”: nie da się go kupić, odwiedzający zostawiają e-mail na stronie głównej, a zalogowani klikają
+   „Powiadom mnie”. Każdy dostaje e-mail z potwierdzeniem (z linkiem „wypisz mnie”), a na adres kontaktowy przychodzi
+   informacja o nowym zapisie. Listę (tabela `premium_waitlist`) widzisz w `/panel/admin` — dostęp mają tylko konta
+   z `ADMIN_EMAILS` (adresy po przecinku). Tam też pobierzesz CSV i po włączeniu sprzedaży wyślesz wszystkim jedną
+   wiadomość „Premium już działa” (po 100 osób na kliknięcie, każdy dostaje ją tylko raz).
 
 Webhook weryfikuje podpis Stripe (HMAC, tolerancja 5 minut), każde zdarzenie przetwarza raz (tabela `stripe_events`)
 i tylko on może nadać Premium — użytkownik nie może zmienić `premium_until` w bazie.
@@ -283,6 +285,7 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
   psql -d oplacik_test -f supabase/migrations/20261015000000_premium_and_bills.sql
   psql -d oplacik_test -f supabase/migrations/20261016000000_calendar_and_push.sql
   psql -d oplacik_test -f supabase/migrations/20261017000000_email_updates_and_feedback.sql
+  psql -d oplacik_test -f supabase/migrations/20261018000000_premium_waitlist.sql
   psql -d oplacik_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 
