@@ -26,15 +26,31 @@ export function SubscriptionList({ subscriptions, today }: { subscriptions: Subs
                 <div className="flex items-center gap-2">
                   <p className={`truncate font-medium ${active ? "text-fg" : "text-muted line-through decoration-subtle"}`}>{subscription.name}</p>
                   {trial && trial.urgency !== "ended" && active && (
-                    <Badge tone="warn">
-                      <Hourglass className="size-3" aria-hidden /> próbny
-                    </Badge>
+                    <span className="hidden sm:inline-flex">
+                      <Badge tone="warn">
+                        <Hourglass className="size-3" aria-hidden /> próbny
+                      </Badge>
+                    </span>
                   )}
                   {!active && <Badge>anulowana</Badge>}
                 </div>
                 <p className="truncate text-xs text-muted">
-                  {subscription.category ? CATEGORY_LABELS[subscription.category] : "Bez kategorii"}
-                  {active && ` · następna ${formatDateShort(next)}`}
+                  {trial && trial.urgency !== "ended" && active && (
+                    <span className="text-warn sm:hidden">
+                      <Hourglass className="mr-0.5 inline size-3 align-[-1px]" aria-hidden />
+                      próbny ·{" "}
+                    </span>
+                  )}
+                  <span className={active ? "hidden sm:inline" : undefined}>
+                    {subscription.category ? CATEGORY_LABELS[subscription.category] : "Bez kategorii"}
+                    {active && " · "}
+                  </span>
+                  {active && (
+                    <>
+                      <span className="hidden sm:inline">następna</span>
+                      <span className="sm:hidden">Płatność</span> {formatDateShort(next)}
+                    </>
+                  )}
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">

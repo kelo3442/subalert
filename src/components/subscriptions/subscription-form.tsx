@@ -350,14 +350,14 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
         )}
       </section>
 
-      <div className="sticky bottom-20 z-10 flex flex-col-reverse gap-2 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:justify-end lg:bottom-4">
+      <div className="sticky bottom-20 z-10 flex gap-2 rounded-2xl border border-line bg-bg/90 p-2 backdrop-blur-xl sm:justify-end sm:p-3 lg:bottom-4">
         <Link
           href={mode === "edit" && subscriptionId ? `/panel/subskrypcje/${subscriptionId}` : "/panel/subskrypcje"}
           className={buttonClasses("ghost", "md")}
         >
           Anuluj
         </Link>
-        <Button type="submit" disabled={isPending} aria-busy={isPending}>
+        <Button type="submit" disabled={isPending} aria-busy={isPending} className="flex-1 sm:flex-none">
           {isPending && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
           {mode === "edit" ? "Zapisz zmiany" : "Dodaj subskrypcję"}
         </Button>

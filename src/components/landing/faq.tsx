@@ -51,7 +51,7 @@ const QUESTIONS = [
 export function Faq() {
   return (
     <section id="faq" className="scroll-mt-20 border-t border-line/60 bg-surface/40">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_2fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:gap-10 sm:px-6 sm:py-20 lg:grid-cols-[1fr_2fr]">
         <div>
           <p className="text-sm font-medium text-accent">FAQ</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">Częste pytania</h2>

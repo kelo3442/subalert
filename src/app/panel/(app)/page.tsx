@@ -176,7 +176,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
         </Card>
       </div>
 
-      <Card className="mt-4 overflow-hidden">
+      {/* On phones the list would repeat "Nadchodzące odnowienia"; the full list is one tap away in the bottom bar. */}
+      <Card className="mt-4 hidden overflow-hidden lg:block">
         <CardHeader
           title="Twoje subskrypcje"
           description={`Aktywne: ${active.length}`}

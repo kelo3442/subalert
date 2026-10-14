@@ -15,7 +15,7 @@ const BILLS = [
 export function BillsSection() {
   return (
     <section id="rachunki" className="scroll-mt-20 border-t border-line/60">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.1fr]">
+      <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-14 sm:gap-10 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1.1fr]">
         <div>
           <p className="text-sm font-medium text-accent">Nie tylko subskrypcje</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">Rachunki domowe też pod kontrolą</h2>

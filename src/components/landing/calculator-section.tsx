@@ -5,7 +5,7 @@ import { CostCalculator } from "./cost-calculator";
 export function CalculatorSection() {
   return (
     <section id="kalkulator" className="scroll-mt-20 border-t border-line/60 bg-surface/40">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="max-w-2xl">
             <p className="text-sm font-medium text-accent">Kalkulator — bez rejestracji</p>

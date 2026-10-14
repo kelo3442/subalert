@@ -6,7 +6,7 @@ export function PricingSection() {
   const salesOpen = isPremiumSalesOpen();
   return (
     <section id="cennik" className="scroll-mt-20 border-t border-line/60 bg-surface/40">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="mb-10 max-w-2xl">
           <p className="text-sm font-medium text-accent">Cennik</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">Zacznij za darmo</h2>

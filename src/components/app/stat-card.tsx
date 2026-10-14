@@ -28,7 +28,7 @@ export function StatCard({
       <p className={cn("mt-2 truncate text-xl font-semibold tabular-nums tracking-tight sm:text-2xl", highlight ? "text-accent" : "text-fg")}>
         {value}
       </p>
-      {detail && <p className="mt-1 truncate text-xs text-subtle">{detail}</p>}
+      {detail && <p className="mt-1 line-clamp-2 text-xs text-subtle sm:line-clamp-none sm:truncate">{detail}</p>}
     </div>
   );
 }

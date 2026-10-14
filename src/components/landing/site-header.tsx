@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
@@ -21,13 +22,16 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Link href="/logowanie" className="whitespace-nowrap px-1.5 text-sm font-medium text-muted transition-colors hover:text-fg sm:hidden">
+            Zaloguj się
+          </Link>
           <div className="hidden sm:block">
             <ButtonLink href="/logowanie" variant="ghost" size="sm">
               Zaloguj się
             </ButtonLink>
           </div>
-          <ButtonLink href="/rejestracja" size="sm">
+          <ButtonLink href="/rejestracja" size="sm" className="whitespace-nowrap">
             Załóż konto
           </ButtonLink>
         </div>
