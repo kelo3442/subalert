@@ -36,6 +36,8 @@ type DetectedRow = {
   status: "pending" | "added" | "dismissed";
   auto_added: boolean;
   subscription_id: string | null;
+  applied_change: "payment" | "price" | "trial" | "cancelled" | null;
+  previous_amount_cents: number | null;
   created_at: string;
 };
 
@@ -134,6 +136,12 @@ export type Database = {
         };
         Relationships: [];
       };
+      feedback: {
+        Row: { id: string; user_id: string; message: string; page: string | null; created_at: string };
+        Insert: { user_id: string; message: string; page?: string | null };
+        Update: Record<never, never>;
+        Relationships: [];
+      };
       push_subscriptions: {
         Row: {
           id: string;
@@ -149,7 +157,14 @@ export type Database = {
       };
       detected_subscriptions: {
         Row: DetectedRow;
-        Insert: Omit<DetectedRow, "id" | "created_at" | "status" | "auto_added" | "subscription_id" | "received_at"> & {
+        Insert: Omit<
+          DetectedRow,
+          "id" | "created_at" | "status" | "auto_added" | "subscription_id" | "received_at" | "category" | "manage_url" | "applied_change" | "previous_amount_cents"
+        > & {
+          category?: string | null;
+          manage_url?: string | null;
+          applied_change?: DetectedRow["applied_change"];
+          previous_amount_cents?: number | null;
           status?: DetectedRow["status"];
           auto_added?: boolean;
           subscription_id?: string | null;

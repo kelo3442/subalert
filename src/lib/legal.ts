@@ -1,4 +1,4 @@
-export const LEGAL_EFFECTIVE_DATE = "2026-10-15";
+export const LEGAL_EFFECTIVE_DATE = "2026-10-16";
 
 export interface LegalInfo {
   operatorName: string | null;
@@ -10,7 +10,7 @@ export interface LegalInfo {
 }
 
 const DEFAULT_OPERATOR_NAME = "Olivier Cisoń";
-const DEFAULT_CONTACT_EMAIL = "subalert.contact@gmail.com";
+const DEFAULT_CONTACT_EMAIL = "kontakt@subalert.pl";
 
 /** Seller / data controller details; environment variables override the defaults. */
 export function getLegalInfo(): LegalInfo {

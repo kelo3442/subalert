@@ -1,9 +1,18 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { DEFAULT_TIME_ZONE } from "@/lib/dates";
+import { DEFAULT_TIME_ZONE, todayInTimeZone } from "@/lib/dates";
+import { BILLING_CYCLES, type BillingCycle } from "@/lib/subscriptions/billing";
 import { isPremiumActive } from "@/lib/premium/plan";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { decideAction, extractInboundToken, parseReceiptEmail, type InboundEmail } from "./parse";
+import {
+  decideAction,
+  extractInboundToken,
+  findTracked,
+  parseReceiptEmail,
+  planUpdate,
+  type InboundEmail,
+  type TrackedSubscription,
+} from "./parse";
 
 /** Subset of the Postmark inbound webhook payload (https://postmarkapp.com/developer/webhooks/inbound-webhook). */
 export interface InboundPayload {
@@ -28,6 +37,7 @@ export type ProcessResult =
   | "gmail_verification"
   | "ignored"
   | "already_tracked"
+  | "updated"
   | "suggested"
   | "auto_added";
 
@@ -88,19 +98,69 @@ export async function processInboundEmail(payload: InboundPayload): Promise<Proc
 
   const { data: existing } = await admin
     .from("subscriptions")
-    .select("name")
+    .select("id, name, amount_cents, billing_cycle, next_payment_date, trial_ends_at")
     .eq("user_id", profile.id)
     .eq("status", "active");
-  const action = decideAction(parsed, {
-    autoAdd: profile.auto_add_detected,
-    existingNames: (existing ?? []).map((row) => row.name),
-  });
-  if (action === "duplicate") return "already_tracked";
+  const tracked: TrackedSubscription[] = (existing ?? [])
+    .filter((row) => (BILLING_CYCLES as readonly string[]).includes(row.billing_cycle))
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      amountCents: row.amount_cents,
+      billingCycle: row.billing_cycle as BillingCycle,
+      nextPaymentDate: row.next_payment_date,
+      trialEndsAt: row.trial_ends_at,
+    }));
 
   const messageId = clip(
     payload.MessageID || createHash("sha256").update(`${email.from}|${email.subject}|${payload.Date ?? ""}`).digest("hex"),
     300,
   );
+
+  const match = findTracked(parsed.name, tracked);
+  if (match) {
+    // Updates to subscriptions the user already has follow the same "add automatically" switch.
+    if (!profile.auto_add_detected) return "already_tracked";
+    const update = planUpdate(parsed, match, todayInTimeZone(profile.time_zone || DEFAULT_TIME_ZONE, receivedAt));
+    if (!update) return "already_tracked";
+
+    // Logged first: a redelivered message hits the unique key and is not applied twice.
+    const { error: logError } = await admin.from("detected_subscriptions").insert({
+      user_id: profile.id,
+      message_id: messageId,
+      name: match.name,
+      amount_cents: update.patch.amount_cents ?? match.amountCents,
+      billing_cycle: match.billingCycle,
+      next_payment_date: update.patch.next_payment_date ?? match.nextPaymentDate,
+      trial_ends_at: update.patch.trial_ends_at ?? match.trialEndsAt,
+      email_from: clip(email.from, 200),
+      email_subject: clip(email.subject, 200),
+      received_at: receivedAt.toISOString(),
+      status: "added",
+      auto_added: true,
+      subscription_id: match.id,
+      applied_change: update.change,
+      previous_amount_cents: update.previousAmountCents,
+    });
+    if (logError) {
+      if (logError.code === "23505") return "duplicate_message";
+      throw new Error(`detected insert: ${logError.message}`);
+    }
+    if (Object.keys(update.patch).length > 0) {
+      const { error } = await admin.from("subscriptions").update(update.patch).eq("id", match.id).eq("user_id", profile.id);
+      if (error) throw new Error(`subscription update: ${error.message}`);
+    }
+    return "updated";
+  }
+
+  // A cancellation of something the user does not track is not a reason to suggest adding it.
+  if (parsed.event === "cancellation") return "ignored";
+
+  const action = decideAction(parsed, {
+    autoAdd: profile.auto_add_detected,
+    existingNames: tracked.map((row) => row.name),
+  });
+  if (action === "duplicate") return "already_tracked";
 
   // Inserting first makes a redelivered message a no-op (unique user_id + message_id).
   const { data: detected, error } = await admin
@@ -126,7 +186,9 @@ export async function processInboundEmail(payload: InboundPayload): Promise<Proc
     throw new Error(`detected insert: ${error.message}`);
   }
 
-  if (action === "suggest" || !parsed.amountCents || !parsed.nextPaymentDate) return "suggested";
+  // Only receipts and trial e-mails carry a reliable first payment date.
+  const reliableDate = parsed.event === "receipt" || parsed.event === "trial";
+  if (action === "suggest" || !reliableDate || !parsed.amountCents || !parsed.nextPaymentDate) return "suggested";
 
   const { data: subscription, error: insertError } = await admin
     .from("subscriptions")

@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  daysToNearestPayment,
   decideAction,
   detectCycle,
+  detectEvent,
   extractInboundToken,
   findDate,
   findPlnAmount,
+  findTracked,
+  findTrialEnd,
   parseReceiptEmail,
+  planUpdate,
   senderName,
   type InboundEmail,
 } from "./parse";
@@ -61,6 +66,7 @@ describe("parseReceiptEmail", () => {
     );
     expect(parsed).toEqual({
       kind: "subscription",
+      event: "receipt",
       name: "Netflix",
       knownService: true,
       amountCents: 4900,
@@ -131,6 +137,7 @@ describe("parseReceiptEmail", () => {
 describe("decideAction", () => {
   const base = {
     kind: "subscription" as const,
+    event: "receipt" as const,
     name: "Netflix",
     knownService: true,
     amountCents: 4900,
@@ -166,5 +173,109 @@ describe("extractInboundToken", () => {
 
   it("rejects anything else", () => {
     expect(extractInboundToken(["kontakt@subalert.pl", "abc@in.subalert.pl"])).toBeNull();
+  });
+});
+
+describe("trial end", () => {
+  it("reads numeric dates inside the trial sentence", () => {
+    expect(findTrialEnd("Witamy! Twój bezpłatny okres próbny kończy się 30.10.2026. Potem 23,99 zł.")).toEqual({ isTrial: true, endsAt: "2026-10-30" });
+    expect(findTrialEnd("Your free trial ends on October 30, 2026.\nThanks")).toEqual({ isTrial: true, endsAt: "2026-10-30" });
+  });
+});
+
+describe("e-mail events", () => {
+  it("classifies cancellations, price changes, trials and receipts", () => {
+    expect(detectEvent("Twoja subskrypcja została anulowana", "", false)).toBe("cancellation");
+    expect(detectEvent("Potwierdzenie anulowania członkostwa", "", false)).toBe("cancellation");
+    expect(detectEvent("Your Spotify Premium subscription has been cancelled", "", false)).toBe("cancellation");
+    expect(detectEvent("We're sorry to see you go", "Your membership ends on 20 October", false)).toBe("cancellation");
+    expect(detectEvent("Zmiana ceny Twojego planu", "Od 20 listopada cena wzrośnie do 55 zł", false)).toBe("price_change");
+    expect(detectEvent("Important: your price is changing", "", false)).toBe("price_change");
+    expect(detectEvent("Witamy w Premium", "Okres próbny kończy się 30.10.2026", true)).toBe("trial");
+    expect(detectEvent("Dziękujemy za płatność", "Kwota: 49,00 zł", false)).toBe("receipt");
+    expect(detectEvent("Twój plan został odnowiony", "Kwota: 49,00 zł", false)).toBe("receipt");
+  });
+});
+
+describe("planUpdate", () => {
+  const tracked = {
+    id: "sub-1",
+    name: "Netflix",
+    amountCents: 4900,
+    billingCycle: "monthly" as const,
+    nextPaymentDate: "2026-10-20",
+    trialEndsAt: null,
+  };
+  const parsed = (event: "receipt" | "trial" | "cancellation" | "price_change", extra = {}) => ({
+    kind: "subscription" as const,
+    event,
+    name: "Netflix",
+    knownService: true,
+    amountCents: 4900,
+    cycle: "monthly" as const,
+    nextPaymentDate: null,
+    trialEndsAt: null,
+    category: "video" as const,
+    manageUrl: null,
+    ...extra,
+  });
+  const now = new Date("2026-10-20T10:00:00Z");
+
+  it("measures the distance to the nearest charge on either side of the stored date", () => {
+    expect(daysToNearestPayment("2026-10-20", "monthly", "2026-10-20")).toBe(0);
+    expect(daysToNearestPayment("2026-11-20", "monthly", "2026-10-22")).toBe(2);
+    expect(daysToNearestPayment("2025-01-20", "monthly", "2026-10-18")).toBe(2);
+    expect(daysToNearestPayment("2026-10-20", "monthly", "2026-11-05")).toBe(15);
+  });
+
+  it("ignores a receipt that matches the schedule and amount", () => {
+    expect(planUpdate(parsed("receipt"), tracked, "2026-10-20", now)).toBeNull();
+  });
+
+  it("detects a price rise on a receipt", () => {
+    expect(planUpdate(parsed("receipt", { amountCents: 5500 }), tracked, "2026-10-20", now)).toEqual({
+      change: "price",
+      patch: { amount_cents: 5500 },
+      previousAmountCents: 4900,
+    });
+  });
+
+  it("moves the schedule to the real charge day", () => {
+    expect(planUpdate(parsed("receipt"), { ...tracked, nextPaymentDate: "2026-11-15" }, "2026-10-20", now)).toEqual({
+      change: "payment",
+      patch: { next_payment_date: "2026-11-20" },
+      previousAmountCents: null,
+    });
+    // Uses the tracked cycle even when the e-mail does not say "yearly".
+    expect(planUpdate(parsed("receipt"), { ...tracked, billingCycle: "yearly", nextPaymentDate: "2026-10-18" }, "2026-10-20", now)?.patch).toEqual({
+      next_payment_date: "2027-10-20",
+    });
+  });
+
+  it("does not let stray e-mails shift the schedule or price", () => {
+    expect(planUpdate(parsed("receipt", { amountCents: 5500 }), tracked, "2026-11-05", now)).toBeNull();
+    expect(planUpdate(parsed("receipt", { amountCents: 100 }), tracked, "2026-10-20", now)).toBeNull();
+    expect(planUpdate(parsed("receipt", { amountCents: 99_900 }), tracked, "2026-10-20", now)).toBeNull();
+    expect(planUpdate(parsed("price_change", { amountCents: null }), tracked, "2026-10-20", now)).toBeNull();
+  });
+
+  it("applies announced price changes, trials and cancellations", () => {
+    expect(planUpdate(parsed("price_change", { amountCents: 5500 }), tracked, "2026-11-05", now)?.patch).toEqual({ amount_cents: 5500 });
+    expect(planUpdate(parsed("trial", { trialEndsAt: "2026-11-03" }), tracked, "2026-10-20", now)).toEqual({
+      change: "trial",
+      patch: { trial_ends_at: "2026-11-03", next_payment_date: "2026-11-03" },
+      previousAmountCents: null,
+    });
+    expect(planUpdate(parsed("trial", { trialEndsAt: "2026-10-01" }), tracked, "2026-10-20", now)).toBeNull();
+    expect(planUpdate(parsed("cancellation"), tracked, "2026-10-20", now)).toEqual({
+      change: "cancelled",
+      patch: { status: "cancelled", cancelled_at: "2026-10-20T10:00:00.000Z" },
+      previousAmountCents: null,
+    });
+  });
+
+  it("finds the tracked subscription by name, ignoring case", () => {
+    expect(findTracked("netflix ", [tracked])?.id).toBe("sub-1");
+    expect(findTracked("Spotify", [tracked])).toBeNull();
   });
 });

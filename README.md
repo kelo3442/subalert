@@ -163,6 +163,12 @@ Funkcja jest opcjonalna; bez tej konfiguracji ustawienia pokazują informację, 
    z Basic Auth: `https://subalert:<SEKRET>@<twoja-domena>/api/inbound-email`.
 4. Wymagany jest też `SUPABASE_SECRET_KEY` (webhook zapisuje dane bez sesji użytkownika).
 
+**Aktualizacje istniejących pozycji.** E-mail o usłudze, którą użytkownik już śledzi, zmienia ją zamiast tworzyć duplikat
+(przy włączonym automatycznym dodawaniu): potwierdzenie płatności ustawia następny termin od dnia obciążenia (tylko gdy
+płatność wypadała w ciągu ±10 dni) i wykrywa nową cenę (w granicach ×3 od dotychczasowej), mail o okresie próbnym ustawia
+jego koniec, zapowiedź zmiany ceny zmienia kwotę, a potwierdzenie anulowania oznacza pozycję jako anulowaną. Każda zmiana jest
+widoczna na pulpicie w sekcji „Wykryte w e-mailach” (`detected_subscriptions.applied_change`).
+
 Bezpieczeństwo: webhook bez poprawnego hasła zwraca 401; nieznany adresat jest ignorowany (200, żeby dostawca nie ponawiał);
 limit 100 wiadomości na użytkownika na dobę; ta sama wiadomość (`MessageID`) jest przetwarzana raz; użytkownik może
 w ustawieniach wygenerować nowy adres, co unieważnia stary.
@@ -223,6 +229,17 @@ warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia a
   próbnych na ~13 miesięcy. Google, Apple i Outlook subskrybują go i same odświeżają. Link można unieważnić w ustawieniach.
 - Migracja: `supabase/migrations/20261016000000_calendar_and_push.sql`.
 
+## Opinie użytkowników
+
+Przycisk „Zgłoś opinię” (pasek boczny, a na telefonie ikona w nagłówku) zapisuje wiadomość w tabeli `feedback`
+(maks. 10 dziennie na konto) i wysyła ją przez Resend na adres kontaktowy (`NEXT_PUBLIC_CONTACT_EMAIL`, domyślnie
+kontakt@subalert.pl) z adresem użytkownika w polu „Odpowiedz do”.
+
+## Wyszukiwarki
+
+`/robots.txt` (bez panelu i API), `/sitemap.xml` i dane strukturalne (schema.org `WebSite`/`WebApplication`) na stronie
+głównej. Zgłoś domenę w Google Search Console i dodaj mapę strony.
+
 ## Statystyki odwiedzin
 
 Aplikacja ma wbudowane [Vercel Web Analytics](https://vercel.com/docs/analytics): bez cookies, bez parametrów adresu
@@ -263,6 +280,7 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
   psql -d subalert_test -f supabase/migrations/20261014000000_email_import.sql
   psql -d subalert_test -f supabase/migrations/20261015000000_premium_and_bills.sql
   psql -d subalert_test -f supabase/migrations/20261016000000_calendar_and_push.sql
+  psql -d subalert_test -f supabase/migrations/20261017000000_email_updates_and_feedback.sql
   psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 

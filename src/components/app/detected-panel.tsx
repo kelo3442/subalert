@@ -1,4 +1,5 @@
-import { Check, MailCheck, Plus, X } from "lucide-react";
+import { Ban, CalendarCheck, Check, Hourglass, MailCheck, Plus, TrendingUp, X } from "lucide-react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { acceptDetected, dismissDetected } from "@/actions/detected";
 import { ServiceAvatar } from "@/components/subscriptions/service-avatar";
@@ -9,6 +10,53 @@ import { formatDateShort } from "@/lib/dates";
 import type { DetectedSubscription } from "@/lib/data/detected";
 import { formatPLN } from "@/lib/money";
 import { BILLING_CYCLE_SUFFIX } from "@/lib/subscriptions/billing";
+
+/** What an e-mail changed in a subscription the user already had. */
+function changeSummary(item: DetectedSubscription): { text: string; badge: ReactNode } | null {
+  switch (item.appliedChange) {
+    case "price": {
+      const before = item.previousAmountCents ? `${formatPLN(item.previousAmountCents)} → ` : "";
+      const raised = item.previousAmountCents !== null && item.amountCents !== null && item.amountCents > item.previousAmountCents;
+      return {
+        text: `${raised ? "Podwyżka" : "Nowa cena"}: ${before}${item.amountCents ? formatPLN(item.amountCents) : ""}`,
+        badge: (
+          <Badge tone="warn">
+            <TrendingUp className="size-3" aria-hidden /> zmiana ceny
+          </Badge>
+        ),
+      };
+    }
+    case "payment":
+      return {
+        text: item.nextPaymentDate ? `Płatność potwierdzona · następna ${formatDateShort(item.nextPaymentDate)}` : "Płatność potwierdzona",
+        badge: (
+          <Badge tone="accent">
+            <CalendarCheck className="size-3" aria-hidden /> zaktualizowano
+          </Badge>
+        ),
+      };
+    case "trial":
+      return {
+        text: item.trialEndsAt ? `Okres próbny do ${formatDateShort(item.trialEndsAt)}` : "Okres próbny",
+        badge: (
+          <Badge tone="warn">
+            <Hourglass className="size-3" aria-hidden /> okres próbny
+          </Badge>
+        ),
+      };
+    case "cancelled":
+      return {
+        text: "Dostawca potwierdził anulowanie — oznaczyliśmy jako anulowaną",
+        badge: (
+          <Badge>
+            <Ban className="size-3" aria-hidden /> anulowana
+          </Badge>
+        ),
+      };
+    default:
+      return null;
+  }
+}
 
 export function DetectedPanel({ items }: { items: DetectedSubscription[] }) {
   const pending = items.filter((item) => item.status === "pending");
@@ -22,7 +70,7 @@ export function DetectedPanel({ items }: { items: DetectedSubscription[] }) {
         description={
           pending.length > 0
             ? `Do sprawdzenia: ${pending.length}. Rozpoznane usługi dodajemy automatycznie.`
-            : "Nowe subskrypcje z przekazanych e-maili pojawią się tutaj."
+            : "Nowe subskrypcje i zmiany (ceny, terminy, anulowania) z przekazanych e-maili."
         }
       />
       <ul className="mt-3 divide-y divide-line">
@@ -63,13 +111,18 @@ export function DetectedPanel({ items }: { items: DetectedSubscription[] }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-fg">{item.name}</p>
                 <p className="truncate text-xs text-muted">
-                  {item.amountCents && `${formatPLN(item.amountCents)} / ${BILLING_CYCLE_SUFFIX[item.billingCycle]} · `}
-                  e-mail z {formatDateShort(item.receivedAt.slice(0, 10))}
+                  {changeSummary(item)?.text ??
+                    (item.amountCents ? `${formatPLN(item.amountCents)} / ${BILLING_CYCLE_SUFFIX[item.billingCycle]} · ` : "") +
+                      `e-mail z ${formatDateShort(item.receivedAt.slice(0, 10))}`}
                 </p>
               </div>
-              <Badge tone="accent">
-                <Check className="size-3" aria-hidden /> dodano automatycznie
-              </Badge>
+              <span className="shrink-0">
+                {changeSummary(item)?.badge ?? (
+                  <Badge tone="accent">
+                    <Check className="size-3" aria-hidden /> dodano automatycznie
+                  </Badge>
+                )}
+              </span>
             </Link>
           </li>
         ))}

@@ -1,4 +1,4 @@
-import { isValidISODate, todayInTimeZone, type ISODate } from "@/lib/dates";
+import { compareISODates, daysBetween, isValidISODate, todayInTimeZone, type ISODate } from "@/lib/dates";
 import { MAX_AMOUNT_CENTS } from "@/lib/money";
 import { nextPaymentOnOrAfter, nthPaymentDate, type BillingCycle } from "@/lib/subscriptions/billing";
 import type { CategoryKey } from "@/lib/subscriptions/categories";
@@ -12,10 +12,14 @@ export interface InboundEmail {
   receivedAt: Date;
 }
 
+/** What the e-mail is about: a charge, a trial, a cancellation or an announced price change. */
+export type EmailEvent = "receipt" | "trial" | "cancellation" | "price_change";
+
 export type ParsedEmail =
   | { kind: "gmail_verification"; code: string | null; link: string | null }
   | {
       kind: "subscription";
+      event: EmailEvent;
       name: string;
       knownService: boolean;
       amountCents: number | null;
@@ -123,9 +127,23 @@ export function findDate(text: string): ISODate | null {
 const TRIAL = /okres próbn|okresu próbn|bezpłatn\w* okres|darmow\w* okres|free trial|trial/i;
 
 export function findTrialEnd(text: string): { isTrial: boolean; endsAt: ISODate | null } {
-  const sentence = text.split(/(?<=[.!?\n])/).find((part) => TRIAL.test(part));
+  // Split on sentence ends only (".", "!" or "?" followed by whitespace), so "30.10.2026" stays intact.
+  const sentence = text.split(/(?<=[.!?])\s+|\n/).find((part) => TRIAL.test(part));
   if (!sentence) return { isTrial: false, endsAt: null };
   return { isTrial: true, endsAt: findDate(sentence) };
+}
+
+const CANCELLATION =
+  /(subskrypcj\w*|członkostw\w*|abonament\w*|plan\w*|konto premium)\s+(\S+\s+){0,3}(został[ao]?\s+)?(anulowan|zakończon|wyłączon|wygas)|anulowa\w*\s+(\S+\s+){0,2}(subskrypcj|członkostw|abonament|plan)|zrezygnowa|potwierdzenie (anulowania|rezygnacji)|(subscription|membership|plan)\s+(\S+\s+){0,3}(has been |was |is )?(cancel+ed|ended)|cancel+ation (confirmed|confirmation)|sorry to see you go/i;
+const PRICE_CHANGE = /zmian\w* cen|now\w* cen|cen\w* (wzrośnie|wzrasta|zmieni|zostanie zmienion)|podwyżk|price (increase|change)|new price|price is changing|prices? (will )?(go up|increase)/i;
+
+/** Classifies the e-mail; the subject and the opening lines matter most. */
+export function detectEvent(subject: string, text: string, isTrial: boolean): EmailEvent {
+  const head = `${subject}\n${text.slice(0, 800)}`;
+  if (CANCELLATION.test(head)) return "cancellation";
+  if (PRICE_CHANGE.test(head)) return "price_change";
+  if (isTrial) return "trial";
+  return "receipt";
 }
 
 const SUBSCRIPTION_HINT = /subskrypc|abonament|członkostw|subscription|membership|renew|odnowi|premium|plan |faktur|rachun|receipt|invoice|płatnoś|payment|okres próbn|trial/i;
@@ -166,6 +184,7 @@ export function parseReceiptEmail(email: InboundEmail, timeZone: string): Parsed
 
   return {
     kind: "subscription",
+    event: detectEvent(email.subject, text, trial.isTrial),
     name,
     knownService: Boolean(service),
     amountCents,
@@ -198,4 +217,92 @@ export function extractInboundToken(recipients: string[]): string | null {
     if (token) return token.toLowerCase();
   }
   return null;
+}
+
+/** A subscription the user already tracks, as far as e-mail updates are concerned. */
+export interface TrackedSubscription {
+  id: string;
+  name: string;
+  amountCents: number;
+  billingCycle: BillingCycle;
+  nextPaymentDate: ISODate;
+  trialEndsAt: ISODate | null;
+}
+
+export interface SubscriptionUpdate {
+  change: "payment" | "price" | "trial" | "cancelled";
+  patch: {
+    amount_cents?: number;
+    next_payment_date?: ISODate;
+    trial_ends_at?: ISODate;
+    status?: "cancelled";
+    cancelled_at?: string;
+  };
+  previousAmountCents: number | null;
+}
+
+/** A receipt counts as this period's charge when a payment was due within this many days. */
+export const RECEIPT_WINDOW_DAYS = 10;
+
+/** Guards against picking up an unrelated amount from the e-mail (shipping, other plans…). */
+function plausiblePrice(next: number | null, current: number): next is number {
+  return next !== null && next !== current && next >= current / 3 && next <= current * 3;
+}
+
+/** Days between `today` and the closest scheduled charge, before or after it (the anchor may lie on either side). */
+export function daysToNearestPayment(anchor: ISODate, cycle: BillingCycle, today: ISODate): number {
+  let n = 0;
+  while (compareISODates(nthPaymentDate(anchor, cycle, n), today) < 0) n += 1;
+  while (compareISODates(nthPaymentDate(anchor, cycle, n - 1), today) >= 0) n -= 1;
+  return Math.min(daysBetween(nthPaymentDate(anchor, cycle, n - 1), today), daysBetween(today, nthPaymentDate(anchor, cycle, n)));
+}
+
+export function findTracked<T extends { name: string }>(name: string, tracked: T[]): T | null {
+  const normalized = name.trim().toLocaleLowerCase("pl");
+  return tracked.find((item) => item.name.trim().toLocaleLowerCase("pl") === normalized) ?? null;
+}
+
+/**
+ * How an e-mail about an already tracked subscription changes it, or null when
+ * it changes nothing. Receipts only move the schedule when a charge was due
+ * around the date the e-mail arrived, so stray mails cannot shift it.
+ */
+export function planUpdate(
+  parsed: Extract<ParsedEmail, { kind: "subscription" }>,
+  tracked: TrackedSubscription,
+  today: ISODate,
+  now: Date = new Date(),
+): SubscriptionUpdate | null {
+  switch (parsed.event) {
+    case "cancellation":
+      return { change: "cancelled", patch: { status: "cancelled", cancelled_at: now.toISOString() }, previousAmountCents: null };
+
+    case "price_change":
+      return plausiblePrice(parsed.amountCents, tracked.amountCents)
+        ? { change: "price", patch: { amount_cents: parsed.amountCents }, previousAmountCents: tracked.amountCents }
+        : null;
+
+    case "trial": {
+      const endsAt = parsed.trialEndsAt;
+      if (!endsAt || compareISODates(endsAt, today) < 0 || endsAt === tracked.trialEndsAt) return null;
+      return { change: "trial", patch: { trial_ends_at: endsAt, next_payment_date: endsAt }, previousAmountCents: null };
+    }
+
+    case "receipt": {
+      if (daysToNearestPayment(tracked.nextPaymentDate, tracked.billingCycle, today) > RECEIPT_WINDOW_DAYS) return null;
+      const patch: SubscriptionUpdate["patch"] = {};
+      // The charge happened when the receipt arrived; the next one is a cycle later (in the tracked cycle).
+      const next = nthPaymentDate(today, tracked.billingCycle, 1);
+      if (next !== nextPaymentOnOrAfter(tracked.nextPaymentDate, tracked.billingCycle, next)) patch.next_payment_date = next;
+      const priceChanged = plausiblePrice(parsed.amountCents, tracked.amountCents);
+      if (priceChanged) patch.amount_cents = parsed.amountCents!;
+      // A receipt that matches what we already know changes nothing.
+      if (Object.keys(patch).length === 0) return null;
+      return {
+        change: priceChanged ? "price" : "payment",
+        patch,
+        previousAmountCents: priceChanged ? tracked.amountCents : null,
+      };
+    }
+  }
 }

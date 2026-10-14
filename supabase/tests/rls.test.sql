@@ -332,6 +332,48 @@ do $$ begin
   end;
 end $$;
 
+-- Feedback: users insert their own messages only, read only their own, at most 10 a day.
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$
+declare i int;
+begin
+  insert into public.feedback (user_id, message) values (auth.uid(), 'Świetna aplikacja');
+  begin
+    insert into public.feedback (user_id, message) values ('00000000-0000-0000-0000-00000000000b', 'Podszywam się');
+    raise exception 'FAIL: feedback as another user';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.feedback set message = 'zmiana';
+    raise exception 'FAIL: feedback update allowed';
+  exception when insufficient_privilege then null;
+  end;
+  for i in 2..10 loop
+    insert into public.feedback (user_id, message) values (auth.uid(), 'Wiadomość ' || i);
+  end loop;
+  begin
+    insert into public.feedback (user_id, message) values (auth.uid(), 'Jedenasta');
+    raise exception 'FAIL: feedback limit not enforced';
+  exception when raise_exception then
+    if sqlerrm <> 'feedback_limit' then raise; end if;
+  end;
+end $$;
+select set_config('request.jwt.claim.sub', :'bob', false);
+do $$ begin
+  assert (select count(*) from public.feedback) = 0, 'FAIL: bob reads alice feedback';
+end $$;
+reset role;
+set role anon;
+do $$ begin
+  begin
+    perform count(*) from public.feedback;
+    raise exception 'FAIL: anon reads feedback';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- Account deletion removes only the caller and cascades to their data.
 reset role;
 set role anon;

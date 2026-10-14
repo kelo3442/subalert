@@ -20,10 +20,13 @@ export interface DetectedSubscription {
   status: "pending" | "added" | "dismissed";
   autoAdded: boolean;
   subscriptionId: string | null;
+  /** Set when the e-mail updated a subscription the user already had. */
+  appliedChange: "payment" | "price" | "trial" | "cancelled" | null;
+  previousAmountCents: number | null;
 }
 
 const COLUMNS =
-  "id, name, amount_cents, billing_cycle, next_payment_date, trial_ends_at, category, manage_url, email_from, received_at, status, auto_added, subscription_id";
+  "id, name, amount_cents, billing_cycle, next_payment_date, trial_ends_at, category, manage_url, email_from, received_at, status, auto_added, subscription_id, applied_change, previous_amount_cents";
 
 type Row = {
   id: string;
@@ -39,6 +42,8 @@ type Row = {
   status: "pending" | "added" | "dismissed";
   auto_added: boolean;
   subscription_id: string | null;
+  applied_change: DetectedSubscription["appliedChange"];
+  previous_amount_cents: number | null;
 };
 
 function fromRow(row: Row): DetectedSubscription {
@@ -57,6 +62,8 @@ function fromRow(row: Row): DetectedSubscription {
     status: row.status,
     autoAdded: row.auto_added,
     subscriptionId: row.subscription_id,
+    appliedChange: row.applied_change,
+    previousAmountCents: row.previous_amount_cents,
   };
 }
 

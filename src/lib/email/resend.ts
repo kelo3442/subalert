@@ -7,6 +7,8 @@ export interface EmailMessage {
   text: string;
   /** Provider-side deduplication key; retries with the same key send once. */
   idempotencyKey: string;
+  /** Where replies go (e.g. the user who sent feedback). */
+  replyTo?: string;
 }
 
 export type SendResult = { ok: true; id: string } | { ok: false; error: string };
@@ -39,6 +41,7 @@ export async function sendEmail(config: EmailConfig, message: EmailMessage): Pro
         subject: message.subject,
         html: message.html,
         text: message.text,
+        ...(message.replyTo ? { reply_to: message.replyTo } : {}),
       }),
     });
     const body = (await response.json().catch(() => ({}))) as { id?: string; message?: string };

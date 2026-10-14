@@ -9,10 +9,31 @@ import { RemindersSection } from "@/components/landing/reminders-section";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
 import { getEmailConfig } from "@/lib/email/resend";
+import { getSiteUrl } from "@/lib/env";
+
+/** Structured data: tells search engines that "SubAlert" is this site's name. */
+function structuredData() {
+  const url = `${getSiteUrl()}/`;
+  return JSON.stringify([
+    { "@context": "https://schema.org", "@type": "WebSite", name: "SubAlert", alternateName: "subalert.pl", url, inLanguage: "pl-PL" },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "SubAlert",
+      url,
+      applicationCategory: "FinanceApplication",
+      operatingSystem: "Web, Android, iOS",
+      inLanguage: "pl-PL",
+      description: "Subskrypcje i rachunki domowe w jednym miejscu, z przypomnieniami przed płatnością.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "PLN" },
+    },
+  ]).replace(/</g, "\\u003c");
+}
 
 export default function HomePage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData() }} />
       <SiteHeader />
       <main className="flex-1">
         <Hero />

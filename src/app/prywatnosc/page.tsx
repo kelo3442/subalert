@@ -33,7 +33,8 @@ export default function PrivacyPage() {
           </li>
           <li>
             Przekazane e-maile (Premium): zapisujemy wyłącznie nadawcę, temat, datę i rozpoznane dane (nazwa usługi, kwota, termin).{" "}
-            <strong className="text-fg">Treści wiadomości nie przechowujemy.</strong>
+            <strong className="text-fg">Treści wiadomości nie przechowujemy.</strong> Jeśli e-mail dotyczy usługi, którą już śledzisz (np. potwierdzenie płatności, zmiana ceny, anulowanie), aktualizujemy tę pozycję
+            i pokazujemy zmianę na pulpicie.
           </li>
           <li>Dane płatności (Premium): status planu, daty ważności oraz identyfikatory klienta i subskrypcji w Stripe. Numerów kart nie otrzymujemy.</li>
           <li>Dane techniczne: adres IP i informacje o przeglądarce w logach serwera, niezbędne do działania i zabezpieczenia Serwisu.</li>
@@ -49,6 +50,10 @@ export default function PrivacyPage() {
           <li>
             Link do kalendarza: losowy, prywatny adres, pod którym Twoja aplikacja kalendarza pobiera terminy płatności. W każdej chwili
             możesz wygenerować nowy w ustawieniach — stary przestaje działać.
+          </li>
+          <li>
+            Opinie wysłane przyciskiem „Zgłoś opinię”: treść wiadomości, adres e-mail konta i podstrona, z której ją wysłano. Trafiają też
+            na naszą skrzynkę kontaktową, żebyśmy mogli odpowiedzieć.
           </li>
           <li>Lista chętnych na Premium: data zapisu, jeśli klikniesz „Powiadom mnie”. Wypiszesz się, pisząc do nas.</li>
         </List>
