@@ -10,7 +10,7 @@ export interface LegalInfo {
 }
 
 const DEFAULT_OPERATOR_NAME = "Olivier Cisoń";
-const DEFAULT_CONTACT_EMAIL = "kontakt@subalert.pl";
+const DEFAULT_CONTACT_EMAIL = "kontakt@oplacik.pl";
 
 /** Seller / data controller details; environment variables override the defaults. */
 export function getLegalInfo(): LegalInfo {

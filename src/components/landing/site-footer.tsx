@@ -9,7 +9,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-subtle sm:px-6 md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-3">
           <Logo />
-          <p className="max-w-sm">SubAlert pomaga pamiętać o płatnościach. Nie jest powiązany z dostawcami wymienionych usług.</p>
+          <p className="max-w-sm">Opłacik pomaga pamiętać o płatnościach. Nie jest powiązany z dostawcami wymienionych usług.</p>
         </div>
         <nav aria-label="Informacje" className="flex flex-col gap-2">
           <Link href="/regulamin" className="hover:text-fg">

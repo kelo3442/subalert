@@ -10,21 +10,21 @@ export interface BeforeInstallPromptEvent extends Event {
 
 declare global {
   interface Window {
-    __subalertInstallPrompt?: BeforeInstallPromptEvent | null;
+    __oplacikInstallPrompt?: BeforeInstallPromptEvent | null;
   }
 }
 
-const CHANGE_EVENT = "subalert:install-change";
+const CHANGE_EVENT = "oplacik:install-change";
 
 /** Captures the install prompt as early as possible (it fires once, often before React mounts). */
 export function listenForInstallPrompt(): () => void {
   const onPrompt = (event: Event) => {
     event.preventDefault();
-    window.__subalertInstallPrompt = event as BeforeInstallPromptEvent;
+    window.__oplacikInstallPrompt = event as BeforeInstallPromptEvent;
     window.dispatchEvent(new Event(CHANGE_EVENT));
   };
   const onInstalled = () => {
-    window.__subalertInstallPrompt = null;
+    window.__oplacikInstallPrompt = null;
     window.dispatchEvent(new Event(CHANGE_EVENT));
   };
   window.addEventListener("beforeinstallprompt", onPrompt);
@@ -52,14 +52,14 @@ function isIos(): boolean {
 
 function currentState(): InstallState {
   if (isStandalone()) return { kind: "installed" };
-  const prompt = window.__subalertInstallPrompt;
+  const prompt = window.__oplacikInstallPrompt;
   if (prompt) {
     return {
       kind: "prompt",
       install: async () => {
         await prompt.prompt();
         const { outcome } = await prompt.userChoice;
-        window.__subalertInstallPrompt = null;
+        window.__oplacikInstallPrompt = null;
         window.dispatchEvent(new Event(CHANGE_EVENT));
         return outcome === "accepted";
       },

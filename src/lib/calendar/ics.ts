@@ -48,7 +48,7 @@ function eventLines(event: ScheduleEvent, stamp: string, appUrl: string): string
   const url = `${appUrl}/panel/subskrypcje/${subscription.id}`;
   return [
     "BEGIN:VEVENT",
-    `UID:${subscription.id}-${event.kind}-${event.date}@subalert`,
+    `UID:${subscription.id}-${event.kind}-${event.date}@oplacik`,
     `DTSTAMP:${stamp}`,
     `DTSTART;VALUE=DATE:${compactDate(event.date)}`,
     `DTEND;VALUE=DATE:${compactDate(addDays(event.date, 1))}`,
@@ -72,11 +72,11 @@ export function buildCalendar(events: ScheduleEvent[], options: { appUrl: string
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//SubAlert//Kalendarz płatności//PL",
+    "PRODID:-//Opłacik//Kalendarz płatności//PL",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
-    "X-WR-CALNAME:SubAlert — płatności",
-    "X-WR-CALDESC:Terminy płatności i końce okresów próbnych z SubAlert",
+    "X-WR-CALNAME:Opłacik — płatności",
+    "X-WR-CALDESC:Terminy płatności i końce okresów próbnych z Opłacika",
     "REFRESH-INTERVAL;VALUE=DURATION:PT6H",
     "X-PUBLISHED-TTL:PT6H",
     ...events.flatMap((event) => eventLines(event, stamp, options.appUrl)),

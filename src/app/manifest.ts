@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/panel",
-    name: "SubAlert — subskrypcje i rachunki",
-    short_name: "SubAlert",
+    name: "Opłacik — subskrypcje i rachunki",
+    short_name: "Opłacik",
     description: "Subskrypcje i rachunki w jednym miejscu, z przypomnieniami przed płatnością.",
     lang: "pl",
     start_url: "/panel",

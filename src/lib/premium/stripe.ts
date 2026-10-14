@@ -81,12 +81,12 @@ export async function createCheckoutSession(
 
   if (plan === "monthly") {
     params.mode = "subscription";
-    params["line_items[0][price_data][product_data][name]"] = "SubAlert Premium — miesięcznie";
+    params["line_items[0][price_data][product_data][name]"] = "Opłacik Premium — miesięcznie";
     params["line_items[0][price_data][recurring][interval]"] = "month";
     params["subscription_data[metadata][user_id]"] = userId;
   } else {
     params.mode = "payment";
-    params["line_items[0][price_data][product_data][name]"] = "SubAlert Premium — 12 miesięcy";
+    params["line_items[0][price_data][product_data][name]"] = "Opłacik Premium — 12 miesięcy";
     params["payment_intent_data[metadata][user_id]"] = userId;
     params["invoice_creation[enabled]"] = "true";
     if (!options.customerId) params.customer_creation = "always";

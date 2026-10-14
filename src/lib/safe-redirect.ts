@@ -1,4 +1,4 @@
-const PLACEHOLDER_ORIGIN = "http://subalert.invalid";
+const PLACEHOLDER_ORIGIN = "http://oplacik.invalid";
 
 /**
  * Returns an internal path to redirect to after login. Anything that could

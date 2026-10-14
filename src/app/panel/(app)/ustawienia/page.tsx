@@ -113,7 +113,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
           <CardHeader
             icon={<TriangleAlert className="size-5 text-danger" aria-hidden />}
             title="Usunięcie konta"
-            description="Trwale usuwa konto i wszystkie dane z SubAlert. Nie anuluje usług u dostawców."
+            description="Trwale usuwa konto i wszystkie dane z Opłacika. Nie anuluje usług u dostawców."
           />
           <div className="p-5">
             <DeleteAccountForm />

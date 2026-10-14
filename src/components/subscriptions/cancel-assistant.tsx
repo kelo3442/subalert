@@ -17,7 +17,7 @@ export function CancelAssistant({ subscription }: { subscription: Subscription }
       <CardHeader
         icon={<LifeBuoy className="size-5" aria-hidden />}
         title="Cancel Assistant"
-        description="SubAlert nie anuluje usług za Ciebie — pomaga szybko trafić we właściwe miejsce."
+        description="Opłacik nie anuluje usług za Ciebie — pomaga szybko trafić we właściwe miejsce."
       />
       <div className="flex flex-col gap-5 p-5">
         {subscription.manageUrl ? (

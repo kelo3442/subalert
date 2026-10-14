@@ -100,7 +100,7 @@ export function RegisterForm() {
         Załóż konto
       </SubmitButton>
       <p className="text-center text-xs text-subtle">
-        Hasło przechowuje Supabase Auth w postaci zaszyfrowanej. SubAlert nie widzi Twojego hasła.
+        Hasło przechowuje Supabase Auth w postaci zaszyfrowanej. Opłacik nie widzi Twojego hasła.
       </p>
     </form>
   );

@@ -121,7 +121,7 @@ export default async function PremiumPage({ searchParams }: PageProps<"/panel/pr
       {salesOpen && !paymentsReady && <p className="mt-4 text-sm text-subtle">Płatności nie są jeszcze skonfigurowane na tym serwerze.</p>}
       {salesOpen && (
         <p className="mt-6 text-xs leading-relaxed text-subtle">
-          Płatności obsługuje Stripe. SubAlert nie widzi ani nie przechowuje danych Twojej karty. Ceny w złotych. Kupując, akceptujesz{" "}
+          Płatności obsługuje Stripe. Opłacik nie widzi ani nie przechowuje danych Twojej karty. Ceny w złotych. Kupując, akceptujesz{" "}
           <Link href="/regulamin" className="text-accent hover:underline">
             regulamin
           </Link>{" "}

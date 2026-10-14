@@ -14,7 +14,7 @@ const FEATURES = [
   {
     icon: Hourglass,
     title: "Trial Guard",
-    text: "Zaznacz darmowy okres próbny, a SubAlert pokaże, ile dni zostało, zanim zacznie się płatność.",
+    text: "Zaznacz darmowy okres próbny, a Opłacik pokaże, ile dni zostało, zanim zacznie się płatność.",
   },
   {
     icon: CalendarDays,
@@ -44,7 +44,7 @@ const FEATURES = [
   {
     icon: MailPlus,
     title: "Automatycznie z e-maili",
-    text: "W Premium przekazujesz potwierdzenia płatności na swój adres SubAlert, a nowe pozycje pojawiają się same.",
+    text: "W Premium przekazujesz potwierdzenia płatności na swój adres w Opłaciku, a nowe pozycje pojawiają się same.",
   },
 ];
 
@@ -58,7 +58,7 @@ export function Features() {
             Mniej niespodzianek na wyciągu z konta
           </h2>
           <p className="mt-3 text-muted">
-            SubAlert nie podgląda Twojego konta — to Ty decydujesz, co dodajesz: ręcznie, z pliku z banku albo z przekazanych e-maili. W zamian dostajesz porządek,
+            Opłacik nie podgląda Twojego konta — to Ty decydujesz, co dodajesz: ręcznie, z pliku z banku albo z przekazanych e-maili. W zamian dostajesz porządek,
             liczby i przypomnienia na czas.
           </p>
         </div>

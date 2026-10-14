@@ -6,9 +6,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useInstallState } from "./install-state";
 
-const DISMISSED_KEY = "subalert:install-banner-dismissed";
+const DISMISSED_KEY = "oplacik:install-banner-dismissed";
 
-/** Phone-only nudge on the dashboard to add SubAlert to the home screen. */
+/** Phone-only nudge on the dashboard to add Opłacik to the home screen. */
 export function InstallBanner() {
   const state = useInstallState();
   // Nothing renders before the install state is known on the client, so reading storage here cannot cause a hydration mismatch.
@@ -34,7 +34,7 @@ export function InstallBanner() {
       {/* eslint-disable-next-line @next/next/no-img-element -- tiny static icon */}
       <img src="/icons/icon-192.png" alt="" className="size-10 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-fg">Zainstaluj SubAlert</p>
+        <p className="text-sm font-medium text-fg">Zainstaluj Opłacik</p>
         <p className="text-xs text-muted">Ikona na ekranie głównym i powiadomienia o płatnościach.</p>
       </div>
       {state.kind === "prompt" ? (

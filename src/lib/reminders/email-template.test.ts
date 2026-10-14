@@ -7,7 +7,7 @@ const base = {
   eventDate: "2026-10-15",
   today: "2026-10-12",
   manageUrl: "https://www.netflix.com/account",
-  appUrl: "https://subalert.example",
+  appUrl: "https://oplacik.example",
   subscriptionId: "abc",
 };
 
@@ -16,7 +16,7 @@ describe("buildReminderEmail", () => {
     const email = buildReminderEmail({ ...base, kind: "payment" });
     expect(email.subject.replace(/\s/g, " ")).toBe("Płatność za Netflix za 3 dni: 49,00 zł");
     expect(email.text).toContain("nie anuluje subskrypcji automatycznie");
-    expect(email.text).toContain("https://subalert.example/panel/subskrypcje/abc");
+    expect(email.text).toContain("https://oplacik.example/panel/subskrypcje/abc");
   });
 
   it("describes trial ends", () => {

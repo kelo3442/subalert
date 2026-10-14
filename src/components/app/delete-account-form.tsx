@@ -31,7 +31,7 @@ export function DeleteAccountForm() {
             <TriangleAlert className="size-5" aria-hidden />
           </div>
           <h2 id="delete-account-title" className="mt-4 text-lg font-semibold">
-            Usunąć konto SubAlert?
+            Usunąć konto w Opłaciku?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Trwale usuniemy konto, wszystkie zapisane subskrypcje, ustawienia i historię przypomnień. Tej operacji nie

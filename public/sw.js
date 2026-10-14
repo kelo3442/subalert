@@ -1,6 +1,6 @@
-// SubAlert service worker: push notifications and an offline fallback page.
+// Opłacik service worker: push notifications and an offline fallback page.
 // Pages with account data are never cached.
-const OFFLINE_CACHE = "subalert-offline-v1";
+const OFFLINE_CACHE = "oplacik-offline-v1";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -31,7 +31,7 @@ self.addEventListener("push", (event) => {
   }
   const url = typeof data.url === "string" && data.url.startsWith("/") ? data.url : "/panel";
   event.waitUntil(
-    self.registration.showNotification(data.title || "SubAlert", {
+    self.registration.showNotification(data.title || "Opłacik", {
       body: data.body || "",
       icon: "/icons/icon-192.png",
       badge: "/icons/badge-96.png",

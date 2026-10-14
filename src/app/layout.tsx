@@ -11,14 +11,14 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin",
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "SubAlert — kontroluj swoje subskrypcje",
-    template: "%s · SubAlert",
+    default: "Opłacik — subskrypcje i rachunki pod kontrolą",
+    template: "%s · Opłacik",
   },
   description:
-    "Przestań tracić pieniądze na subskrypcje, o których zapominasz. Subskrypcje i rachunki domowe w jednym miejscu, koszty miesięczne i roczne oraz przypomnienia przed płatnością.",
-  openGraph: { locale: "pl_PL", siteName: "SubAlert", type: "website" },
-  applicationName: "SubAlert",
-  appleWebApp: { capable: true, title: "SubAlert", statusBarStyle: "black" },
+    "Wszystkie stałe opłaty w jednym miejscu: subskrypcje i rachunki domowe z każdego banku. Opłacik przypomni, zanim zapłacisz, i da znać, gdy coś podrożeje.",
+  openGraph: { locale: "pl_PL", siteName: "Opłacik", type: "website" },
+  applicationName: "Opłacik",
+  appleWebApp: { capable: true, title: "Opłacik", statusBarStyle: "black" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
 

@@ -37,7 +37,7 @@ export async function GET(_request: NextRequest, ctx: RouteContext<"/api/kalenda
   return new NextResponse(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": 'inline; filename="subalert.ics"',
+      "Content-Disposition": 'inline; filename="oplacik.ics"',
       "Cache-Control": "private, max-age=900",
       "X-Robots-Tag": "noindex",
     },

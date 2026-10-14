@@ -37,7 +37,7 @@ export function DeleteSubscriptionButton({ id, name }: { id: string; name: strin
             <TriangleAlert className="size-5" aria-hidden />
           </div>
           <h2 id="delete-title" className="mt-4 text-lg font-semibold">
-            Usunąć „{name}” z SubAlert?
+            Usunąć „{name}” z Opłacika?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Usuniemy tę pozycję i jej przypomnienia z Twojego konta.{" "}
@@ -55,7 +55,7 @@ export function DeleteSubscriptionButton({ id, name }: { id: string; name: strin
             </Button>
             <Button variant="danger" onClick={confirmDelete} disabled={isPending} aria-busy={isPending}>
               {isPending ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <Trash2 className="size-4" aria-hidden />}
-              Usuń z SubAlert
+              Usuń z Opłacika
             </Button>
           </div>
         </div>

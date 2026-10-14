@@ -24,14 +24,14 @@ export function EmailImportSettings({
       <CardHeader
         icon={<MailPlus className="size-5" aria-hidden />}
         title="Automatyczne dodawanie z e-maili"
-        description="Przekazuj potwierdzenia płatności na swój adres SubAlert — nowe subskrypcje pojawią się same."
+        description="Przekazuj potwierdzenia płatności na swój adres w Opłaciku — nowe subskrypcje pojawią się same."
       />
       <div className="flex flex-col gap-5 p-5">
         {!premium ? (
           <div className="flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/[0.06] p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
             <p className="text-muted">
               <strong className="text-fg">Funkcja Premium.</strong> Ustawiasz raz filtr w Gmailu, a nowe subskrypcje i rachunki
-              pojawiają się w SubAlert same.
+              pojawiają się w Opłaciku same.
             </p>
             <ButtonLink href="/panel/premium" size="sm" className="shrink-0">
               Zobacz Premium
@@ -63,7 +63,7 @@ export function EmailImportSettings({
                 <p className="mt-2 font-mono text-2xl tracking-widest text-accent" data-testid="gmail-code">
                   {settings.gmailCode}
                 </p>
-                <p className="mt-1 text-xs text-muted">Wpisz go w Gmailu, aby potwierdzić przekazywanie na adres SubAlert.</p>
+                <p className="mt-1 text-xs text-muted">Wpisz go w Gmailu, aby potwierdzić przekazywanie na adres w Opłaciku.</p>
                 {settings.gmailLink && (
                   <a href={settings.gmailLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-xs text-accent hover:underline">
                     albo potwierdź jednym kliknięciem
@@ -80,7 +80,7 @@ export function EmailImportSettings({
                 </li>
                 <li>Gmail wyśle kod potwierdzenia — pojawi się on na tej stronie (odśwież ją po chwili). Wpisz go w Gmailu. Nie włączaj przekazywania wszystkich wiadomości.</li>
                 <li>
-                  Utwórz filtr: w wyszukiwarce Gmaila kliknij ikonę filtrów, w polu <strong className="text-fg">Zawiera słowa</strong> wklej poniższy tekst, wybierz <strong className="text-fg">Utwórz filtr → Przekaż do</strong> i swój adres SubAlert.
+                  Utwórz filtr: w wyszukiwarce Gmaila kliknij ikonę filtrów, w polu <strong className="text-fg">Zawiera słowa</strong> wklej poniższy tekst, wybierz <strong className="text-fg">Utwórz filtr → Przekaż do</strong> i swój adres w Opłaciku.
                 </li>
               </ol>
               <div className="mb-4 flex flex-col gap-2">

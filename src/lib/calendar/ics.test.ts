@@ -29,25 +29,25 @@ describe("iCalendar feed", () => {
       trialEndsAt: "2026-10-16",
     });
     const events = upcomingEvents([netflix, spotify], "2026-10-14", 40);
-    const ics = buildCalendar(events, { appUrl: "https://www.subalert.pl", now: new Date("2026-10-14T12:00:00Z") });
+    const ics = buildCalendar(events, { appUrl: "https://www.oplacik.pl", now: new Date("2026-10-14T12:00:00Z") });
     const text = unfold(ics);
 
     expect(ics.startsWith("BEGIN:VCALENDAR\r\n")).toBe(true);
     expect(ics.endsWith("END:VCALENDAR\r\n")).toBe(true);
     expect(ics.split("\r\n").every((line) => new TextEncoder().encode(line).length <= 75)).toBe(true);
-    expect(text).toContain("UID:11111111-1111-4111-8111-111111111111-payment-2026-10-20@subalert");
-    expect(text).toContain("UID:11111111-1111-4111-8111-111111111111-payment-2026-11-20@subalert");
+    expect(text).toContain("UID:11111111-1111-4111-8111-111111111111-payment-2026-10-20@oplacik");
+    expect(text).toContain("UID:11111111-1111-4111-8111-111111111111-payment-2026-11-20@oplacik");
     expect(text).toContain("DTSTART;VALUE=DATE:20261020\r\nDTEND;VALUE=DATE:20261021");
     expect(text).toContain("SUMMARY:💳 Netflix\\, Standard — 49\\,00 zł");
     expect(text).toContain("SUMMARY:⏳ Koniec okresu próbnego: Spotify");
     expect(text).toContain("DTSTAMP:20261014T120000Z");
-    expect(text).toContain("URL:https://www.subalert.pl/panel/subskrypcje/22222222-2222-4222-8222-222222222222");
+    expect(text).toContain("URL:https://www.oplacik.pl/panel/subskrypcje/22222222-2222-4222-8222-222222222222");
     expect(text.match(/BEGIN:VEVENT/g)?.length).toBe(events.length);
   });
 
   it("produces a valid empty calendar", () => {
     const ics = buildCalendar([], { appUrl: "https://x.pl" });
-    expect(ics).toContain("X-WR-CALNAME:SubAlert — płatności");
+    expect(ics).toContain("X-WR-CALNAME:Opłacik — płatności");
     expect(ics).not.toContain("BEGIN:VEVENT");
   });
 });

@@ -8,7 +8,7 @@ const STEPS = [
   },
   {
     icon: Calculator,
-    title: "SubAlert wylicza terminy",
+    title: "Opłacik wylicza terminy",
     text: "Każdy kolejny termin liczymy w Twojej strefie czasowej, z poprawną obsługą krótszych miesięcy i lat przestępnych.",
   },
   {
@@ -41,10 +41,10 @@ export function RemindersSection({ emailEnabled }: { emailEnabled: boolean }) {
         <div className="mt-6 flex items-start gap-3 rounded-2xl border border-line bg-surface-2 p-4 text-sm text-muted">
           <Info className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
           <p>
-            <strong className="font-medium text-fg">Przypomnienie nie anuluje subskrypcji.</strong> SubAlert nie ma
+            <strong className="font-medium text-fg">Przypomnienie nie anuluje subskrypcji.</strong> Opłacik nie ma
             dostępu do Twoich kont u dostawców — jeśli chcesz zrezygnować, zrób to na stronie usługi. Pomożemy znaleźć
             właściwe miejsce.
-            {!emailEnabled && " Wysyłka e-maili na tej instancji SubAlert nie jest jeszcze włączona."}
+            {!emailEnabled && " Wysyłka e-maili na tej instancji Opłacika nie jest jeszcze włączona."}
           </p>
         </div>
       </div>

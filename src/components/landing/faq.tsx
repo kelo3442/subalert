@@ -5,16 +5,16 @@ const premiumOpen = isPremiumSalesOpen();
 
 const QUESTIONS = [
   {
-    q: "Czy SubAlert łączy się z moim bankiem albo skrzynką e-mail?",
-    a: "Nie. SubAlert nie ma dostępu do banku, karty ani skrzynki pocztowej i niczego nie wykrywa automatycznie. Subskrypcje dodajesz samodzielnie — dzięki temu wiesz dokładnie, jakie dane przechowujemy.",
+    q: "Czy Opłacik łączy się z moim bankiem albo skrzynką e-mail?",
+    a: "Nie. Opłacik nie ma dostępu do Twojego banku, karty ani skrzynki pocztowej. Pozycje dodajesz sam: wybierasz z listy, wczytujesz plik z historii konta (analizowany wyłącznie w Twojej przeglądarce) albo — w Premium — przekazujesz potwierdzenia płatności na swój prywatny adres. Ty decydujesz, co trafia do aplikacji.",
   },
   {
-    q: "Czy SubAlert anuluje subskrypcje za mnie?",
+    q: "Czy Opłacik anuluje subskrypcje za mnie?",
     a: "Nie. Przypominamy o płatnościach i podpowiadamy, gdzie zarządzać usługą, ale anulowanie zawsze robisz sam u dostawcy. Możesz potem oznaczyć subskrypcję jako anulowaną, żeby przestała liczyć się do wydatków.",
   },
   {
-    q: "Co się stanie, gdy usunę subskrypcję z SubAlert?",
-    a: "Znika tylko z Twojej listy w SubAlert. U dostawcy nic się nie zmienia — jeśli usługa jest aktywna, nadal będzie pobierać opłaty.",
+    q: "Co się stanie, gdy usunę subskrypcję z Opłacika?",
+    a: "Znika tylko z Twojej listy w Opłaciku. U dostawcy nic się nie zmienia — jeśli usługa jest aktywna, nadal będzie pobierać opłaty.",
   },
   {
     q: "Jak liczony jest koszt miesięczny?",
@@ -30,7 +30,7 @@ const QUESTIONS = [
   },
   {
     q: "Czy mogę korzystać na telefonie?",
-    a: "Tak. SubAlert to aplikacja webowa zaprojektowana z myślą o telefonach — działa w przeglądarce, bez instalacji.",
+    a: "Tak. Opłacik to aplikacja webowa zaprojektowana z myślą o telefonach — działa w przeglądarce, bez instalacji.",
   },
   {
     q: "Czy mogę dodać rachunki za prąd, wodę czy czynsz?",

@@ -48,7 +48,7 @@ export async function sendFeedback(_prev: FormState<FeedbackField>, formData: Fo
     await sendEmail(emailConfig, {
       to,
       replyTo: user.email || undefined,
-      subject: `Opinia o SubAlert od ${user.email}`,
+      subject: `Opinia o Opłaciku od ${user.email}`,
       text: `${message}\n\n—\nOd: ${user.email}\nStrona: ${page ?? "-"}`,
       html: `<p style="white-space:pre-wrap">${escapeHtml(message)}</p><hr><p style="color:#71717a;font-size:12px">Od: ${escapeHtml(user.email)}<br>Strona: ${escapeHtml(page ?? "-")}</p>`,
       idempotencyKey: `feedback-${randomUUID()}`,

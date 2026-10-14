@@ -16,12 +16,12 @@ export function Hero() {
             Subskrypcje i rachunki domowe w jednym miejscu
           </p>
           <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-fg sm:text-5xl lg:text-[3.5rem]">
-            Przestań tracić pieniądze na subskrypcje,{" "}
-            <span className="text-accent">o których zapominasz.</span>
+            Wszystkie stałe opłaty w jednym miejscu.{" "}
+            <span className="text-accent">Z każdego banku.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-            Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet — zapisz wszystko w jednym miejscu, zobacz,
-            ile naprawdę kosztuje w skali miesiąca i roku, i dostań przypomnienie, zanim pieniądze znikną z konta.
+            Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet. Opłacik przypomni, zanim zapłacisz, pokaże, ile
+            to kosztuje w skali miesiąca i roku, i da znać, gdy coś podrożeje.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/rejestracja" size="lg">

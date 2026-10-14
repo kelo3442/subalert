@@ -1,5 +1,5 @@
 export interface InboundConfig {
-  /** Address template with a {token} placeholder, e.g. "{token}@in.subalert.pl". */
+  /** Address template with a {token} placeholder, e.g. "{token}@in.oplacik.pl". */
   addressTemplate: string;
 }
 

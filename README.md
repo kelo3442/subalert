@@ -1,13 +1,15 @@
-# SubAlert
+# Opłacik
 
-**Przestań tracić pieniądze na subskrypcje, o których zapominasz.**
+**Wszystkie stałe opłaty w jednym miejscu. Z każdego banku.**
 
-SubAlert to aplikacja webowa (MVP) dla polskich użytkowników: zapisujesz swoje subskrypcje, widzisz ich
-miesięczny i roczny koszt, kalendarz płatności, kończące się okresy próbne (Trial Guard) i dostajesz
-przypomnienia e-mail przed obciążeniem.
+Opłacik ([oplacik.pl](https://www.oplacik.pl)) to aplikacja webowa (PWA) dla polskich użytkowników: subskrypcje i
+rachunki domowe w jednym miejscu, miesięczny i roczny koszt, kalendarz płatności (także w kalendarzu telefonu), kończące
+się okresy próbne (Trial Guard), przypomnienia e-mail i push przed obciążeniem oraz automatyczne dodawanie i aktualizacja
+pozycji z przekazanych e-maili.
 
-> SubAlert **nie** łączy się z bankiem ani skrzynką e-mail i niczego nie wykrywa automatycznie.
-> Nie anuluje też subskrypcji za użytkownika — jedynie przypomina i podpowiada, gdzie to zrobić.
+> Opłacik **nie** łączy się z bankiem ani nie czyta skrzynki pocztowej — analizuje tylko plik z historii konta
+> (w przeglądarce) i e-maile, które użytkownik sam przekaże. Nie anuluje subskrypcji za użytkownika — przypomina
+> i podpowiada, gdzie to zrobić.
 
 ## Stos technologiczny
 
@@ -77,7 +79,7 @@ Aplikacja: http://localhost:3000
 | `SUPABASE_SECRET_KEY` | do przypomnień | **tylko serwer** | klucz `secret`/`service_role`; omija RLS, używany wyłącznie przez cron. Działa też nazwa `SUPABASE_SERVICE_ROLE_KEY` |
 | `CRON_SECRET` | do przypomnień | **tylko serwer** | chroni `/api/cron/reminders` |
 | `RESEND_API_KEY` | do przypomnień | **tylko serwer** | klucz API Resend |
-| `REMINDER_FROM_EMAIL` | do przypomnień | **tylko serwer** | nadawca, np. `SubAlert <przypomnienia@twojadomena.pl>` (domena zweryfikowana w Resend) |
+| `REMINDER_FROM_EMAIL` | do przypomnień | **tylko serwer** | nadawca, np. `Opłacik <przypomnienia@twojadomena.pl>` (domena zweryfikowana w Resend) |
 
 Zmienne `NEXT_PUBLIC_*` są wkompilowywane w build — po ich zmianie zrób nowy build/deploy.
 Nigdy nie dodawaj prefiksu `NEXT_PUBLIC_` do kluczy sekretnych.
@@ -160,7 +162,7 @@ Funkcja jest opcjonalna; bez tej konfiguracji ustawienia pokazują informację, 
    - bez własnej domeny: `TWOJ_INBOUND_HASH+{token}@inbound.postmarkapp.com` (adresowanie „plus”),
    - z domeną: `{token}@in.twojadomena.pl` (rekord MX domeny wskazuje na dostawcę).
 3. Wygeneruj sekret (`openssl rand -hex 32`), ustaw go jako `INBOUND_EMAIL_WEBHOOK_SECRET`, a w dostawcy podaj URL webhooka
-   z Basic Auth: `https://subalert:<SEKRET>@<twoja-domena>/api/inbound-email`.
+   z Basic Auth: `https://oplacik:<SEKRET>@<twoja-domena>/api/inbound-email`.
 4. Wymagany jest też `SUPABASE_SECRET_KEY` (webhook zapisuje dane bez sesji użytkownika).
 
 **Aktualizacje istniejących pozycji.** E-mail o usłudze, którą użytkownik już śledzi, zmienia ją zamiast tworzyć duplikat
@@ -233,7 +235,7 @@ warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia a
 
 Przycisk „Zgłoś opinię” (pasek boczny, a na telefonie ikona w nagłówku) zapisuje wiadomość w tabeli `feedback`
 (maks. 10 dziennie na konto) i wysyła ją przez Resend na adres kontaktowy (`NEXT_PUBLIC_CONTACT_EMAIL`, domyślnie
-kontakt@subalert.pl) z adresem użytkownika w polu „Odpowiedz do”.
+kontakt@oplacik.pl) z adresem użytkownika w polu „Odpowiedz do”.
 
 ## Wyszukiwarki
 
@@ -252,7 +254,7 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
    (przy pierwszym razie *Adjust GitHub App Permissions* i nadaj dostęp do repozytorium). Framework zostanie wykryty
    automatycznie. Nazwa projektu wyznacza adres `nazwa.vercel.app`.
 2. Przed kliknięciem *Deploy* rozwiń *Environment Variables* i dodaj co najmniej:
-   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (np. `https://subalert.vercel.app`),
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` (np. `https://www.oplacik.pl`),
    `SUPABASE_SECRET_KEY`, `CRON_SECRET`, `NEXT_PUBLIC_CONTACT_EMAIL` i dane do regulaminu. Pozostałe (Resend, Stripe,
    Google, odbiór e-maili) dodasz później — po każdej zmianie zmiennych zrób *Redeploy*.
 3. Deploy. Wdrażana jest gałąź domyślna repozytorium (*Settings → Git → Production Branch*).
@@ -273,15 +275,15 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
   (**nie** na projekcie Supabase):
 
   ```bash
-  createdb subalert_test
-  psql -d subalert_test -f supabase/tests/auth_stub.sql
-  psql -d subalert_test -f supabase/migrations/20261012000000_init.sql
-  psql -d subalert_test -f supabase/migrations/20261013000000_delete_own_account.sql
-  psql -d subalert_test -f supabase/migrations/20261014000000_email_import.sql
-  psql -d subalert_test -f supabase/migrations/20261015000000_premium_and_bills.sql
-  psql -d subalert_test -f supabase/migrations/20261016000000_calendar_and_push.sql
-  psql -d subalert_test -f supabase/migrations/20261017000000_email_updates_and_feedback.sql
-  psql -d subalert_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
+  createdb oplacik_test
+  psql -d oplacik_test -f supabase/tests/auth_stub.sql
+  psql -d oplacik_test -f supabase/migrations/20261012000000_init.sql
+  psql -d oplacik_test -f supabase/migrations/20261013000000_delete_own_account.sql
+  psql -d oplacik_test -f supabase/migrations/20261014000000_email_import.sql
+  psql -d oplacik_test -f supabase/migrations/20261015000000_premium_and_bills.sql
+  psql -d oplacik_test -f supabase/migrations/20261016000000_calendar_and_push.sql
+  psql -d oplacik_test -f supabase/migrations/20261017000000_email_updates_and_feedback.sql
+  psql -d oplacik_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 
 ## Struktura

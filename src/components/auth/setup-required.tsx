@@ -10,7 +10,7 @@ export function SetupRequired() {
       </div>
       <h1 className="mt-4 text-xl font-semibold text-fg">Logowanie nie jest jeszcze skonfigurowane</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Ta instancja SubAlert działa w trybie deweloperskim bez Supabase. Rejestracja, logowanie i zapis subskrypcji
+        Ta instancja Opłacika działa w trybie deweloperskim bez Supabase. Rejestracja, logowanie i zapis subskrypcji
         są wyłączone, dopóki nie dodasz kluczy projektu. Kalkulator na stronie głównej działa bez konta.
       </p>
       <div className="mt-5 rounded-xl border border-line bg-bg p-4 font-mono text-xs leading-relaxed text-muted">

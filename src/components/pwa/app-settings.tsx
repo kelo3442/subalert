@@ -30,14 +30,14 @@ function InstallSection() {
     return (
       <p className="flex items-start gap-2 text-sm text-muted">
         <CircleCheck className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
-        Korzystasz z aplikacji SubAlert zainstalowanej na tym urządzeniu.
+        Korzystasz z aplikacji Opłacik zainstalowanej na tym urządzeniu.
       </p>
     );
   }
   if (state.kind === "prompt") {
     return (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">Ikona SubAlert na ekranie głównym, pełny ekran i szybkie uruchamianie — bez sklepu z aplikacjami.</p>
+        <p className="text-sm text-muted">Ikona Opłacika na ekranie głównym, pełny ekran i szybkie uruchamianie — bez sklepu z aplikacjami.</p>
         <Button
           className="shrink-0"
           disabled={busy}
@@ -54,7 +54,7 @@ function InstallSection() {
   if (state.kind === "ios") {
     return (
       <div className="text-sm text-muted">
-        <p>Na iPhonie zainstalujesz SubAlert w Safari w trzech krokach:</p>
+        <p>Na iPhonie zainstalujesz Opłacik w Safari w trzech krokach:</p>
         <ol className="mt-3 flex flex-col gap-2.5">
           {[
             <>
@@ -64,7 +64,7 @@ function InstallSection() {
               Wybierz <SquarePlus className="inline size-4 align-[-3px] text-fg" aria-hidden /> <strong className="text-fg">Do ekranu początkowego</strong>.
             </>,
             <>
-              Stuknij <strong className="text-fg">Dodaj</strong> i otwórz SubAlert z ekranu głównego.
+              Stuknij <strong className="text-fg">Dodaj</strong> i otwórz Opłacik z ekranu głównego.
             </>,
           ].map((step, index) => (
             <li key={index} className="flex items-start gap-2.5">
@@ -173,10 +173,10 @@ function PushSection({ publicKey }: { publicKey: string }) {
       {status === "loading" && <LoaderCircle className="size-4 animate-spin text-subtle" aria-hidden />}
       {status === "unsupported" && <p className="text-sm text-muted">Ta przeglądarka nie obsługuje powiadomień. Spróbuj w Chrome, Edge, Firefoksie albo Safari.</p>}
       {status === "needs-install" && (
-        <p className="text-sm text-muted">Na iPhonie powiadomienia działają po zainstalowaniu SubAlert na ekranie początkowym (iOS 16.4 lub nowszy). Zainstaluj aplikację i otwórz te ustawienia z niej.</p>
+        <p className="text-sm text-muted">Na iPhonie powiadomienia działają po zainstalowaniu Opłacika na ekranie początkowym (iOS 16.4 lub nowszy). Zainstaluj aplikację i otwórz te ustawienia z niej.</p>
       )}
       {status === "denied" && (
-        <p className="text-sm text-muted">Powiadomienia są zablokowane dla SubAlert. Zezwól na nie w ustawieniach przeglądarki lub telefonu i odśwież stronę.</p>
+        <p className="text-sm text-muted">Powiadomienia są zablokowane dla Opłacika. Zezwól na nie w ustawieniach przeglądarki lub telefonu i odśwież stronę.</p>
       )}
       {(status === "off" || status === "on") && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -216,7 +216,7 @@ function PushSection({ publicKey }: { publicKey: string }) {
 export function AppSettings({ pushPublicKey }: { pushPublicKey: string | null }) {
   return (
     <Card id="aplikacja" className="scroll-mt-24">
-      <CardHeader icon={<Smartphone className="size-5" aria-hidden />} title="Aplikacja na telefon" description="Zainstaluj SubAlert jak zwykłą aplikację i włącz powiadomienia." />
+      <CardHeader icon={<Smartphone className="size-5" aria-hidden />} title="Aplikacja na telefon" description="Zainstaluj Opłacik jak zwykłą aplikację i włącz powiadomienia." />
       <div className="flex flex-col gap-5 p-5">
         <InstallSection />
         {pushPublicKey && (

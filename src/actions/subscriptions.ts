@@ -134,7 +134,7 @@ export async function updateSubscription(
 
 /**
  * Records that the user cancelled (or resumed) the plan with the provider.
- * SubAlert itself never contacts the provider.
+ * Opłacik itself never contacts the provider.
  */
 export async function setSubscriptionStatus(id: string, status: "active" | "cancelled"): Promise<void> {
   const user = await requireUser();

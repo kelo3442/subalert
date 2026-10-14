@@ -258,7 +258,7 @@ export function QuickStart({
         </div>
         <p className="mx-auto mt-6 flex max-w-2xl items-start gap-2 text-center text-xs leading-relaxed text-subtle sm:items-center">
           <ShieldCheck className="mt-px size-4 shrink-0 text-accent sm:mt-0" aria-hidden />
-          SubAlert nie łączy się z Twoim bankiem. Plik analizujemy wyłącznie w przeglądarce i nigdzie go nie wysyłamy.
+          Opłacik nie łączy się z Twoim bankiem. Plik analizujemy wyłącznie w przeglądarce i nigdzie go nie wysyłamy.
         </p>
       </div>
     );

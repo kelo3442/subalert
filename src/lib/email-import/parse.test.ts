@@ -165,14 +165,14 @@ describe("decideAction", () => {
 
 describe("extractInboundToken", () => {
   it("reads the token from the address or plus tag", () => {
-    expect(extractInboundToken([`${TOKEN}@in.subalert.pl`])).toBe(TOKEN);
-    expect(extractInboundToken([`Jan <${TOKEN}@in.subalert.pl>`])).toBe(TOKEN);
+    expect(extractInboundToken([`${TOKEN}@in.oplacik.pl`])).toBe(TOKEN);
+    expect(extractInboundToken([`Jan <${TOKEN}@in.oplacik.pl>`])).toBe(TOKEN);
     expect(extractInboundToken([`abc123+${TOKEN}@inbound.postmarkapp.com`])).toBe(TOKEN);
     expect(extractInboundToken([TOKEN.toUpperCase()])).toBe(TOKEN);
   });
 
   it("rejects anything else", () => {
-    expect(extractInboundToken(["kontakt@subalert.pl", "abc@in.subalert.pl"])).toBeNull();
+    expect(extractInboundToken(["kontakt@oplacik.pl", "abc@in.oplacik.pl"])).toBeNull();
   });
 });
 

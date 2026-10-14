@@ -39,7 +39,7 @@ export async function sendTestPush(): Promise<{ delivered: number }> {
   const admin = createSupabaseAdminClient();
   if (!config || !admin) return { delivered: 0 };
   const delivered = await sendPushToUser(admin, config, user.id, {
-    title: "SubAlert: powiadomienia działają",
+    title: "Opłacik: powiadomienia działają",
     body: "Tak będą wyglądać przypomnienia o płatnościach i końcu okresu próbnego.",
     url: "/panel",
     tag: "test",

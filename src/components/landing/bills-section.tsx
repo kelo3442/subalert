@@ -20,7 +20,7 @@ export function BillsSection() {
           <p className="text-sm font-medium text-accent">Nie tylko subskrypcje</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">Rachunki domowe też pod kontrolą</h2>
           <p className="mt-3 text-muted">
-            Dodaj prąd, gaz, wodę, czynsz czy internet obok Netflixa i Spotify. Zobaczysz pełny obraz stałych wydatków, a SubAlert
+            Dodaj prąd, gaz, wodę, czynsz czy internet obok Netflixa i Spotify. Zobaczysz pełny obraz stałych wydatków, a Opłacik
             przypomni o terminie płatności.
           </p>
           <ul className="mt-6 flex flex-col gap-2 text-sm text-muted">

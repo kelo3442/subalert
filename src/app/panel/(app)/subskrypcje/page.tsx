@@ -52,7 +52,7 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
 
       {params.usunieto === "1" && (
         <Alert tone="success" className="mb-4">
-          Subskrypcja została usunięta z SubAlert. Pamiętaj, że nie oznacza to anulowania u dostawcy.
+          Subskrypcja została usunięta z Opłacika. Pamiętaj, że nie oznacza to anulowania u dostawcy.
         </Alert>
       )}
 
@@ -95,7 +95,7 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
           <EmptyState
             icon={<Layers className="size-6" aria-hidden />}
             title="Brak anulowanych"
-            description="Gdy anulujesz usługę u dostawcy, oznacz ją w SubAlert — trafi tutaj i przestanie liczyć się do wydatków."
+            description="Gdy anulujesz usługę u dostawcy, oznacz ją w Opłaciku — trafi tutaj i przestanie liczyć się do wydatków."
           />
         )}
       </Card>

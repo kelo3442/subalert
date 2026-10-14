@@ -7,11 +7,11 @@ export const metadata: Metadata = { title: "Regulamin" };
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Regulamin serwisu SubAlert">
+    <LegalPage title="Regulamin serwisu Opłacik">
       <Section title="§1. Postanowienia ogólne">
         <List>
           <li>
-            Regulamin określa zasady korzystania z serwisu internetowego SubAlert (dalej: „Serwis”), dostępnego pod adresem, na
+            Regulamin określa zasady korzystania z serwisu internetowego Opłacik (dalej: „Serwis”), dostępnego pod adresem, na
             którym opublikowano ten dokument, oraz zasady zakupu planu Premium.
           </li>
           <li>

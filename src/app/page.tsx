@@ -11,15 +11,15 @@ import { SiteHeader } from "@/components/landing/site-header";
 import { getEmailConfig } from "@/lib/email/resend";
 import { getSiteUrl } from "@/lib/env";
 
-/** Structured data: tells search engines that "SubAlert" is this site's name. */
+/** Structured data: tells search engines that "Opłacik" is this site's name. */
 function structuredData() {
   const url = `${getSiteUrl()}/`;
   return JSON.stringify([
-    { "@context": "https://schema.org", "@type": "WebSite", name: "SubAlert", alternateName: "subalert.pl", url, inLanguage: "pl-PL" },
+    { "@context": "https://schema.org", "@type": "WebSite", name: "Opłacik", alternateName: "oplacik.pl", url, inLanguage: "pl-PL" },
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      name: "SubAlert",
+      name: "Opłacik",
       url,
       applicationCategory: "FinanceApplication",
       operatingSystem: "Web, Android, iOS",
