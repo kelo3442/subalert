@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   openGraph: { locale: "pl_PL", siteName: "Opłacik", type: "website" },
   applicationName: "Opłacik",
   appleWebApp: { capable: true, title: "Opłacik", statusBarStyle: "black" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
