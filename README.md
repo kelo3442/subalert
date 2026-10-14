@@ -204,10 +204,10 @@ Webhook przy zdarzeniach subskrypcji pobiera jej aktualny stan ze Stripe, więc 
 
 ## Regulamin i polityka prywatności
 
-Strony `/regulamin` i `/prywatnosc` są gotowe; dane sprzedawcy/administratora pobierają ze zmiennych
-`LEGAL_OPERATOR_NAME`, `LEGAL_OPERATOR_ADDRESS`, opcjonalnie `LEGAL_OPERATOR_TAX_ID`, oraz `NEXT_PUBLIC_CONTACT_EMAIL`
-(dzięki temu dane osobowe nie trafiają do repozytorium). Dopóki nie są ustawione, strony pokazują komunikat
-„Dokument w przygotowaniu”. Treść to rzetelny wzór oparty na polskich przepisach, ale przed rozpoczęciem sprzedaży
+Strony `/regulamin` i `/prywatnosc` są gotowe. Administrator danych i e-mail kontaktowy są wpisane jako wartości
+domyślne w `src/lib/legal.ts`; zmienne `LEGAL_OPERATOR_NAME`, `LEGAL_OPERATOR_ADDRESS`, `LEGAL_OPERATOR_TAX_ID` i
+`NEXT_PUBLIC_CONTACT_EMAIL` je nadpisują. Adres do doręczeń jest opcjonalny, ale przed uruchomieniem sprzedaży Premium
+trzeba go podać (wymóg ustawy o prawach konsumenta). Treść to rzetelny wzór oparty na polskich przepisach, ale przed rozpoczęciem sprzedaży
 warto, by przejrzał ją prawnik lub księgowy. Rejestracja wymaga zaznaczenia akceptacji regulaminu (sprawdzane też na serwerze).
 
 ## Statystyki odwiedzin

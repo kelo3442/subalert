@@ -53,7 +53,8 @@ export function Operator() {
   const missing = <span className="text-warn">[do uzupełnienia]</span>;
   return (
     <span>
-      <strong className="text-fg">{legal.operatorName ?? missing}</strong>, {legal.operatorAddress ?? missing}
+      <strong className="text-fg">{legal.operatorName ?? missing}</strong>
+      {legal.operatorAddress && <>, {legal.operatorAddress}</>}
       {legal.operatorTaxId && <>, NIP {legal.operatorTaxId}</>}, e-mail:{" "}
       {legal.contactEmail ? (
         <a href={`mailto:${legal.contactEmail}`} className="text-accent hover:underline">

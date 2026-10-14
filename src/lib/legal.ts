@@ -5,21 +5,24 @@ export interface LegalInfo {
   operatorAddress: string | null;
   operatorTaxId: string | null;
   contactEmail: string | null;
-  /** Name, address and e-mail are all set. */
+  /** Name and e-mail are set (the postal address is optional until Premium is sold). */
   complete: boolean;
 }
 
-/** Seller / data controller details, kept in environment variables rather than in the repository. */
+const DEFAULT_OPERATOR_NAME = "Olivier Cisoń";
+const DEFAULT_CONTACT_EMAIL = "subalert.contact@gmail.com";
+
+/** Seller / data controller details; environment variables override the defaults. */
 export function getLegalInfo(): LegalInfo {
-  const operatorName = process.env.LEGAL_OPERATOR_NAME?.trim() || null;
+  const operatorName = process.env.LEGAL_OPERATOR_NAME?.trim() || DEFAULT_OPERATOR_NAME;
   const operatorAddress = process.env.LEGAL_OPERATOR_ADDRESS?.trim() || null;
   const operatorTaxId = process.env.LEGAL_OPERATOR_TAX_ID?.trim() || null;
-  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || DEFAULT_CONTACT_EMAIL;
   return {
     operatorName,
     operatorAddress,
     operatorTaxId,
     contactEmail,
-    complete: Boolean(operatorName && operatorAddress && contactEmail),
+    complete: Boolean(operatorName && contactEmail),
   };
 }
