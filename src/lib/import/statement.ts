@@ -8,6 +8,8 @@ export interface ColumnMapping {
   description: number[];
   currency: number | null;
   state: number | null;
+  /** The amount column lists only money going out, as positive numbers ("Obciążenia", "Wypływy"). */
+  amountIsDebit?: boolean;
 }
 
 export interface Transaction {
@@ -34,6 +36,8 @@ export function normalizeHeader(cell: string): string {
 const DATE_PREFERENCES = [/data operacji/, /data transakcji/, /started date/, /^data$/, /^date$/, /completed date/, /data ksi[eę]gowania/, /data/, /date/];
 const AMOUNT_EXCLUDE = /saldo|balance|fee|prowizj/;
 const AMOUNT_PREFERENCES = [/kwota transakcji/, /kwota operacji/, /^kwota$/, /^amount$/, /kwota/, /amount/];
+// Banks that split money out and money in into two columns.
+const DEBIT_PATTERN = /obci[aą][zż]eni|wyp[lł]yw|^debet|^debit|money out|paid out|^wydatki|^wyp[lł]aty/;
 const DESCRIPTION_PATTERN = /opis|tytu[lł]|kontrahent|odbiorc|nadawc|nazwa|description|merchant|lokalizacja|szczeg/;
 
 function findColumn(headers: string[], preferences: RegExp[], exclude?: RegExp): number {
@@ -48,7 +52,9 @@ export function detectColumns(rows: string[][]): ColumnMapping | null {
   for (let i = 0; i < Math.min(rows.length, HEADER_SCAN_ROWS); i += 1) {
     const headers = rows[i].map(normalizeHeader);
     const date = findColumn(headers, DATE_PREFERENCES);
-    const amount = findColumn(headers, AMOUNT_PREFERENCES, AMOUNT_EXCLUDE);
+    const signed = findColumn(headers, AMOUNT_PREFERENCES, AMOUNT_EXCLUDE);
+    const debit = headers.findIndex((h) => DEBIT_PATTERN.test(h) && !AMOUNT_EXCLUDE.test(h));
+    const amount = signed !== -1 ? signed : debit;
     if (date === -1 || amount === -1) continue;
     const description = headers.flatMap((h, index) => (DESCRIPTION_PATTERN.test(h) ? [index] : []));
     const currency = headers.findIndex((h) => /^waluta$|^currency$/.test(h));
@@ -60,6 +66,7 @@ export function detectColumns(rows: string[][]): ColumnMapping | null {
       description,
       currency: currency === -1 ? null : currency,
       state: state === -1 ? null : state,
+      amountIsDebit: signed === -1,
     };
   }
   return null;
@@ -92,7 +99,14 @@ export function parseStatementDate(value: string): ISODate | null {
 
 /** Parses "-1 299,00", "−49,00 PLN", "-49.00", "-1,299.00" into signed grosze. */
 export function parseSignedAmount(value: string): number | null {
-  let s = value.replace(/[\s ]/g, "").replace(/−/g, "-").replace(/[a-zA-Złł]+$/u, "").replace(/^\+/, "");
+  let s = value
+    .replace(/[\s ]/g, "")
+    .replace(/−/g, "-")
+    // Spreadsheet-safe exports: '-49,00 or ="-49,00"
+    .replace(/^=?["']+|["']+$/g, "")
+    .replace(/^[a-zA-Z]{3}(?=[-+\d])/, "")
+    .replace(/[a-zA-Złł]+$/u, "")
+    .replace(/^\+/, "");
   if (!/^-?[\d.,]+$/.test(s)) return null;
   const negative = s.startsWith("-");
   s = s.replace("-", "");
@@ -119,7 +133,9 @@ export function extractTransactions(rows: string[][], mapping: ColumnMapping): T
   const transactions: Transaction[] = [];
   for (const row of rows.slice(mapping.headerIndex + 1)) {
     const date = parseStatementDate(row[mapping.date] ?? "");
-    const amount = parseSignedAmount(row[mapping.amount] ?? "");
+    const parsed = parseSignedAmount(row[mapping.amount] ?? "");
+    // In a money-out column every non-zero value is a payment, whatever its sign.
+    const amount = parsed !== null && mapping.amountIsDebit ? -Math.abs(parsed) : parsed;
     if (!date || amount === null || amount >= 0) continue;
     if (mapping.currency !== null) {
       const currency = (row[mapping.currency] ?? "").trim().toUpperCase();

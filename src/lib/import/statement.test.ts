@@ -26,6 +26,13 @@ describe("amounts and dates", () => {
     expect(parseSignedAmount(input)).toBe(expected);
   });
 
+  it("reads spreadsheet-safe and currency-prefixed amounts", () => {
+    expect(parseSignedAmount("'-49,00")).toBe(-4900);
+    expect(parseSignedAmount('="-1 299,00"')).toBe(-129900);
+    expect(parseSignedAmount("PLN -23,99")).toBe(-2399);
+    expect(parseSignedAmount("-23,99 zł")).toBe(-2399);
+  });
+
   it("rejects text", () => {
     expect(parseSignedAmount("abc")).toBeNull();
     expect(parseSignedAmount("")).toBeNull();
@@ -98,6 +105,26 @@ describe("analyzeStatement + extractTransactions", () => {
     expect(extractTransactions(analysis.rows, analysis.mapping!)).toEqual([
       { date: "2026-10-04", amountCents: 9900, description: "OpenAI *ChatGPT Subscr" },
     ]);
+  });
+
+  it("reads banks that put money out in a separate column", () => {
+    const csv = [
+      "Numer rachunku/karty,Data transakcji,Data rozliczenia,Rodzaj transakcji,Na konto/Z konta,Odbiorca/Zleceniodawca,Opis,Obciążenia,Uznania,Saldo,Waluta",
+      '"PL00",2026-10-05,2026-10-06,"PŁATNOŚĆ KARTĄ","","NETFLIX.COM","NETFLIX.COM AMSTERDAM","49.00","","1000.00","PLN"',
+      '"PL00",2026-10-04,2026-10-04,"PRZELEW","PL11","Pracodawca","Wynagrodzenie","","5000.00","1049.00","PLN"',
+      '"PL00",2026-10-03,2026-10-03,"PŁATNOŚĆ KARTĄ","","SPOTIFY","SPOTIFY P1","-23.99","","-3950.99","PLN"',
+    ].join("\n");
+    const analysis = analyzeStatement(csv);
+    expect(analysis.mapping).toMatchObject({ amount: 7, amountIsDebit: true });
+    expect(extractTransactions(analysis.rows, analysis.mapping!).map((t) => [t.date, t.amountCents])).toEqual([
+      ["2026-10-05", 4900],
+      ["2026-10-03", 2399],
+    ]);
+  });
+
+  it("prefers a signed amount column over a money-out column", () => {
+    const analysis = analyzeStatement("Data;Kwota;Obciążenia;Opis\n2026-10-05;-49,00;49,00;Netflix\n");
+    expect(analysis.mapping).toMatchObject({ amount: 1, amountIsDebit: false });
   });
 
   it("returns no mapping for files without recognisable columns", () => {

@@ -62,16 +62,17 @@ export function BankImport({
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [analysis, setAnalysis] = useState<StatementAnalysis | null>(null);
-  const [manual, setManual] = useState({ date: "", amount: "", description: "" });
+  const [manual, setManual] = useState({ date: "", amount: "", description: "", debit: false });
   const [results, setResults] = useState<Results | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isSample, setIsSample] = useState(false);
 
-  const finish = (rows: string[][], mapping: ColumnMapping, sample = false) => {
+  /** Returns false when the file has no outgoing payments in the chosen columns. */
+  const finish = (rows: string[][], mapping: ColumnMapping, sample = false): boolean => {
     const transactions = extractTransactions(rows, mapping);
     if (transactions.length === 0) {
       setError("Nie znaleźliśmy w pliku żadnych płatności wychodzących. Sprawdź, czy to historia rachunku w formacie CSV.");
-      return;
+      return false;
     }
     const dates = transactions.map((t) => t.date).sort();
     const candidates = detectRecurring(transactions, today);
@@ -80,6 +81,7 @@ export function BankImport({
     setSelected(sample ? new Set() : new Set(candidates.filter((c) => !c.possiblyInactive && !isExisting(c.name)).map((c) => c.key)));
     setIsSample(sample);
     setAnalysis(null);
+    return true;
   };
 
   const readFile = async (file: File) => {
@@ -96,7 +98,21 @@ export function BankImport({
       if (parsed.rows.length < 2) {
         setError("Nie udało się odczytać pliku. Upewnij się, że to plik CSV z historią rachunku.");
       } else if (parsed.mapping) {
-        finish(parsed.rows, parsed.mapping);
+        if (!finish(parsed.rows, parsed.mapping)) {
+          // Columns were found but held no outgoing payments: let the user point at the right ones.
+          const { mapping } = parsed;
+          const amountHeader = parsed.rows[mapping.headerIndex]?.[mapping.amount]?.trim() || `Kolumna ${mapping.amount + 1}`;
+          setManual({
+            date: String(mapping.date),
+            amount: String(mapping.amount),
+            description: mapping.description.length ? String(mapping.description[0]) : "",
+            debit: Boolean(mapping.amountIsDebit),
+          });
+          setAnalysis({ ...parsed, headerGuess: mapping.headerIndex });
+          setError(
+            `W kolumnie „${amountHeader}” nie ma wydatków zapisanych jako kwoty ujemne. Wskaż kolumnę z kwotami wydatków. Jeśli bank zapisuje wydatki w osobnej kolumnie (np. „Obciążenia”) jako kwoty dodatnie, zaznacz to poniżej.`,
+          );
+        }
       } else {
         setAnalysis(parsed);
       }
@@ -139,6 +155,7 @@ export function BankImport({
       description: [Number(manual.description)],
       currency: null,
       state: null,
+      amountIsDebit: manual.debit,
     });
   };
 
@@ -247,8 +264,7 @@ export function BankImport({
     ));
     return (
       <div className="flex flex-col gap-4">
-        <Alert tone="info">Nie rozpoznaliśmy automatycznie układu pliku. Wskaż, w których kolumnach są dane.</Alert>
-        {error && <Alert tone="error">{error}</Alert>}
+        {error ? <Alert tone="error">{error}</Alert> : <Alert tone="info">Nie rozpoznaliśmy automatycznie układu pliku. Wskaż, w których kolumnach są dane.</Alert>}
         <div className="grid gap-4 rounded-2xl border border-line bg-surface p-4 sm:grid-cols-3">
           {(
             [
@@ -264,6 +280,16 @@ export function BankImport({
               </Select>
             </Field>
           ))}
+          <label htmlFor="map-debit" className="flex items-start gap-2.5 text-sm text-muted sm:col-span-3">
+            <input
+              id="map-debit"
+              type="checkbox"
+              checked={manual.debit}
+              onChange={(e) => setManual((m) => ({ ...m, debit: e.target.checked }))}
+              className="mt-0.5 size-4 accent-[var(--color-accent)]"
+            />
+            Ta kolumna zawiera tylko wydatki zapisane jako kwoty dodatnie (np. „Obciążenia”, „Wypływy”).
+          </label>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={reset}>
