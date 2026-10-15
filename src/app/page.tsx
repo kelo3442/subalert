@@ -1,5 +1,6 @@
 import { BillsSection } from "@/components/landing/bills-section";
 import { CalculatorSection } from "@/components/landing/calculator-section";
+import { DemoSection } from "@/components/landing/demo-section";
 import { Faq } from "@/components/landing/faq";
 import { Features } from "@/components/landing/features";
 import { FinalCta } from "@/components/landing/final-cta";
@@ -37,6 +38,7 @@ export default function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <Hero />
+        <DemoSection />
         <Features />
         <BillsSection />
         <CalculatorSection />

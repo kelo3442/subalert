@@ -3,6 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
 const LINKS = [
+  { href: "#jak-dziala", label: "Jak działa" },
   { href: "#funkcje", label: "Funkcje" },
   { href: "#kalkulator", label: "Kalkulator" },
   { href: "#rachunki", label: "Rachunki" },
