@@ -286,6 +286,7 @@ deployu. Poza Vercel (np. lokalnie) skrypt nic nie wysyła.
   psql -d oplacik_test -f supabase/migrations/20261016000000_calendar_and_push.sql
   psql -d oplacik_test -f supabase/migrations/20261017000000_email_updates_and_feedback.sql
   psql -d oplacik_test -f supabase/migrations/20261018000000_premium_waitlist.sql
+  psql -d oplacik_test -f supabase/migrations/20261019000000_welcome_email.sql
   psql -d oplacik_test -v ON_ERROR_STOP=1 -f supabase/tests/rls.test.sql   # → "RLS tests passed"
   ```
 

@@ -1,7 +1,9 @@
+import { after } from "next/server";
 import type { ReactNode } from "react";
 import { SetupRequired } from "@/components/auth/setup-required";
-import { requireUser } from "@/lib/data/user";
+import { isWelcomeEmailPending, requireUser } from "@/lib/data/user";
 import { isSupabaseConfigured } from "@/lib/env";
+import { sendWelcomeEmailOnce } from "@/lib/welcome/send";
 
 /** Gate for every /panel route; the app shell lives in the (app) group. */
 export default async function PanelGateLayout({ children }: { children: ReactNode }) {
@@ -12,6 +14,7 @@ export default async function PanelGateLayout({ children }: { children: ReactNod
       </main>
     );
   }
-  await requireUser();
+  const user = await requireUser();
+  if (await isWelcomeEmailPending()) after(() => sendWelcomeEmailOnce(user));
   return children;
 }

@@ -386,6 +386,18 @@ do $$ begin
   end;
 end $$;
 
+-- The welcome e-mail flag is set only by the server.
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$ begin
+  begin
+    update public.profiles set welcome_email_sent_at = null;
+    raise exception 'FAIL: user changed welcome_email_sent_at';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
+
 -- Premium waitlist: only the server (service role) reads or writes it.
 reset role;
 insert into public.premium_waitlist (email, user_id, source) values ('bob@example.pl', :'bob', 'app'), ('gosc@example.pl', null, 'landing');

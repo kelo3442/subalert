@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description:
     "Wszystkie stałe opłaty w jednym miejscu: subskrypcje i rachunki domowe z każdego banku. Opłacik przypomni, zanim zapłacisz, i da znać, gdy coś podrożeje.",
   openGraph: { locale: "pl_PL", siteName: "Opłacik", type: "website" },
+  twitter: { card: "summary_large_image" },
   applicationName: "Opłacik",
   appleWebApp: { capable: true, title: "Opłacik", statusBarStyle: "black" },
 };

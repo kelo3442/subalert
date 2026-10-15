@@ -61,6 +61,7 @@ export type Database = {
           premium_source: "subscription" | "one_time" | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          welcome_email_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -83,6 +84,7 @@ export type Database = {
           premium_source?: "subscription" | "one_time" | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          welcome_email_sent_at?: string | null;
         };
         Relationships: [];
       };
