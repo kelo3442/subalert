@@ -12,6 +12,9 @@ export function SiteFooter() {
           <p className="max-w-sm">Opłacik pomaga pamiętać o płatnościach. Nie jest powiązany z dostawcami wymienionych usług.</p>
         </div>
         <nav aria-label="Informacje" className="flex flex-col gap-2">
+          <Link href="/jak-anulowac" className="hover:text-fg">
+            Jak anulować subskrypcję
+          </Link>
           <Link href="/regulamin" className="hover:text-fg">
             Regulamin
           </Link>
