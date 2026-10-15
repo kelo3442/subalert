@@ -33,12 +33,25 @@ export function normalizeHeader(cell: string): string {
   return cell.replace(/^#/, "").trim().toLocaleLowerCase("pl");
 }
 
-const DATE_PREFERENCES = [/data operacji/, /data transakcji/, /started date/, /^data$/, /^date$/, /completed date/, /data ksi[eę]gowania/, /data/, /date/];
+// "Counterparty's data" (ING, English export) must not be taken for a date.
+const DATE_PREFERENCES = [
+  /data operacji/,
+  /data transakcji/,
+  /transaction date/,
+  /started date/,
+  /^data$/,
+  /^date$/,
+  /completed date/,
+  /data ksi[eę]gowania/,
+  /booking date|accounting date/,
+  /^data\b/,
+  /\bdate\b/,
+];
 const AMOUNT_EXCLUDE = /saldo|balance|fee|prowizj/;
 const AMOUNT_PREFERENCES = [/kwota transakcji/, /kwota operacji/, /^kwota$/, /^amount$/, /kwota/, /amount/];
 // Banks that split money out and money in into two columns.
 const DEBIT_PATTERN = /obci[aą][zż]eni|wyp[lł]yw|^debet|^debit|money out|paid out|^wydatki|^wyp[lł]aty/;
-const DESCRIPTION_PATTERN = /opis|tytu[lł]|kontrahent|odbiorc|nadawc|nazwa|description|merchant|lokalizacja|szczeg/;
+const DESCRIPTION_PATTERN = /opis|tytu[lł]|kontrahent|odbiorc|nadawc|nazwa(?! banku)|description|merchant|lokalizacja|counterparty|^title$|payee|recipient/;
 
 function findColumn(headers: string[], preferences: RegExp[], exclude?: RegExp): number {
   for (const pattern of preferences) {

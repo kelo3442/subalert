@@ -183,7 +183,7 @@ export function BankImport({
               {" "}z okresu {formatDateShort(results.from)} – {formatDateShort(results.to)}
             </>
           )}
-          . Powtarzające się: <strong className="text-fg">{results.candidates.length}</strong>.
+          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>.
         </div>
 
         {results.candidates.length === 0 ? (
@@ -226,8 +226,10 @@ export function BankImport({
                         {existing && <Badge>już dodana</Badge>}
                         {!existing && candidate.possiblyInactive && <Badge tone="warn">może już nieaktywna</Badge>}
                       </span>
-                      <span className="block truncate text-xs text-muted">
-                        {CYCLE_WORDS[candidate.cycle]} · ostatnio {formatDateShort(candidate.lastDate)} · {candidate.occurrences}×
+                      <span className="block truncate text-xs text-muted" title={candidate.singleCharge ? "Jedna płatność w pliku. Zakładamy cykl miesięczny — możesz go zmienić po dodaniu." : undefined}>
+                        {candidate.singleCharge
+                          ? `co miesiąc? · ${formatDateShort(candidate.lastDate)}`
+                          : `${CYCLE_WORDS[candidate.cycle]} · ostatnio ${formatDateShort(candidate.lastDate)} · ${candidate.occurrences}×`}
                       </span>
                     </span>
                     <span className="shrink-0 text-sm font-medium tabular-nums text-fg">{formatPLN(candidate.amountCents)}</span>

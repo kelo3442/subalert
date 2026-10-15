@@ -17,6 +17,8 @@ export interface RecurringCandidate {
   nextPaymentDate: ISODate;
   /** The last charge is overdue by more than half a cycle — maybe already cancelled. */
   possiblyInactive: boolean;
+  /** A known service charged only once in the file; the cycle is assumed to be monthly. */
+  singleCharge: boolean;
 }
 
 const CYCLE_RANGES: { cycle: BillingCycle; min: number; max: number; days: number }[] = [
@@ -61,8 +63,9 @@ function median(values: number[]): number {
 const AMOUNT_TOLERANCE = 0.2;
 
 /**
- * Finds payments repeating at a regular interval with a similar amount.
- * Needs at least two charges; the latest amount is used as the current price.
+ * Finds payments repeating at a regular interval with a similar amount; the
+ * latest amount is used as the current price. Known services are also
+ * suggested after a single charge.
  */
 export function detectRecurring(transactions: Transaction[], today: ISODate): RecurringCandidate[] {
   const groups = new Map<string, { known: ReturnType<typeof matchServiceInDescription>; items: Transaction[] }>();
@@ -106,6 +109,30 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
       lastDate: last.date,
       nextPaymentDate: nextPaymentOnOrAfter(expected, range.cycle, today),
       possiblyInactive: daysBetween(expected, today) > range.days / 2,
+      singleCharge: false,
+    });
+  }
+
+  // Well-known services are worth suggesting even after a single charge (short statements,
+  // new subscriptions). Most of them bill monthly; the user can change the cycle later.
+  const found = new Set(candidates.map((c) => c.key));
+  for (const [key, { known, items }] of groups) {
+    if (!known || found.has(key)) continue;
+    const last = [...items].sort((a, b) => compareISODates(a.date, b.date)).at(-1)!;
+    const expected = nthPaymentDate(last.date, "monthly", 1);
+    candidates.push({
+      key,
+      name: known.name,
+      category: known.category,
+      manageUrl: known.manageUrl,
+      knownService: true,
+      amountCents: last.amountCents,
+      cycle: "monthly",
+      occurrences: items.length,
+      lastDate: last.date,
+      nextPaymentDate: nextPaymentOnOrAfter(expected, "monthly", today),
+      possiblyInactive: daysBetween(expected, today) > 15,
+      singleCharge: true,
     });
   }
 

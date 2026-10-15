@@ -127,6 +127,30 @@ describe("analyzeStatement + extractTransactions", () => {
     expect(analysis.mapping).toMatchObject({ amount: 1, amountIsDebit: false });
   });
 
+  it("reads ING exports in English and Polish", () => {
+    const preamble = ['"List of transactions";;;;;"ING Bank Śląski S.A."', '"Selected dates:";"2026-07-17 - 2026-10-15";"Transaction sort:";"all"', ""];
+    const english = [
+      ...preamble,
+      '"Transaction date";"Accounting date";"Counterparty\'s data";"Title";"Account number";"Bank name";"Details";"Transaction number";"Transaction amount (account currency)";"Currency";"Amount of hold/holds\' releases";"Currency"',
+      `2026-10-12;2026-10-14;" ANTHROPIC* CLAUDE SUB  +14152360599 ";" Płatność kartą 12.10.2026 Nr karty 4246xx0000";'1915031/19730 ';;"TR.KART  ";'202628797306548365';-89,00;PLN;;`,
+      `2026-10-12;2026-10-12;" JAN KOWALSKI ";" Przelew na telefon";'00105012141000000000000000 ';"ING Bank Śląski S.A.";"PRZELEW  ";'202628597224061325';73,00;PLN;;`,
+      `2026-10-15;;" ZABKA Z0000 K.2  KATOWICE ";" Płatność kartą  15.10.2026";;;"";;;;-16,49;PLN`,
+    ].join("\n");
+    const analysis = analyzeStatement(english);
+    expect(analysis.mapping).toMatchObject({ date: 0, amount: 8, description: [2, 3], currency: 9 });
+    expect(extractTransactions(analysis.rows, analysis.mapping!)).toEqual([
+      { date: "2026-10-12", amountCents: 8900, description: "ANTHROPIC* CLAUDE SUB  +14152360599 Płatność kartą 12.10.2026 Nr karty 4246xx0000" },
+    ]);
+
+    const polish = english.replace(
+      /"Transaction date".*\n/,
+      '"Data transakcji";"Data księgowania";"Dane kontrahenta";"Tytuł";"Nr rachunku";"Nazwa banku";"Szczegóły";"Nr transakcji";"Kwota transakcji (waluta rachunku)";"Waluta";"Kwota blokady/zwolnienie blokady";"Waluta"\n',
+    );
+    const pl = analyzeStatement(polish);
+    expect(pl.mapping).toMatchObject({ date: 0, amount: 8, description: [2, 3], currency: 9 });
+    expect(extractTransactions(pl.rows, pl.mapping!)).toHaveLength(1);
+  });
+
   it("returns no mapping for files without recognisable columns", () => {
     const analysis = analyzeStatement("foo;bar;baz\n1;2;3\n");
     expect(analysis.mapping).toBeNull();

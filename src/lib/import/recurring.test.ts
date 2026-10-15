@@ -86,7 +86,23 @@ describe("detectRecurring", () => {
     ]);
   });
 
-  it("needs at least two charges", () => {
-    expect(detectRecurring([t("2026-10-05", 4900, "NETFLIX.COM")], today)).toEqual([]);
+  it("needs two charges for unknown merchants", () => {
+    expect(detectRecurring([t("2026-10-05", 12900, "CITYFIT WARSZAWA")], today)).toEqual([]);
+  });
+
+  it("suggests known services after a single charge and assumes a monthly cycle", () => {
+    const found = detectRecurring(
+      [
+        t("2026-10-05", 8900, "ANTHROPIC* CLAUDE SUB +14152360599"),
+        t("2026-08-08", 99, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-08-08", 99, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-10-01", 1650, "ZABKA Z9781 KATOWICE"),
+      ],
+      today,
+    );
+    expect(found.map((c) => [c.name, c.amountCents, c.cycle, c.singleCharge, c.possiblyInactive, c.nextPaymentDate])).toEqual([
+      ["Claude Pro", 8900, "monthly", true, false, "2026-11-05"],
+      ["Apple (iCloud+, Music, TV+)", 99, "monthly", true, true, "2026-11-08"],
+    ]);
   });
 });
