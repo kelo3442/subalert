@@ -23,8 +23,8 @@ export function buildSampleStatement(today: ISODate): string {
     ...monthly(today, 10, 6, "GOOGLE *Google One g.co/helppay", "-9,99"),
     ...monthly(today, 1, 5, "OPENAI *CHATGPT SUBSCR", "-99,00"),
     ...monthly(today, -10, 3, "DISNEY PLUS", "-37,99").map((row) => ({ ...row, date: addMonthsClamped(row.date, -4) })),
-    { date: addDays(today, -340), description: "HOSTING I DOMENA ROCZNIE", amount: "-249,00" },
-    { date: addDays(today, -340 - 365), description: "HOSTING I DOMENA ROCZNIE", amount: "-229,00" },
+    { date: addDays(today, -340), description: "HOSTING I DOMENA abonament roczny", amount: "-249,00" },
+    { date: addDays(today, -340 - 365), description: "HOSTING I DOMENA abonament roczny", amount: "-229,00" },
     ...monthly(today, 0, 6, "WYNAGRODZENIE", "6 500,00"),
     ...[2, 9, 13, 21, 30, 38, 44, 57, 63, 71, 85, 96].map((days, i) => ({
       date: addDays(today, -days),

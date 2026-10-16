@@ -35,6 +35,9 @@ const NOISE_WORDS = new Set([
   "transakcji", "blik", "przelew", "zlecenie", "stałe", "stale", "pln", "eur", "usd", "www", "com", "http",
   "https", "ref", "nr", "data", "operacji", "card", "payment", "visa", "mastercard", "debit", "obciążenie",
   "obciazenie", "internet", "mobile", "web", "dla", "the", "inc", "ltd", "sp", "zoo", "z.o.o", "s.a",
+  // Subscription words (see SUBSCRIPTION_HINT) say what a payment is, not who it is for.
+  "abonament", "abonamentu", "subskrypcja", "subskrypcji", "subscription", "subscr", "faktura", "faktury", "opłata",
+  "oplata", "miesięczna", "miesieczna", "roczny", "roczna", "członkostwo", "czlonkostwo", "membership", "monthly",
 ]);
 
 /** Groups descriptions that differ only by dates, card numbers or references. */
@@ -63,9 +66,22 @@ function median(values: number[]): number {
 const AMOUNT_TOLERANCE = 0.2;
 
 /**
- * Finds payments repeating at a regular interval with a similar amount; the
- * latest amount is used as the current price. Known services are also
- * suggested after a single charge.
+ * Words that say a payment is a subscription or a bill. A merchant that is not a
+ * known service is suggested only when its payments mention one of them — paying
+ * at the same bakery twice a month is not a subscription.
+ */
+const SUBSCRIPTION_HINT =
+  /abonament|subskrypc|subscri|membership|cz[lł]onkostw|prenumerat|sk[lł]adk|czynsz|zlecenie sta[lł]e|standing order|recurring|cykliczn|premium|\bplan\b|monthly|miesi[eę]czn|\brata\b|ubezpiecz|polis[ay]|faktur|rachunek za|op[lł]ata za|si[lł]owni|fitness|\bgym\b|karnet|basen|przedszkol|[zż][lł]ob(ek|ka)/;
+
+export function hasSubscriptionHint(description: string): boolean {
+  return SUBSCRIPTION_HINT.test(description.toLocaleLowerCase("pl"));
+}
+
+/**
+ * Finds subscriptions and bills: known services (even after a single charge)
+ * and merchants whose payments repeat regularly and are described as a
+ * subscription, plan, bill etc. Plain repeated shopping is ignored. The latest
+ * amount is used as the current price.
  */
 export function detectRecurring(transactions: Transaction[], today: ISODate): RecurringCandidate[] {
   const groups = new Map<string, { known: ReturnType<typeof matchServiceInDescription>; items: Transaction[] }>();
@@ -81,6 +97,7 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
   const candidates: RecurringCandidate[] = [];
   for (const [key, { known, items }] of groups) {
     if (items.length < 2) continue;
+    if (!known && !items.some((item) => hasSubscriptionHint(item.description))) continue;
     const sorted = [...items].sort((a, b) => compareISODates(a.date, b.date));
 
     // Keep the charges whose amount is close to the typical one (ignores one-off purchases).

@@ -8,9 +8,10 @@ describe("buildSampleStatement", () => {
     const analysis = analyzeStatement(buildSampleStatement(today));
     const candidates = detectRecurring(extractTransactions(analysis.rows, analysis.mapping!), today);
     const active = candidates.filter((c) => !c.possiblyInactive).map((c) => c.name);
-    expect(active).toEqual(expect.arrayContaining(["Netflix", "Spotify Premium", "Google One", "ChatGPT Plus", "Cityfit Warszawa"]));
+    expect(active).toEqual(expect.arrayContaining(["Netflix", "Spotify Premium", "Google One", "ChatGPT Plus", "Siłownia / karta sportowa"]));
     expect(candidates.find((c) => c.name === "Disney+")?.possiblyInactive).toBe(true);
     expect(candidates.map((c) => c.name)).not.toContain("Biedronka");
     expect(candidates.map((c) => c.name)).not.toContain("Wynagrodzenie");
+    expect(candidates.map((c) => c.name)).toContain("Hosting Domena");
   });
 });

@@ -24,9 +24,9 @@ describe("detectRecurring", () => {
     t("2026-09-01", 12900, "Płatność kartą 01.09 CITYFIT WARSZAWA"),
     t("2026-10-01", 12900, "Płatność kartą 01.10 CITYFIT WARSZAWA"),
     // weekly
-    t("2026-09-21", 1000, "VPN SERVICE"),
-    t("2026-09-28", 1000, "VPN SERVICE"),
-    t("2026-10-05", 1000, "VPN SERVICE"),
+    t("2026-09-21", 1000, "VPN SERVICE subscription"),
+    t("2026-09-28", 1000, "VPN SERVICE subscription"),
+    t("2026-10-05", 1000, "VPN SERVICE subscription"),
     // groceries: irregular amounts and gaps
     t("2026-09-02", 8734, "BIEDRONKA 123"),
     t("2026-09-04", 2311, "BIEDRONKA 123"),
@@ -39,15 +39,23 @@ describe("detectRecurring", () => {
     t("2026-05-10", 2999, "DISNEY PLUS"),
     t("2026-06-10", 2999, "DISNEY PLUS"),
     // yearly
-    t("2025-03-20", 24900, "DOMENA HOSTING SP ZOO"),
-    t("2026-03-20", 26900, "DOMENA HOSTING SP ZOO"),
+    t("2025-03-20", 24900, "DOMENA HOSTING SP ZOO abonament roczny"),
+    t("2026-03-20", 26900, "DOMENA HOSTING SP ZOO abonament roczny"),
+    // the same bakery every month is still not a subscription
+    t("2026-08-14", 1850, "Płatność kartą PIEKARNIA U JANA"),
+    t("2026-09-14", 1850, "Płatność kartą PIEKARNIA U JANA"),
+    t("2026-10-14", 1850, "Płatność kartą PIEKARNIA U JANA"),
+    // a local gym is recognised by the word "siłownia"
+    t("2026-08-20", 13900, "Płatność kartą SIŁOWNIA ŻYRAFA KRAKÓW"),
+    t("2026-09-20", 13900, "Płatność kartą SIŁOWNIA ŻYRAFA KRAKÓW"),
+    t("2026-10-20", 13900, "Płatność kartą SIŁOWNIA ŻYRAFA KRAKÓW"),
   ];
 
   const result = detectRecurring(history, today);
   const byName = Object.fromEntries(result.map((c) => [c.name, c]));
 
-  it("finds regular payments and ignores irregular or one-off spending", () => {
-    expect(Object.keys(byName).sort()).toEqual(["Cityfit Warszawa", "Disney+", "Domena Hosting", "Netflix", "Vpn Service"]);
+  it("finds subscriptions and ignores shopping, even when it repeats", () => {
+    expect(Object.keys(byName).sort()).toEqual(["Disney+", "Domena Hosting", "Netflix", "Siłownia / karta sportowa", "Siłownia Żyrafa Kraków", "Vpn Service"]);
   });
 
   it("recognises known services and uses the latest price", () => {
@@ -64,7 +72,7 @@ describe("detectRecurring", () => {
   });
 
   it("detects cycles", () => {
-    expect(byName["Cityfit Warszawa"]).toMatchObject({ cycle: "monthly", nextPaymentDate: "2026-11-01", knownService: false });
+    expect(byName["Siłownia / karta sportowa"]).toMatchObject({ cycle: "monthly", nextPaymentDate: "2026-11-01", knownService: true });
     expect(byName["Vpn Service"]).toMatchObject({ cycle: "weekly", nextPaymentDate: "2026-10-12" });
     expect(byName["Domena Hosting"]).toMatchObject({ cycle: "yearly", amountCents: 26900, nextPaymentDate: "2027-03-20" });
   });
@@ -86,8 +94,8 @@ describe("detectRecurring", () => {
     ]);
   });
 
-  it("needs two charges for unknown merchants", () => {
-    expect(detectRecurring([t("2026-10-05", 12900, "CITYFIT WARSZAWA")], today)).toEqual([]);
+  it("needs two charges for merchants it does not know", () => {
+    expect(detectRecurring([t("2026-10-05", 12900, "KLUB JOGI OM abonament")], today)).toEqual([]);
   });
 
   it("suggests known services after a single charge and assumes a monthly cycle", () => {

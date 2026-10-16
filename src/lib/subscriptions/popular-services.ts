@@ -46,9 +46,16 @@ const BANK_PATTERNS: Record<string, RegExp> = {
   Gaz: /pgnig|polskie g[oó]rnictwo naftowe|psg sp/,
   "Woda i ścieki": /mpwik|wodoci[aą]g|aquanet|wodkan|zwik/,
   "Internet domowy": /\bupc\b|vectra|netia|\binea\b|toya|multimedia polska/,
-  "Abonament telefoniczny": /\borange\b|\bplay\b|p4 sp|\bplus\b|polkomtel|t-mobile|heyah|nju mobile/,
+  // "Google Play" and "Disney Plus" must not count as a phone plan.
+  "Abonament telefoniczny": /\borange\b|(?<!google\W{0,3})\bplay\b(?! ?store)|p4 sp|polkomtel|plus\.pl|\bplus gsm\b|t-mobile|heyah|nju mobile/,
   "Telewizja kablowa / satelitarna": /canal\+ polska|polsat box|cyfrowy polsat/,
   "Ubezpieczenie samochodu (OC/AC)": /\bpzu\b|warta|allianz|ergo hestia|link4|generali|uniqa|compensa|proama|\baviva\b/,
+  "Siłownia / karta sportowa": /multisport|benefit systems|fitprofit|medicover sport|cityfit|zdrofit|mcfit|calypso|just gym|smart gym|xtreme fitness|jatomi|fabryka formy/,
+  "Abonament RTV": /abonament rtv|op[lł]ata rtv/,
+  "Czynsz / opłaty administracyjne": /czynsz|wsp[oó]lnota mieszkaniowa|sp[oó][lł]dzielnia mieszkaniowa|zarz[aą]dca nieruchomo/,
+  "Rata kredytu": /rata kredytu|sp[lł]ata kredytu|rata po[zż]yczki|sp[lł]ata raty/,
+  "Wywóz śmieci": /wyw[oó]z (odpad|[sś]mieci)|gospodarowani[ae] odpadami|op[lł]ata za odpady/,
+  "Ogrzewanie": /veolia|fortum|\bmpec\b|\bpec\b|op[lł]ata za ciep[lł]o/,
 };
 
 const APP_STORE_NOTE =

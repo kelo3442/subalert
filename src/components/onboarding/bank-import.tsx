@@ -204,12 +204,16 @@ export function BankImport({
               {" "}z okresu {formatDateShort(results.from)} – {formatDateShort(results.to)}
             </>
           )}
-          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>.
+          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>.{" "}
+          <span className="mt-1 block text-xs text-subtle">
+            Pokazujemy tylko płatności, które wyglądają na subskrypcje lub rachunki (np. Netflix, prąd, abonament). Zwykłe
+            zakupy pomijamy, nawet jeśli się powtarzają.
+          </span>
         </div>
 
         {results.candidates.length === 0 ? (
           <Alert tone="info">
-            Nie znaleźliśmy regularnych płatności. Najlepiej działa plik z co najmniej 3–6 miesięcy. Możesz też zaznaczyć
+            Nie znaleźliśmy subskrypcji ani rachunków. Najlepiej działa plik z co najmniej 3–6 miesięcy. Możesz też zaznaczyć
             usługi ręcznie.
           </Alert>
         ) : (
