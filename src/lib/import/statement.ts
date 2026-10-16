@@ -85,6 +85,14 @@ export function detectColumns(rows: string[][]): ColumnMapping | null {
   return null;
 }
 
+/** Same as analyzeStatement, for rows that are already split (e.g. from an Excel file). */
+export function analyzeRows(rows: string[][]): StatementAnalysis {
+  const mapping = detectColumns(rows);
+  if (mapping) return { rows, mapping, headerGuess: mapping.headerIndex };
+  const widest = rows.slice(0, HEADER_SCAN_ROWS).reduce((best, row, index, all) => (row.length > all[best].length ? index : best), 0);
+  return { rows, mapping: null, headerGuess: widest };
+}
+
 export function analyzeStatement(text: string): StatementAnalysis {
   let fallback: StatementAnalysis | null = null;
   for (const delimiter of DELIMITERS) {
@@ -99,9 +107,18 @@ export function analyzeStatement(text: string): StatementAnalysis {
   return fallback ?? { rows: [], mapping: null, headerGuess: 0 };
 }
 
-/** Accepts 2026-10-05, 2026.10.05, 05-10-2026, 05.10.2026 (optionally followed by a time). */
+/**
+ * Accepts 2026-10-05, 2026.10.05, 05-10-2026, 05.10.2026 (optionally followed by a time)
+ * and Excel serial dates (46310 = 2026-10-15) from .xlsx exports.
+ */
 export function parseStatementDate(value: string): ISODate | null {
   const trimmed = value.trim();
+  if (/^\d{5}(\.\d+)?$/.test(trimmed)) {
+    const serial = Math.floor(Number(trimmed));
+    // Plausible range: 1982–2091. Excel day 0 is 1899-12-30.
+    if (serial >= 30000 && serial <= 70000) return new Date(Date.UTC(1899, 11, 30) + serial * 86_400_000).toISOString().slice(0, 10) as ISODate;
+    return null;
+  }
   let match = /^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/.exec(trimmed);
   let iso: string | null = null;
   if (match) iso = `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;

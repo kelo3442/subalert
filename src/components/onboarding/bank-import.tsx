@@ -12,11 +12,24 @@ import { formatDateShort, type ISODate } from "@/lib/dates";
 import { decodeBankFile } from "@/lib/import/decode";
 import { detectRecurring, type RecurringCandidate } from "@/lib/import/recurring";
 import { buildSampleStatement } from "@/lib/import/sample-statement";
-import { analyzeStatement, extractTransactions, type ColumnMapping, type StatementAnalysis } from "@/lib/import/statement";
+import { analyzeRows, analyzeStatement, extractTransactions, type ColumnMapping, type StatementAnalysis } from "@/lib/import/statement";
+import { isLegacyOfficeFile, isPdfFile, isZipFile, xlsxToRows } from "@/lib/import/xlsx";
 import { formatPLN } from "@/lib/money";
 import type { BillingCycle } from "@/lib/subscriptions/billing";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
+// Phones often label bank CSV files as Excel documents; list every type they use so the file is not greyed out.
+const FILE_TYPES = [
+  ".csv",
+  ".txt",
+  ".xlsx",
+  "text/csv",
+  "text/plain",
+  "text/comma-separated-values",
+  "application/csv",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+].join(",");
 
 const CYCLE_WORDS: Record<BillingCycle, string> = {
   weekly: "co tydzień",
@@ -93,8 +106,16 @@ export function BankImport({
     }
     setBusy(true);
     try {
-      const text = decodeBankFile(new Uint8Array(await file.arrayBuffer()));
-      const parsed = analyzeStatement(text);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      if (isLegacyOfficeFile(bytes)) {
+        setError("To stary format Excela (.xls), którego nie odczytamy. Pobierz z banku plik CSV albo otwórz ten plik w Excelu i zapisz jako .xlsx lub CSV.");
+        return;
+      }
+      if (isPdfFile(bytes)) {
+        setError("To plik PDF (np. wyciąg do druku). Potrzebujemy historii w formacie CSV albo Excel — wybierz ją przy eksporcie w banku.");
+        return;
+      }
+      const parsed = isZipFile(bytes) ? analyzeRows(await xlsxToRows(bytes)) : analyzeStatement(decodeBankFile(bytes));
       if (parsed.rows.length < 2) {
         setError("Nie udało się odczytać pliku. Upewnij się, że to plik CSV z historią rachunku.");
       } else if (parsed.mapping) {
@@ -324,9 +345,9 @@ export function BankImport({
         <span className="grid size-12 place-items-center rounded-2xl border border-line bg-surface-2 text-accent">
           {busy ? <LoaderCircle className="size-6 animate-spin" aria-hidden /> : <Upload className="size-6" aria-hidden />}
         </span>
-        <span className="font-medium text-fg">{busy ? "Analizuję…" : "Wybierz plik CSV albo przeciągnij go tutaj"}</span>
+        <span className="font-medium text-fg">{busy ? "Analizuję…" : "Wybierz plik z banku (CSV lub Excel)"}</span>
         <span className="text-sm text-muted">Historia rachunku z ostatnich 3–12 miesięcy, maks. 5 MB</span>
-        <input id={inputId} type="file" accept=".csv,text/csv,text/plain" className="sr-only" onChange={onFileChange} disabled={busy} />
+        <input id={inputId} type="file" accept={FILE_TYPES} className="sr-only" onChange={onFileChange} disabled={busy} />
       </label>
 
       <details className="group rounded-2xl border border-line bg-surface px-4 [&_summary::-webkit-details-marker]:hidden">
@@ -334,12 +355,18 @@ export function BankImport({
           <FileSpreadsheet className="size-4 text-accent" aria-hidden /> Jak pobrać plik z banku?
         </summary>
         <ol className="flex list-decimal flex-col gap-1.5 pb-4 pl-5 text-sm text-muted">
-          <li>Zaloguj się do bankowości internetowej w przeglądarce na komputerze.</li>
+          <li>Zaloguj się do bankowości internetowej (najłatwiej w przeglądarce na komputerze).</li>
           <li>Otwórz historię rachunku (czasem: „Historia”, „Operacje”, „Transakcje”).</li>
           <li>Ustaw okres na ostatnie 6–12 miesięcy.</li>
-          <li>Wybierz eksport lub pobranie i format <strong className="text-fg">CSV</strong>.</li>
+          <li>
+            Wybierz eksport lub pobranie i format <strong className="text-fg">CSV</strong> (plik Excela też zadziała).
+          </li>
           <li>Wgraj pobrany plik tutaj.</li>
         </ol>
+        <p className="-mt-2 pb-4 text-sm leading-relaxed text-muted">
+          <strong className="text-fg">Na telefonie:</strong> jeśli po pobraniu pojawi się pytanie „Otwórz za pomocą…” (np. Excel), nie
+          otwieraj pliku. Wróć tutaj, stuknij „Wybierz plik z banku” i znajdź go w folderze <strong className="text-fg">Pobrane</strong>.
+        </p>
       </details>
 
       <div className="flex flex-col gap-1 sm:flex-row">
