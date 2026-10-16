@@ -19,7 +19,7 @@ export function buildSampleStatement(today: ISODate): string {
   const rows: SampleRow[] = [
     ...monthly(today, 3, 6, "NETFLIX.COM AMSTERDAM", "-49,00"),
     ...monthly(today, 8, 6, "Płatność kartą SPOTIFY P2A1B3C STOCKHOLM", "-23,99"),
-    ...monthly(today, -4, 6, "Płatność kartą CITYFIT WARSZAWA", "-129,00"),
+    ...monthly(today, 2, 6, "Płatność kartą CITYFIT WARSZAWA", "-129,00"),
     ...monthly(today, 10, 6, "GOOGLE *Google One g.co/helppay", "-9,99"),
     ...monthly(today, 1, 5, "OPENAI *CHATGPT SUBSCR", "-99,00"),
     ...monthly(today, -10, 3, "DISNEY PLUS", "-37,99").map((row) => ({ ...row, date: addMonthsClamped(row.date, -4) })),

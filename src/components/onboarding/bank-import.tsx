@@ -79,6 +79,7 @@ export function BankImport({
   const [results, setResults] = useState<Results | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isSample, setIsSample] = useState(false);
+  const [showEnded, setShowEnded] = useState(false);
 
   /** Returns false when the file has no outgoing payments in the chosen columns. */
   const finish = (rows: string[][], mapping: ColumnMapping, sample = false): boolean => {
@@ -93,6 +94,7 @@ export function BankImport({
     // Demo data is never pre-selected, so nobody saves it by accident.
     setSelected(sample ? new Set() : new Set(candidates.filter((c) => !c.possiblyInactive && !isExisting(c.name)).map((c) => c.key)));
     setIsSample(sample);
+    setShowEnded(false);
     setAnalysis(null);
     return true;
   };
@@ -189,6 +191,10 @@ export function BankImport({
 
   if (results) {
     const chosen = results.candidates.filter((c) => selected.has(c.key));
+    const active = results.candidates.filter((c) => !c.possiblyInactive);
+    const ended = results.candidates.length - active.length;
+    // Subscriptions not paid recently are probably cancelled; hide them unless asked.
+    const shown = showEnded ? results.candidates : active;
     return (
       <div className="flex flex-col gap-4">
         {isSample && (
@@ -204,21 +210,21 @@ export function BankImport({
               {" "}z okresu {formatDateShort(results.from)} – {formatDateShort(results.to)}
             </>
           )}
-          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>.{" "}
+          . Aktywne subskrypcje: <strong className="text-fg">{active.length}</strong>.{" "}
           <span className="mt-1 block text-xs text-subtle">
-            Pokazujemy tylko płatności, które wyglądają na subskrypcje lub rachunki (np. Netflix, prąd, abonament). Zwykłe
-            zakupy pomijamy, nawet jeśli się powtarzają.
+            Pokazujemy subskrypcje i rachunki (np. Netflix, prąd, abonament), za które płacisz teraz — opłacone w tym lub
+            poprzednim miesiącu. Zwykłe zakupy pomijamy, nawet jeśli się powtarzają.
           </span>
         </div>
 
-        {results.candidates.length === 0 ? (
+        {shown.length === 0 ? (
           <Alert tone="info">
             Nie znaleźliśmy subskrypcji ani rachunków. Najlepiej działa plik z co najmniej 3–6 miesięcy. Możesz też zaznaczyć
             usługi ręcznie.
           </Alert>
         ) : (
           <ul className="flex flex-col gap-2">
-            {results.candidates.map((candidate) => {
+            {shown.map((candidate) => {
               const existing = isExisting(candidate.name);
               const checked = selected.has(candidate.key);
               return (
@@ -263,6 +269,12 @@ export function BankImport({
               );
             })}
           </ul>
+        )}
+
+        {ended > 0 && (
+          <button type="button" onClick={() => setShowEnded((v) => !v)} className="self-start text-sm text-muted underline-offset-2 hover:text-fg hover:underline">
+            {showEnded ? "Ukryj zakończone" : `Pokaż zakończone (${ended}) — nieopłacone od ponad miesiąca`}
+          </button>
         )}
 
         <div className="sticky bottom-4 z-10 flex flex-col gap-2 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">

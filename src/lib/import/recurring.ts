@@ -15,7 +15,7 @@ export interface RecurringCandidate {
   occurrences: number;
   lastDate: ISODate;
   nextPaymentDate: ISODate;
-  /** The last charge is overdue by more than half a cycle — maybe already cancelled. */
+  /** Not paid recently enough (see looksInactive) — probably already cancelled. */
   possiblyInactive: boolean;
   /** A known service charged only once in the file; the cycle is assumed to be monthly. */
   singleCharge: boolean;
@@ -64,6 +64,24 @@ function median(values: number[]): number {
 }
 
 const AMOUNT_TOLERANCE = 0.2;
+
+/** First day of the previous calendar month: "2026-10-16" → "2026-09-01". */
+export function startOfPreviousMonth(today: ISODate): ISODate {
+  const [year, month] = today.split("-").map(Number);
+  const previous = month === 1 ? { y: year - 1, m: 12 } : { y: year, m: month - 1 };
+  return `${previous.y}-${String(previous.m).padStart(2, "0")}-01` as ISODate;
+}
+
+/**
+ * Still being paid? Weekly and monthly charges must show up this or last
+ * calendar month; longer cycles (bills every 2 months, yearly insurance) may
+ * be overdue by up to half a cycle.
+ */
+function looksInactive(lastDate: ISODate, cycle: BillingCycle, today: ISODate): boolean {
+  if (cycle === "weekly" || cycle === "monthly") return compareISODates(lastDate, startOfPreviousMonth(today)) < 0;
+  const range = CYCLE_RANGES.find((r) => r.cycle === cycle)!;
+  return daysBetween(nthPaymentDate(lastDate, cycle, 1), today) > range.days / 2;
+}
 
 /**
  * Words that say a payment is a subscription or a bill. A merchant that is not a
@@ -125,7 +143,7 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
       occurrences: similar.length,
       lastDate: last.date,
       nextPaymentDate: nextPaymentOnOrAfter(expected, range.cycle, today),
-      possiblyInactive: daysBetween(expected, today) > range.days / 2,
+      possiblyInactive: looksInactive(last.date, range.cycle, today),
       singleCharge: false,
     });
   }
@@ -148,7 +166,7 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
       occurrences: items.length,
       lastDate: last.date,
       nextPaymentDate: nextPaymentOnOrAfter(expected, "monthly", today),
-      possiblyInactive: daysBetween(expected, today) > 15,
+      possiblyInactive: looksInactive(last.date, "monthly", today),
       singleCharge: true,
     });
   }
