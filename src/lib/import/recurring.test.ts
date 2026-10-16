@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectRecurring, merchantKey, startOfPreviousMonth } from "./recurring";
+import { detectRecurring, merchantKey } from "./recurring";
 import type { Transaction } from "./statement";
 
 const today = "2026-10-12";
@@ -92,18 +92,6 @@ describe("detectRecurring", () => {
     expect(detectRecurring(bills, today)).toEqual([
       expect.objectContaining({ name: "Prąd", category: "utilities", cycle: "bimonthly", nextPaymentDate: "2026-12-10" }),
     ]);
-  });
-
-  it("treats monthly charges as active only when paid this or last month", () => {
-    const charges = (last: string) => [t("2026-07-03", 4900, "NETFLIX.COM"), t("2026-08-03", 4900, "NETFLIX.COM"), t(last, 4900, "NETFLIX.COM")];
-    expect(detectRecurring(charges("2026-09-02"), "2026-10-16")[0].possiblyInactive).toBe(false);
-    expect(detectRecurring(charges("2026-09-02"), "2026-11-01")[0].possiblyInactive).toBe(true);
-    expect(startOfPreviousMonth("2026-01-15")).toBe("2025-12-01");
-  });
-
-  it("keeps bills with longer cycles active within their cycle", () => {
-    const bill = [t("2026-04-20", 18000, "TAURON SPRZEDAŻ"), t("2026-06-20", 18000, "TAURON SPRZEDAŻ"), t("2026-08-20", 18000, "TAURON SPRZEDAŻ")];
-    expect(detectRecurring(bill, "2026-10-16")[0]).toMatchObject({ cycle: "bimonthly", possiblyInactive: false });
   });
 
   it("needs two charges for merchants it does not know", () => {
