@@ -30,3 +30,10 @@ export function isFreePlanLimitError(error: { message?: string } | null | undefi
 export function freeSlotsLeft(activeCount: number, premium: boolean): number | null {
   return premium ? null : Math.max(0, FREE_PLAN_LIMIT - activeCount);
 }
+
+/** "1 miejsce", "3 miejsca", "5 miejsc". */
+export function placesWord(n: number): string {
+  if (n === 1) return "miejsce";
+  const few = n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
+  return few ? "miejsca" : "miejsc";
+}

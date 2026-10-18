@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { entitlementChange, type StripeEvent } from "./entitlement";
-import { FREE_PLAN_LIMIT, freeSlotsLeft, isFreePlanLimitError, isPremiumActive } from "./plan";
+import { FREE_PLAN_LIMIT, freeSlotsLeft, isFreePlanLimitError, isPremiumActive, placesWord } from "./plan";
 import { verifyStripeSignature } from "./stripe-signature";
 
 const SECRET = "whsec_test";
@@ -127,5 +127,13 @@ describe("entitlementChange", () => {
 
   it("ignores unrelated events", () => {
     expect(entitlementChange(event("invoice.created", {}), null, now)).toBeNull();
+  });
+});
+
+describe("placesWord", () => {
+  it("uses the right Polish form", () => {
+    expect([1, 2, 3, 4, 5, 12, 22, 25, 94, 100].map((n) => `${n} ${placesWord(n)}`)).toEqual([
+      "1 miejsce", "2 miejsca", "3 miejsca", "4 miejsca", "5 miejsc", "12 miejsc", "22 miejsca", "25 miejsc", "94 miejsca", "100 miejsc",
+    ]);
   });
 });

@@ -1,13 +1,7 @@
 import { ArrowRight, Gift } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/components/ui/cn";
-import { EARLY_ACCESS_LIMIT, EARLY_ACCESS_MONTHS } from "@/lib/premium/plan";
-
-function placesWord(n: number): string {
-  if (n === 1) return "miejsce";
-  const few = n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
-  return few ? "miejsca" : "miejsc";
-}
+import { EARLY_ACCESS_LIMIT, EARLY_ACCESS_MONTHS, placesWord } from "@/lib/premium/plan";
 
 function peopleWord(n: number): string {
   if (n === 1) return "osoba odebrała";
@@ -33,7 +27,7 @@ export function EarlyAccessBanner({ placesLeft, className }: { placesLeft: numbe
           <strong className="font-semibold">
             Pierwsze {EARLY_ACCESS_LIMIT} osób dostaje Premium za darmo na {EARLY_ACCESS_MONTHS} miesięcy.
           </strong>{" "}
-          Wystarczy założyć konto. Bez karty i bez opłat po tym czasie.
+          Wystarczy założyć konto i potwierdzić e-mail. Bez karty i bez opłat po tym czasie.
         </span>
       </p>
       {claimed !== null && placesLeft !== null && (

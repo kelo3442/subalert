@@ -22,4 +22,15 @@ describe("welcome e-mail", () => {
     expect(gifted.text).toContain("masz Premium za darmo do 18 kwietnia 2027");
     expect(gifted.html).toContain("Premium za darmo do 18 kwietnia 2027");
   });
+
+  it("offers a claim button when Premium still has to be confirmed", () => {
+    const url = "https://www.oplacik.pl/premium/odbierz?t=abc";
+    const pending = buildWelcomeEmail("https://www.oplacik.pl", { earlyAccessClaimUrl: url });
+    expect(pending.html).toContain(`href="${url}"`);
+    expect(pending.html).toContain("Odbierz darmowe Premium");
+    expect(pending.text).toContain(`Odbierz darmowe Premium: ${url}`);
+    // Accounts that already have it are not asked to claim it again.
+    const gifted = buildWelcomeEmail("https://www.oplacik.pl", { earlyAccessUntil: "18 kwietnia 2027", earlyAccessClaimUrl: url });
+    expect(gifted.html).not.toContain(url);
+  });
 });

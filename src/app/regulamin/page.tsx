@@ -83,9 +83,11 @@ export default function TermsPage() {
           <li>Umowa o Premium zostaje zawarta z chwilą skutecznej płatności; Premium jest aktywowane niezwłocznie po jej potwierdzeniu.</li>
           <li>Potwierdzenie zakupu jest wysyłane na adres e-mail podany przy płatności.</li>
           <li>
-            Promocja startowa: pierwszych {EARLY_ACCESS_LIMIT} Kont otrzymuje Premium bezpłatnie na {EARLY_ACCESS_MONTHS} miesięcy, licząc od
-            pierwszego wejścia do panelu po założeniu Konta (o kolejności decyduje ta chwila). Po tym czasie Konto wraca do planu
-            darmowego automatycznie i bez żadnych opłat — w ramach promocji nie podaje się danych płatniczych.
+            Promocja startowa: pierwszych {EARLY_ACCESS_LIMIT} Kont otrzymuje Premium bezpłatnie na {EARLY_ACCESS_MONTHS} miesięcy. Aby z niej
+            skorzystać, należy potwierdzić adres e-mail Konta, klikając link wysłany przez Usługodawcę (Konta założone przez logowanie Google
+            mają adres potwierdzony od razu). O kolejności decyduje chwila potwierdzenia i od niej liczy się okres Premium. Promocja nie
+            obejmuje Kont z adresami e-mail jednorazowymi (tymczasowymi). Po tym czasie Konto wraca do planu darmowego automatycznie i bez
+            żadnych opłat — w ramach promocji nie podaje się danych płatniczych.
           </li>
         </List>
       </Section>

@@ -11,6 +11,8 @@ export interface CurrentUser {
   email: string;
   /** Asked to be told when Premium can be bought (stored in the user's auth metadata). */
   premiumWaitlist: boolean;
+  /** Signed in with Google, which has already confirmed the address. */
+  emailVerifiedByGoogle: boolean;
 }
 
 /** Verifies the session with Supabase Auth (not just the cookie contents). */
@@ -26,6 +28,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     id: data.user.id,
     email: data.user.email ?? "",
     premiumWaitlist: typeof data.user.user_metadata?.premium_waitlist_at === "string",
+    emailVerifiedByGoogle:
+      Array.isArray(data.user.app_metadata?.providers) && data.user.app_metadata.providers.includes("google") && Boolean(data.user.email_confirmed_at),
   };
 });
 

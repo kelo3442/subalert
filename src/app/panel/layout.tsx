@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { SetupRequired } from "@/components/auth/setup-required";
 import { isWelcomeEmailPending, requireUser } from "@/lib/data/user";
 import { isSupabaseConfigured } from "@/lib/env";
-import { claimEarlyAccess } from "@/lib/premium/early-access";
+import { claimEarlyAccessOnSignup } from "@/lib/premium/early-access";
 import { sendWelcomeEmailOnce } from "@/lib/welcome/send";
 
 /** Gate for every /panel route; the app shell lives in the (app) group. */
@@ -17,8 +17,9 @@ export default async function PanelGateLayout({ children }: { children: ReactNod
   }
   const user = await requireUser();
   if (await isWelcomeEmailPending()) {
-    // First visit of a new account: launch Premium (while places last) before the page renders.
-    await claimEarlyAccess(user.id);
+    // First visit of a new account. Launch Premium needs a confirmed address:
+    // Google sign-ins get it now, everyone else via the link in the welcome e-mail.
+    await claimEarlyAccessOnSignup(user);
     after(() => sendWelcomeEmailOnce(user));
   }
   return children;

@@ -15,7 +15,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { listSubscriptions } from "@/lib/data/subscriptions";
-import { getUserProfile } from "@/lib/data/user";
+import { EarlyAccessPending } from "@/components/premium/early-access-pending";
+import { getUserProfile, requireUser } from "@/lib/data/user";
 import { formatRelativeDays, todayInTimeZone } from "@/lib/dates";
 import { formatAmount, formatPLN } from "@/lib/money";
 import {
@@ -32,7 +33,8 @@ const UPCOMING_DAYS = 30;
 const UPCOMING_SHOWN = 5;
 
 export default async function DashboardPage({ searchParams }: PageProps<"/panel">) {
-  const [profile, subscriptions, params, detected] = await Promise.all([
+  const [user, profile, subscriptions, params, detected] = await Promise.all([
+    requireUser(),
     getUserProfile(),
     listSubscriptions(),
     searchParams,
@@ -44,6 +46,9 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
     <div className="mb-4">
       <DetectedPanel items={detected} />
     </div>
+  );
+  const claimCard = (
+    <EarlyAccessPending user={user} returnTo="/panel" notice={typeof params.link === "string" ? params.link : undefined} />
   );
   const summary = summarize(subscriptions, today);
   const active = activeSubscriptions(subscriptions);
@@ -58,6 +63,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
     return (
       <>
         <PageHeader title="Dzień dobry!" description="Tu zobaczysz swoje stałe opłaty i najbliższe płatności." />
+        {claimCard}
         {detectedPanel}
         <Card>
           <EmptyState
@@ -88,6 +94,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
   return (
     <>
       <PageHeader title="Dzień dobry!" description="Oto Twoje stałe opłaty." />
+      {claimCard}
 
       {typeof params.dodano === "string" && Number(params.dodano) > 0 && (
         <Alert tone="success" className="mb-4">

@@ -3,6 +3,7 @@ import { getEmailConfig, sendEmail } from "@/lib/email/resend";
 import { getSiteUrl } from "@/lib/env";
 import { formatDateLong } from "@/lib/dates";
 import { getLegalInfo } from "@/lib/legal";
+import { createEarlyAccessLink } from "@/lib/premium/early-access";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildWelcomeEmail } from "./email";
 
@@ -15,12 +16,17 @@ async function notifyOperatorOfSignup(
   config: NonNullable<ReturnType<typeof getEmailConfig>>,
   admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   user: { id: string; email: string },
-  earlyAccess: boolean,
+  earlyAccess: "granted" | "pending" | "none",
 ): Promise<void> {
   const operator = getLegalInfo().contactEmail;
   if (!operator) return;
   const { count } = await admin.from("profiles").select("id", { count: "exact", head: true });
-  const total = (count ? ` To konto nr ${count}.` : "") + (earlyAccess ? " Dostało darmowe Premium (pierwsza setka)." : "");
+  const note = {
+    granted: " Dostało darmowe Premium (pierwsza setka).",
+    pending: " Dostanie darmowe Premium po kliknięciu linku w mailu.",
+    none: "",
+  }[earlyAccess];
+  const total = (count ? ` To konto nr ${count}.` : "") + note;
   const result = await sendEmail(config, {
     to: operator,
     subject: `Nowe konto w Opłaciku: ${user.email}`,
@@ -52,11 +58,13 @@ export async function sendWelcomeEmailOnce(user: { id: string; email: string }):
   const { data: profile } = await admin.from("profiles").select("early_access_at, premium_until").eq("id", user.id).maybeSingle();
   const earlyAccessUntil = profile?.early_access_at && profile.premium_until ? formatDateLong(profile.premium_until.slice(0, 10)) : undefined;
 
-  await notifyOperatorOfSignup(config, admin, user, Boolean(earlyAccessUntil));
+  const earlyAccessClaimUrl = earlyAccessUntil ? undefined : ((await createEarlyAccessLink(user)) ?? undefined);
+
+  await notifyOperatorOfSignup(config, admin, user, earlyAccessUntil ? "granted" : earlyAccessClaimUrl ? "pending" : "none");
 
   const result = await sendEmail(config, {
     to: user.email,
-    ...buildWelcomeEmail(getSiteUrl(), { earlyAccessUntil }),
+    ...buildWelcomeEmail(getSiteUrl(), { earlyAccessUntil, earlyAccessClaimUrl }),
     idempotencyKey: `welcome-${user.id}`,
     replyTo: getLegalInfo().contactEmail ?? undefined,
   });

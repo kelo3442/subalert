@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data/user";
 import { getSiteUrl, isPremiumSalesOpen } from "@/lib/env";
+import { redeemEarlyAccessToken, resendEarlyAccessEmail } from "@/lib/premium/early-access";
 import { PREMIUM_PLANS, type PremiumPlan } from "@/lib/premium/plan";
 import { createCheckoutSession, createPortalSession, getStripeConfig } from "@/lib/premium/stripe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -68,4 +69,19 @@ export async function joinPremiumWaitlist(): Promise<void> {
     if (user.email) await addToWaitlist({ email: user.email, userId: user.id, source: "app" });
   }
   redirect("/panel/premium?lista=ok");
+}
+
+/** "Odbierz darmowe Premium" on the page the e-mail link opens. */
+export async function redeemEarlyAccess(token: string): Promise<void> {
+  const result = await redeemEarlyAccessToken(token);
+  const until = "premiumUntil" in result && result.premiumUntil ? `&do=${result.premiumUntil.slice(0, 10)}` : "";
+  redirect(`/premium/odbierz?wynik=${result.status}${until}`);
+}
+
+/** "Wyślij link ponownie" in the app. Comes back to the page it was clicked on. */
+export async function resendEarlyAccessLink(returnTo: "/panel" | "/panel/premium"): Promise<void> {
+  const user = await requireUser();
+  const result = await resendEarlyAccessEmail(user);
+  const target = returnTo === "/panel/premium" ? "/panel/premium" : "/panel";
+  redirect(`${target}?link=${result === "sent" ? "wyslany" : result === "too_soon" ? "za-wczesnie" : "niedostepny"}`);
 }

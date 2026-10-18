@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { joinPremiumWaitlist, openBillingPortal, startCheckout } from "@/actions/premium";
 import { PageHeader } from "@/components/app/page-header";
+import { EarlyAccessPending } from "@/components/premium/early-access-pending";
 import { PricingCards } from "@/components/premium/pricing-cards";
 import { Alert } from "@/components/ui/alert";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -57,6 +58,9 @@ export default async function PremiumPage({ searchParams }: PageProps<"/panel/pr
         </Alert>
       )}
 
+      {user && (
+        <EarlyAccessPending user={user} returnTo="/panel/premium" notice={typeof params.link === "string" ? params.link : undefined} />
+      )}
       <div className="mb-6 rounded-2xl border border-line bg-surface p-5" data-testid="plan-status">
         {plan.premium ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

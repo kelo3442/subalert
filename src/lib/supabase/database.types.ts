@@ -63,6 +63,8 @@ export type Database = {
           stripe_subscription_id: string | null;
           welcome_email_sent_at: string | null;
           early_access_at: string | null;
+          early_access_token_hash: string | null;
+          early_access_token_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -86,6 +88,8 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           welcome_email_sent_at?: string | null;
+          early_access_token_hash?: string | null;
+          early_access_token_sent_at?: string | null;
         };
         Relationships: [];
       };
