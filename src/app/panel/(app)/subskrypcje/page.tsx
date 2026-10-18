@@ -14,7 +14,7 @@ import { todayInTimeZone } from "@/lib/dates";
 import { formatPLN } from "@/lib/money";
 import { totalCosts } from "@/lib/subscriptions/billing";
 
-export const metadata: Metadata = { title: "Subskrypcje" };
+export const metadata: Metadata = { title: "Moje opłaty" };
 
 const TABS = [
   { key: "aktywne", label: "Aktywne", status: "active" },
@@ -32,11 +32,11 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
   return (
     <>
       <PageHeader
-        title="Subskrypcje"
+        title="Moje opłaty"
         description={
           tab.status === "active" && visible.length > 0
             ? `${visible.length} aktywnych · ${formatPLN(totals.monthlyCents)} miesięcznie · ${formatPLN(totals.yearlyCents)} rocznie`
-            : "Wszystko, za co płacisz cyklicznie."
+            : "Wszystko, za co płacisz regularnie."
         }
         action={
           <>

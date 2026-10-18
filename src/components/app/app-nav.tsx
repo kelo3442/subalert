@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/components/ui/cn";
 
 const ITEMS = [
-  { href: "/panel", label: "Pulpit", icon: LayoutDashboard, exact: true },
-  { href: "/panel/subskrypcje", label: "Subskrypcje", icon: ListChecks, exact: false },
+  { href: "/panel", label: "Start", icon: LayoutDashboard, exact: true },
+  { href: "/panel/subskrypcje", label: "Moje opłaty", short: "Opłaty", icon: ListChecks, exact: false },
   { href: "/panel/kalendarz", label: "Kalendarz", icon: CalendarDays, exact: false },
   { href: "/panel/ustawienia", label: "Ustawienia", icon: Settings, exact: false },
 ];
@@ -30,7 +30,7 @@ export function SidebarNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-colors",
               active ? "bg-surface-3 text-fg" : "text-muted hover:bg-surface-2 hover:text-fg",
             )}
           >
@@ -46,7 +46,7 @@ export function SidebarNav() {
 export function MobileNav() {
   const isActive = useIsActive();
   const [first, second, third, fourth] = ITEMS;
-  const renderItem = ({ href, label, icon: Icon, exact }: (typeof ITEMS)[number]) => {
+  const renderItem = ({ href, label, short, icon: Icon, exact }: (typeof ITEMS)[number] & { short?: string }) => {
     const active = isActive(href, exact);
     return (
       <Link
@@ -54,12 +54,12 @@ export function MobileNav() {
         href={href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex flex-1 flex-col items-center gap-1 py-2 text-[11px] font-medium transition-colors",
-          active ? "text-accent" : "text-subtle",
+          "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-semibold transition-colors",
+          active ? "text-accent" : "text-muted",
         )}
       >
         <Icon className="size-5" aria-hidden />
-        {label}
+        {short ?? label}
       </Link>
     );
   };
@@ -74,7 +74,7 @@ export function MobileNav() {
         {renderItem(second)}
         <Link
           href="/panel/subskrypcje/nowa"
-          aria-label="Dodaj subskrypcję"
+          aria-label="Dodaj opłatę"
           className="mx-1 -mt-5 grid size-14 place-items-center rounded-2xl bg-accent text-accent-ink shadow-lg shadow-accent/20 transition-transform active:scale-95"
         >
           <Plus className="size-6" aria-hidden />

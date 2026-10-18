@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarRange, Layers, Plus, Wallet, Zap } from "lucide-react";
+import { CalendarDays, Layers, Plus, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryBreakdown } from "@/components/app/category-breakdown";
@@ -6,7 +6,6 @@ import { DetectedPanel } from "@/components/app/detected-panel";
 import { listDetectedForReview } from "@/lib/data/detected";
 import { getInboundConfig } from "@/lib/email-import/config";
 import { PageHeader } from "@/components/app/page-header";
-import { StatCard } from "@/components/app/stat-card";
 import { SubscriptionList } from "@/components/app/subscription-list";
 import { TrialGuardPanel } from "@/components/app/trial-guard-panel";
 import { UpcomingList } from "@/components/app/upcoming-list";
@@ -17,7 +16,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { listSubscriptions } from "@/lib/data/subscriptions";
 import { getUserProfile } from "@/lib/data/user";
-import { formatDateShort, formatRelativeDays, todayInTimeZone } from "@/lib/dates";
+import { formatRelativeDays, todayInTimeZone } from "@/lib/dates";
 import { formatAmount, formatPLN } from "@/lib/money";
 import {
   activeSubscriptions,
@@ -27,9 +26,10 @@ import {
   upcomingEvents,
 } from "@/lib/subscriptions/schedule";
 
-export const metadata: Metadata = { title: "Pulpit" };
+export const metadata: Metadata = { title: "Start" };
 
 const UPCOMING_DAYS = 30;
+const UPCOMING_SHOWN = 5;
 
 export default async function DashboardPage({ searchParams }: PageProps<"/panel">) {
   const [profile, subscriptions, params, detected] = await Promise.all([
@@ -49,30 +49,28 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
   const active = activeSubscriptions(subscriptions);
 
   const addButton = (
-    <div className="hidden sm:block">
-      <ButtonLink href="/panel/subskrypcje/nowa">
-        <Plus className="size-4" aria-hidden /> Dodaj subskrypcję
-      </ButtonLink>
-    </div>
+    <ButtonLink href="/panel/subskrypcje/nowa" size="lg" className="w-full text-lg">
+      <Plus className="size-5" aria-hidden /> Dodaj nową opłatę
+    </ButtonLink>
   );
 
   if (subscriptions.length === 0) {
     return (
       <>
-        <PageHeader title="Pulpit" description="Tu zobaczysz swoje wydatki i nadchodzące płatności." />
+        <PageHeader title="Dzień dobry!" description="Tu zobaczysz swoje stałe opłaty i najbliższe płatności." />
         {detectedPanel}
         <Card>
           <EmptyState
             icon={<Layers className="size-6" aria-hidden />}
-            title="Dodaj swoje subskrypcje"
-            description="Zaznacz usługi, z których korzystasz, i wpisz kwoty — zajmie to około minuty. Podsumowania, kalendarz i przypomnienia pojawią się automatycznie."
+            title="Dodaj swoje stałe opłaty"
+            description="Zaznacz, za co płacisz (np. Netflix, prąd, telefon), i wpisz kwoty — zajmie to około minuty. Potem przypomnimy Ci o każdej płatności."
             action={
               <div className="flex flex-col gap-2 sm:flex-row">
                 <ButtonLink href="/panel/start" size="lg">
-                  <Zap className="size-4" aria-hidden /> Szybki start
+                  <Zap className="size-4" aria-hidden /> Zacznij tutaj
                 </ButtonLink>
                 <ButtonLink href="/panel/subskrypcje/nowa" variant="ghost" size="lg">
-                  Dodaj jedną ręcznie
+                  Dodaj jedną opłatę
                 </ButtonLink>
               </div>
             }
@@ -89,19 +87,17 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
 
   return (
     <>
-      <PageHeader title="Pulpit" description={`Dzisiaj jest ${formatDateShort(today)}.`} action={addButton} />
+      <PageHeader title="Dzień dobry!" description="Oto Twoje stałe opłaty." />
 
       {typeof params.dodano === "string" && Number(params.dodano) > 0 && (
         <Alert tone="success" className="mb-4">
-          Dodano subskrypcje: {Number(params.dodano)}. Łącznie płacisz{" "}
-          <strong className="font-semibold">{formatPLN(summary.monthlyCents)}</strong> miesięcznie, czyli{" "}
-          <strong className="font-semibold">{formatPLN(summary.yearlyCents)}</strong> rocznie. Uzupełnij okresy próbne i
-          linki do anulowania w szczegółach każdej usługi.
+          Dodano opłaty: {Number(params.dodano)}. Razem płacisz średnio{" "}
+          <strong className="font-semibold">{formatPLN(summary.monthlyCents)}</strong> miesięcznie.
           {emailImportAvailable && (
             <>
               {" "}
               <Link href="/panel/ustawienia#automatyczne" className="font-semibold underline underline-offset-2">
-                Włącz automatyczne dodawanie nowych subskrypcji z e-maili
+                Włącz automatyczne dodawanie z e-maili
               </Link>
               .
             </>
@@ -112,33 +108,20 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
       <InstallBanner />
       {detectedPanel}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard
-          label="Miesięcznie"
-          value={formatPLN(summary.monthlyCents)}
-          detail="średnio, wszystkie cykle"
-          icon={<Wallet className="size-4" aria-hidden />}
-          highlight
-        />
-        <StatCard
-          label="Rocznie"
-          value={formatPLN(summary.yearlyCents)}
-          detail={`w ciągu 30 dni: ${formatPLN(summary.next30DaysCents)}`}
-          icon={<CalendarRange className="size-4" aria-hidden />}
-        />
-        <StatCard
-          label="Aktywne"
-          value={summary.activeCount}
-          detail={summary.cancelledCount > 0 ? `anulowane: ${summary.cancelledCount}` : "subskrypcje"}
-          icon={<Layers className="size-4" aria-hidden />}
-        />
-        <StatCard
-          label="Najbliższa płatność"
-          value={next ? formatAmount(next.subscription.amountCents, next.subscription.amountIsEstimate) : "—"}
-          detail={next ? `${next.subscription.name}, ${formatRelativeDays(next.daysUntil)}` : "brak aktywnych"}
-          icon={<CalendarClock className="size-4" aria-hidden />}
-        />
-      </div>
+      <section aria-label="Podsumowanie" className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+        <p className="text-base text-muted">Średnio płacisz miesięcznie</p>
+        <p className="mt-1 text-4xl font-bold tracking-tight tabular-nums text-accent sm:text-5xl">{formatPLN(summary.monthlyCents)}</p>
+        <p className="mt-2 text-base text-muted">
+          To <strong className="font-semibold text-fg">{formatPLN(summary.yearlyCents)}</strong> w ciągu roku ·{" "}
+          {summary.activeCount} {summary.activeCount === 1 ? "opłata" : summary.activeCount % 10 >= 2 && summary.activeCount % 10 <= 4 && (summary.activeCount % 100 < 12 || summary.activeCount % 100 > 14) ? "opłaty" : "opłat"}
+        </p>
+        {next && (
+          <p className="mt-3 rounded-xl bg-surface-2 px-4 py-3 text-base text-fg">
+            Najbliższa płatność: <strong className="font-semibold">{next.subscription.name}</strong>, {formatRelativeDays(next.daysUntil)} —{" "}
+            <strong className="font-semibold tabular-nums">{formatAmount(next.subscription.amountCents, next.subscription.amountIsEstimate)}</strong>
+          </p>
+        )}
+      </section>
 
       {trials.length > 0 && (
         <div className="mt-4">
@@ -146,28 +129,27 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
         </div>
       )}
 
+      <div className="mt-4">{addButton}</div>
+
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Card className="overflow-hidden">
-          <CardHeader
-            title="Nadchodzące odnowienia"
-            description={`Najbliższe ${UPCOMING_DAYS} dni`}
-            action={
-              <Link href="/panel/kalendarz" className="shrink-0 text-sm font-medium text-accent hover:underline">
-                Kalendarz
-              </Link>
-            }
-          />
-          <div className="mt-3 pb-2">
+          <CardHeader title={<span className="text-lg">Najbliższe płatności</span>} description={`W ciągu ${UPCOMING_DAYS} dni`} />
+          <div className="mt-3">
             {upcoming.length > 0 ? (
-              <UpcomingList events={upcoming.slice(0, 8)} />
+              <UpcomingList events={upcoming.slice(0, UPCOMING_SHOWN)} />
             ) : (
-              <p className="px-5 pb-4 text-sm text-muted">Brak płatności w najbliższych {UPCOMING_DAYS} dniach.</p>
+              <p className="px-5 pb-4 text-base text-muted">Brak płatności w najbliższych {UPCOMING_DAYS} dniach.</p>
             )}
+          </div>
+          <div className="p-4 pt-2">
+            <ButtonLink href="/panel/kalendarz" variant="secondary" className="w-full">
+              <CalendarDays className="size-4" aria-hidden /> Pokaż wszystkie płatności
+            </ButtonLink>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Wydatki według kategorii" description="Średni koszt miesięczny" />
+          <CardHeader title={<span className="text-lg">Na co wydajesz</span>} description="Średnio miesięcznie" />
           <div className="mt-4">
             {shares.length > 0 ? (
               <CategoryBreakdown shares={shares} />
@@ -181,7 +163,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
       {/* On phones the list would repeat "Nadchodzące odnowienia"; the full list is one tap away in the bottom bar. */}
       <Card className="mt-4 hidden overflow-hidden lg:block">
         <CardHeader
-          title="Twoje subskrypcje"
+          title={<span className="text-lg">Moje opłaty</span>}
           description={`Aktywne: ${active.length}`}
           action={
             <Link href="/panel/subskrypcje" className="shrink-0 text-sm font-medium text-accent hover:underline">
@@ -193,7 +175,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
           {active.length > 0 ? (
             <SubscriptionList subscriptions={active.slice(0, 6)} today={today} />
           ) : (
-            <p className="px-5 pb-5 text-sm text-muted">Wszystkie subskrypcje są oznaczone jako anulowane.</p>
+            <p className="px-5 pb-5 text-sm text-muted">Wszystkie opłaty są oznaczone jako zakończone.</p>
           )}
         </div>
       </Card>

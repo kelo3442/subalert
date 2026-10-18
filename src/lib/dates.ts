@@ -119,6 +119,13 @@ const weekdayFormatter = new Intl.DateTimeFormat("pl-PL", {
   timeZone: "UTC",
 });
 
+const weekdayDayMonthFormatter = new Intl.DateTimeFormat("pl-PL", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
 const monthYearFormatter = new Intl.DateTimeFormat("pl-PL", {
   month: "long",
   year: "numeric",
@@ -131,6 +138,17 @@ export function formatDateLong(iso: ISODate): string {
 
 export function formatDateShort(iso: ISODate): string {
   return shortDateFormatter.format(toUTCDate(iso));
+}
+
+/** "piątek, 16 października" */
+export function formatWeekdayDayMonth(iso: ISODate): string {
+  return weekdayDayMonthFormatter.format(toUTCDate(iso));
+}
+
+/** "Jutro" / "Za 5 dni" / "Dziś" — capitalised for the start of a line. */
+export function formatRelativeDaysTitle(days: number): string {
+  const text = formatRelativeDays(days);
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function formatWeekday(iso: ISODate): string {

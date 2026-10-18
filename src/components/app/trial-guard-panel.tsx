@@ -1,63 +1,47 @@
-import { Hourglass, Info } from "lucide-react";
+import { Hourglass } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
-import { formatDateLong, formatRelativeDays, pluralDays, type ISODate } from "@/lib/dates";
+import { formatRelativeDays, formatWeekdayDayMonth, type ISODate } from "@/lib/dates";
 import { formatPLN } from "@/lib/money";
-import { BILLING_CYCLE_SUFFIX } from "@/lib/subscriptions/billing";
+import { BILLING_CYCLE_LABELS } from "@/lib/subscriptions/billing";
 import { getTrialStatus } from "@/lib/subscriptions/trials";
 import type { Subscription } from "@/lib/subscriptions/types";
 
 export const TRIAL_DISCLAIMER =
-  "Przypomnienie nie anuluje subskrypcji automatycznie. Jeśli nie chcesz płacić, anuluj usługę u dostawcy przed końcem okresu próbnego.";
+  "Opłacik nie anuluje usługi sam. Jeśli nie chcesz płacić, zrezygnuj u dostawcy przed końcem darmowego okresu.";
 
+/** Warning about free trials that are about to turn into payments, written as plain sentences. */
 export function TrialGuardPanel({ trials, today }: { trials: Subscription[]; today: ISODate }) {
   return (
-    <section aria-labelledby="trial-guard-title" className="rounded-2xl border border-warn/30 bg-gradient-to-br from-warn/[0.08] to-surface">
-      <div className="flex items-center gap-2 px-5 pt-5">
-        <Hourglass className="size-5 text-warn" aria-hidden />
-        <h2 id="trial-guard-title" className="font-semibold text-fg">
-          Trial Guard
-        </h2>
-        <Badge tone="warn">{trials.length}</Badge>
-      </div>
-      <ul className="mt-3 grid gap-2 px-3 sm:grid-cols-2">
+    <section aria-labelledby="trial-guard-title" className="rounded-2xl border-2 border-warn/40 bg-warn/[0.07] p-5">
+      <h2 id="trial-guard-title" className="flex items-center gap-2 text-lg font-semibold text-warn">
+        <Hourglass className="size-5" aria-hidden />
+        {trials.length === 1 ? "Uwaga: kończy się darmowy okres" : `Uwaga: kończą się darmowe okresy (${trials.length})`}
+      </h2>
+      <ul className="mt-3 flex flex-col gap-3">
         {trials.map((subscription) => {
           const status = getTrialStatus(subscription.trialEndsAt, today)!;
           const critical = status.urgency === "critical";
           return (
-            <li key={subscription.id}>
-              <Link
-                href={`/panel/subskrypcje/${subscription.id}`}
-                className={cn(
-                  "flex items-center gap-4 rounded-xl border p-3 transition-colors hover:border-line-strong",
-                  critical ? "border-danger/30 bg-danger/[0.06]" : "border-line bg-surface/80",
-                )}
-              >
-                <div className={cn("grid size-14 shrink-0 place-items-center rounded-xl border text-center", critical ? "border-danger/30 text-danger" : "border-warn/30 text-warn")}>
-                  <div>
-                    <p className="text-xl font-semibold leading-none tabular-nums">{status.daysLeft}</p>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-wide">{pluralDays(status.daysLeft)}</p>
-                  </div>
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-fg">{subscription.name}</p>
-                  <p className="text-xs text-muted">
-                    Koniec {formatRelativeDays(status.daysLeft)} · {formatDateLong(status.endsAt)}
-                  </p>
-                  <p className="text-xs text-muted">
-                    Potem {formatPLN(subscription.amountCents)} / {BILLING_CYCLE_SUFFIX[subscription.billingCycle]}
-                  </p>
-                </div>
+            <li key={subscription.id} className={cn("rounded-xl border bg-surface/70 p-4", critical ? "border-danger/40" : "border-warn/30")}>
+              <p className="text-base leading-relaxed text-fg">
+                Darmowy okres <strong className="font-semibold">{subscription.name}</strong> kończy się{" "}
+                <strong className={cn("font-semibold", critical && "text-danger")}>{formatRelativeDays(status.daysLeft)}</strong> (
+                {formatWeekdayDayMonth(status.endsAt)}). Potem zapłacisz{" "}
+                <strong className="font-semibold">
+                  {formatPLN(subscription.amountCents)} {BILLING_CYCLE_LABELS[subscription.billingCycle].toLowerCase()}
+                </strong>
+                .
+              </p>
+              <Link href={`/panel/subskrypcje/${subscription.id}`} className={cn(buttonClasses("secondary", "md"), "mt-3 w-full sm:w-auto")}>
+                Jak zrezygnować?
               </Link>
             </li>
           );
         })}
       </ul>
-      <p className="flex items-start gap-2 px-5 pb-5 pt-3 text-xs leading-relaxed text-muted">
-        <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-        {TRIAL_DISCLAIMER}
-      </p>
+      <p className="mt-3 text-sm leading-relaxed text-muted">{TRIAL_DISCLAIMER}</p>
     </section>
   );
 }

@@ -9,7 +9,7 @@ import { FREE_PLAN_LIMIT_MESSAGE } from "@/lib/premium/plan";
 import { isUuid } from "@/lib/data/subscriptions";
 import { centsToInputValue } from "@/lib/money";
 
-export const metadata: Metadata = { title: "Nowa subskrypcja" };
+export const metadata: Metadata = { title: "Dodaj opłatę" };
 
 export default async function NewSubscriptionPage({ searchParams }: PageProps<"/panel/subskrypcje/nowa">) {
   const [{ wykryta }, plan] = await Promise.all([searchParams, getPlanStatus()]);
@@ -18,7 +18,7 @@ export default async function NewSubscriptionPage({ searchParams }: PageProps<"/
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Nowa subskrypcja" description="Wybierz z listy albo wpisz dowolną własną usługę." />
+      <PageHeader title="Dodaj opłatę" description="Trzy krótkie kroki. Wszystko możesz później zmienić." />
       {plan.slotsLeft === 0 && (
         <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-warn/40 bg-warn/[0.07] p-4 text-sm text-warn sm:flex-row sm:items-center sm:justify-between">
           <p>{FREE_PLAN_LIMIT_MESSAGE}</p>

@@ -62,3 +62,33 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* App panel: slightly larger type everywhere (all sizes are rem-based), more with "Większy tekst". */
+html:has(.panel-app) {
+  font-size: 106.25%;
+}
+html.text-large:has(.panel-app) {
+  font-size: 118.75%;
+}
+
+/* "Jasny wygląd" in the app panel: same components, light tokens. */
+html.theme-light:has(.panel-app) {
+  color-scheme: light;
+  --color-bg: #f6f7f4;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f2ec;
+  --color-surface-3: #e5e8df;
+  --color-line: #d6d9cf;
+  --color-line-strong: #bfc3b7;
+  --color-fg: #121410;
+  --color-muted: #464b41;
+  --color-subtle: #686d62;
+  --color-accent: #4d7c0f;
+  --color-accent-strong: #3f6a0a;
+  --color-accent-ink: #ffffff;
+  --color-warn: #8a5a00;
+  --color-danger: #b42318;
+}
+html.theme-light:has(.panel-app) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}

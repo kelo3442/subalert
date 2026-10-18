@@ -4,12 +4,12 @@ export const BILLING_CYCLES = ["weekly", "monthly", "bimonthly", "quarterly", "s
 export type BillingCycle = (typeof BILLING_CYCLES)[number];
 
 export const BILLING_CYCLE_LABELS: Record<BillingCycle, string> = {
-  weekly: "Tygodniowy",
-  monthly: "Miesięczny",
+  weekly: "Co tydzień",
+  monthly: "Co miesiąc",
   bimonthly: "Co 2 miesiące",
-  quarterly: "Kwartalny",
-  semiannual: "Półroczny",
-  yearly: "Roczny",
+  quarterly: "Co 3 miesiące",
+  semiannual: "Co pół roku",
+  yearly: "Raz w roku",
 };
 
 export const BILLING_CYCLE_SUFFIX: Record<BillingCycle, string> = {

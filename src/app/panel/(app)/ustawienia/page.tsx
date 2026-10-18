@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarFeedSettings } from "@/components/app/calendar-feed-settings";
 import { DeleteAccountForm } from "@/components/app/delete-account-form";
+import { DisplaySettings } from "@/components/app/display-settings";
 import { EmailImportSettings } from "@/components/app/email-import-settings";
 import { PlanBadge } from "@/components/premium/plan-badge";
 import { AppSettings } from "@/components/pwa/app-settings";
@@ -51,6 +52,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
         </Alert>
       )}
       <div className="flex flex-col gap-4">
+        <DisplaySettings />
         <PlanBadge plan={plan} variant="card" />
         <EmailImportSettings address={address} settings={inbound} premium={plan.premium} />
 

@@ -108,53 +108,57 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
         </Alert>
       )}
 
-      {mode === "create" && (
-        <section aria-labelledby="presets-title" className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-          <h2 id="presets-title" className="text-sm font-medium text-fg">
-            Szybki wybór
-          </h2>
-          <p className="mt-0.5 text-xs text-muted">Uzupełnimy nazwę, kategorię i link. Kwotę wpisujesz sam — ceny planów się różnią.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {FEATURED_SERVICES.map((service) => {
-              const selected = values.name === service.name;
-              return (
-                <button
-                  key={service.name}
-                  type="button"
-                  onClick={() => applyPreset(service)}
-                  aria-pressed={selected}
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                    selected
-                      ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-line bg-surface-2 text-muted hover:border-line-strong hover:text-fg",
-                  )}
-                >
-                  {service.name}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="grid gap-5 rounded-2xl border border-line bg-surface p-4 sm:grid-cols-2 sm:p-6">
-        <Field id="name" label="Nazwa usługi" errors={errors.name} className="sm:col-span-2">
+      <section aria-labelledby="step-what" className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
+        <h2 id="step-what" className="text-lg font-semibold text-fg">
+          1. Za co płacisz?
+        </h2>
+        {mode === "create" && (
+          <>
+            <p className="mt-1 text-sm text-muted">Stuknij usługę z listy albo wpisz własną nazwę poniżej.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {FEATURED_SERVICES.map((service) => {
+                const selected = values.name === service.name;
+                return (
+                  <button
+                    key={service.name}
+                    type="button"
+                    onClick={() => applyPreset(service)}
+                    aria-pressed={selected}
+                    className={cn(
+                      "min-h-11 rounded-xl border px-4 py-2 text-base font-medium transition-colors",
+                      selected
+                        ? "border-accent/60 bg-accent/15 text-accent"
+                        : "border-line bg-surface-2 text-fg hover:border-line-strong",
+                    )}
+                  >
+                    {service.name}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+        <Field id="name" label="Nazwa" errors={errors.name} className="mt-4">
           <Input
             id="name"
             name="name"
             value={values.name}
             onChange={(e) => set("name", e.target.value)}
             maxLength={80}
-            placeholder="np. Netflix albo własna usługa"
+            placeholder="np. Netflix, prąd, czynsz"
             invalid={Boolean(errors.name)}
             aria-describedby={describedBy("name", errors.name)}
             autoComplete="off"
           />
         </Field>
+      </section>
 
-        <Field id="amount" label="Kwota" errors={errors.amount} hint="Waluta: PLN">
-          <div className="relative">
+      <section aria-labelledby="step-amount" className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+        <h2 id="step-amount" className="text-lg font-semibold text-fg">
+          2. Ile i jak często płacisz?
+        </h2>
+        <Field id="amount" label="Kwota" errors={errors.amount} hint="W złotówkach">
+          <div className="relative sm:max-w-xs">
             <Input
               id="amount"
               name="amount"
@@ -162,49 +166,37 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
               value={values.amount}
               onChange={(e) => set("amount", e.target.value)}
               placeholder="49,99"
-              className="pr-11 tabular-nums"
+              className="pr-11 text-lg tabular-nums"
               invalid={Boolean(errors.amount)}
               aria-describedby={describedBy("amount", errors.amount, true)}
               autoComplete="off"
             />
-            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-subtle">zł</span>
+            <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-base text-subtle">zł</span>
           </div>
-          <label className="mt-1 flex cursor-pointer items-center gap-2 text-xs text-muted">
+          <label className="mt-2 flex cursor-pointer items-center gap-2.5 text-sm text-muted">
             <input
               type="checkbox"
               name="amountIsEstimate"
               checked={values.amountIsEstimate}
               onChange={(e) => set("amountIsEstimate", e.target.checked)}
-              className="size-4 accent-[#c4f542]"
+              className="size-5 accent-[#c4f542]"
             />
-            Kwota zmienna — podaję orientacyjną (np. prąd, gaz)
+            Kwota co miesiąc jest inna — wpisuję mniej więcej (np. prąd, gaz)
           </label>
         </Field>
 
-        <Field id="nextPaymentDate" label="Data następnej płatności" errors={errors.nextPaymentDate}>
-          <Input
-            id="nextPaymentDate"
-            name="nextPaymentDate"
-            type="date"
-            value={values.nextPaymentDate}
-            onChange={(e) => set("nextPaymentDate", e.target.value)}
-            invalid={Boolean(errors.nextPaymentDate)}
-            aria-describedby={describedBy("nextPaymentDate", errors.nextPaymentDate)}
-          />
-        </Field>
-
-        <fieldset className="sm:col-span-2">
-          <legend className="mb-1.5 text-sm font-medium text-fg">Cykl płatności</legend>
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-fg">Jak często?</legend>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {BILLING_CYCLES.map((cycle) => (
               <label
                 key={cycle}
                 className={cn(
-                  "flex h-11 cursor-pointer items-center justify-center rounded-xl border text-sm font-medium transition-colors",
+                  "flex min-h-12 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-base font-medium transition-colors",
                   "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
                   values.billingCycle === cycle
-                    ? "border-accent/50 bg-accent/10 text-accent"
-                    : "border-line bg-surface-2 text-muted hover:border-line-strong hover:text-fg",
+                    ? "border-accent/60 bg-accent/10 text-accent"
+                    : "border-line bg-surface-2 text-fg hover:border-line-strong",
                 )}
               >
                 <input
@@ -221,134 +213,148 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
           </div>
           {errors.billingCycle && <p className="mt-1.5 text-xs text-danger">{errors.billingCycle[0]}</p>}
         </fieldset>
+      </section>
 
-        <Field id="category" label="Kategoria" optional errors={errors.category}>
-          <Select
-            id="category"
-            name="category"
-            value={values.category}
-            onChange={(e) => set("category", e.target.value)}
-            invalid={Boolean(errors.category)}
-          >
-            <option value="">Bez kategorii</option>
-            {CATEGORY_KEYS.map((key) => (
-              <option key={key} value={key}>
-                {CATEGORY_LABELS[key]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field
-          id="manageUrl"
-          label="Link do zarządzania / anulowania"
-          optional
-          errors={errors.manageUrl}
-          hint="Oficjalna strona konta u dostawcy."
-        >
+      <section aria-labelledby="step-when" className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+        <h2 id="step-when" className="text-lg font-semibold text-fg">
+          3. Kiedy jest następna płatność?
+        </h2>
+        <Field id="nextPaymentDate" label="Data następnej płatności" errors={errors.nextPaymentDate}>
           <Input
-            id="manageUrl"
-            name="manageUrl"
-            type="url"
-            inputMode="url"
-            value={values.manageUrl}
-            onChange={(e) => set("manageUrl", e.target.value)}
-            placeholder="https://"
-            invalid={Boolean(errors.manageUrl)}
-            aria-describedby={describedBy("manageUrl", errors.manageUrl, true)}
-          />
-        </Field>
-      </section>
-
-      <section
-        className={cn(
-          "rounded-2xl border p-4 transition-colors sm:p-6",
-          values.hasTrial ? "border-warn/40 bg-warn/[0.05]" : "border-line bg-surface",
-        )}
-      >
-        <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            name="hasTrial"
-            checked={values.hasTrial}
-            onChange={(e) => set("hasTrial", e.target.checked)}
-            className="mt-0.5 size-5 shrink-0 accent-[#fbbf24]"
-          />
-          <span>
-            <span className="flex items-center gap-2 font-medium text-fg">
-              <Hourglass className="size-4 text-warn" aria-hidden /> Trial Guard — trwa darmowy okres próbny
-            </span>
-            <span className="mt-0.5 block text-sm text-muted">
-              Wyróżnimy koniec okresu próbnego w panelu. Kwota powyżej to płatność po jego zakończeniu.
-            </span>
-          </span>
-        </label>
-        {values.hasTrial && (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field id="trialEndsAt" label="Koniec okresu próbnego" errors={errors.trialEndsAt}>
-              <Input
-                id="trialEndsAt"
-                name="trialEndsAt"
-                type="date"
-                value={values.trialEndsAt}
-                onChange={(e) => onTrialEndChange(e.target.value)}
-                invalid={Boolean(errors.trialEndsAt)}
-                aria-describedby={describedBy("trialEndsAt", errors.trialEndsAt)}
-              />
-            </Field>
-            <p className="flex items-start gap-2 self-end rounded-xl border border-line bg-surface-2 p-3 text-xs leading-relaxed text-muted">
-              <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-              Przypomnienie nie anuluje subskrypcji automatycznie — zrób to u dostawcy, jeśli nie chcesz płacić.
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section className="grid gap-5 rounded-2xl border border-line bg-surface p-4 sm:p-6">
-        <Field id="notes" label="Notatka" optional errors={errors.notes}>
-          <Textarea
-            id="notes"
-            name="notes"
-            value={values.notes}
-            onChange={(e) => set("notes", e.target.value)}
-            maxLength={500}
-            placeholder="np. plan rodzinny, płatne kartą firmową"
-            invalid={Boolean(errors.notes)}
+            id="nextPaymentDate"
+            name="nextPaymentDate"
+            type="date"
+            value={values.nextPaymentDate}
+            onChange={(e) => set("nextPaymentDate", e.target.value)}
+            className="text-lg sm:max-w-xs"
+            invalid={Boolean(errors.nextPaymentDate)}
+            aria-describedby={describedBy("nextPaymentDate", errors.nextPaymentDate)}
           />
         </Field>
 
-        {mode === "edit" ? (
-          <fieldset>
-            <legend className="mb-1.5 text-sm font-medium text-fg">Status</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {(["active", "cancelled"] as const).map((status) => (
-                <label
-                  key={status}
-                  className={cn(
-                    "flex h-11 cursor-pointer items-center justify-center rounded-xl border text-sm font-medium transition-colors",
-                    "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
-                    values.status === status
-                      ? "border-accent/50 bg-accent/10 text-accent"
-                      : "border-line bg-surface-2 text-muted hover:text-fg",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value={status}
-                    checked={values.status === status}
-                    onChange={() => set("status", status)}
-                    className="sr-only"
-                  />
-                  {status === "active" ? "Aktywna" : "Anulowana przeze mnie"}
-                </label>
-              ))}
+        <div className={cn("rounded-xl border p-4 transition-colors", values.hasTrial ? "border-warn/40 bg-warn/[0.05]" : "border-line bg-surface-2")}>
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              name="hasTrial"
+              checked={values.hasTrial}
+              onChange={(e) => set("hasTrial", e.target.checked)}
+              className="mt-0.5 size-5 shrink-0 accent-[#fbbf24]"
+            />
+            <span>
+              <span className="flex items-center gap-2 font-medium text-fg">
+                <Hourglass className="size-4 text-warn" aria-hidden /> Teraz mam darmowy okres próbny
+              </span>
+              <span className="mt-0.5 block text-sm text-muted">
+                Przypomnimy Ci przed jego końcem. Kwota wyżej to opłata, która zacznie się po nim.
+              </span>
+            </span>
+          </label>
+          {values.hasTrial && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field id="trialEndsAt" label="Kiedy kończy się darmowy okres?" errors={errors.trialEndsAt}>
+                <Input
+                  id="trialEndsAt"
+                  name="trialEndsAt"
+                  type="date"
+                  value={values.trialEndsAt}
+                  onChange={(e) => onTrialEndChange(e.target.value)}
+                  invalid={Boolean(errors.trialEndsAt)}
+                  aria-describedby={describedBy("trialEndsAt", errors.trialEndsAt)}
+                />
+              </Field>
+              <p className="flex items-start gap-2 self-end rounded-xl border border-line bg-surface p-3 text-sm leading-relaxed text-muted">
+                <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+                Opłacik nie anuluje usługi sam — jeśli nie chcesz płacić, zrezygnuj u dostawcy.
+              </p>
             </div>
-          </fieldset>
-        ) : (
-          <input type="hidden" name="status" value="active" />
-        )}
+          )}
+        </div>
       </section>
+
+      {mode === "edit" ? (
+        <fieldset className="rounded-2xl border border-line bg-surface p-4 sm:p-6">
+          <legend className="sr-only">Status</legend>
+          <p className="mb-2 text-sm font-medium text-fg">Czy nadal za to płacisz?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {(["active", "cancelled"] as const).map((status) => (
+              <label
+                key={status}
+                className={cn(
+                  "flex min-h-12 cursor-pointer items-center justify-center rounded-xl border px-2 text-center text-base font-medium transition-colors",
+                  "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
+                  values.status === status ? "border-accent/60 bg-accent/10 text-accent" : "border-line bg-surface-2 text-fg hover:border-line-strong",
+                )}
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  value={status}
+                  checked={values.status === status}
+                  onChange={() => set("status", status)}
+                  className="sr-only"
+                />
+                {status === "active" ? "Tak, płacę" : "Nie, zrezygnowałem/am"}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
+        <input type="hidden" name="status" value="active" />
+      )}
+
+      <details
+        className="group rounded-2xl border border-line bg-surface p-4 sm:p-6 [&_summary::-webkit-details-marker]:hidden"
+        open={Boolean(initialValues.category || initialValues.manageUrl || initialValues.notes || errors.manageUrl || errors.notes || errors.category)}
+      >
+        <summary className="cursor-pointer list-none font-medium text-fg">
+          Dodatkowe informacje <span className="font-normal text-muted">(nie musisz wypełniać)</span>
+        </summary>
+        <div className="mt-4 grid gap-5 sm:grid-cols-2">
+          <Field id="category" label="Kategoria" optional errors={errors.category}>
+            <Select
+              id="category"
+              name="category"
+              value={values.category}
+              onChange={(e) => set("category", e.target.value)}
+              invalid={Boolean(errors.category)}
+            >
+              <option value="">Bez kategorii</option>
+              {CATEGORY_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {CATEGORY_LABELS[key]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field id="manageUrl" label="Link do strony, na której zrezygnujesz" optional errors={errors.manageUrl} hint="Strona konta u dostawcy.">
+            <Input
+              id="manageUrl"
+              name="manageUrl"
+              type="url"
+              inputMode="url"
+              value={values.manageUrl}
+              onChange={(e) => set("manageUrl", e.target.value)}
+              placeholder="https://"
+              invalid={Boolean(errors.manageUrl)}
+              aria-describedby={describedBy("manageUrl", errors.manageUrl, true)}
+            />
+          </Field>
+
+          <Field id="notes" label="Notatka" optional errors={errors.notes} className="sm:col-span-2">
+            <Textarea
+              id="notes"
+              name="notes"
+              value={values.notes}
+              onChange={(e) => set("notes", e.target.value)}
+              maxLength={500}
+              placeholder="np. plan rodzinny, płacę kartą mamy"
+              invalid={Boolean(errors.notes)}
+            />
+          </Field>
+        </div>
+      </details>
 
       <div className="sticky bottom-20 z-10 flex gap-2 rounded-2xl border border-line bg-bg/90 p-2 backdrop-blur-xl sm:justify-end sm:p-3 lg:bottom-4">
         <Link
@@ -357,9 +363,9 @@ export function SubscriptionForm({ mode, subscriptionId, detectedId, initialValu
         >
           Anuluj
         </Link>
-        <Button type="submit" disabled={isPending} aria-busy={isPending} className="flex-1 sm:flex-none">
+        <Button type="submit" size="lg" disabled={isPending} aria-busy={isPending} className="flex-1 sm:flex-none">
           {isPending && <LoaderCircle className="size-4 animate-spin" aria-hidden />}
-          {mode === "edit" ? "Zapisz zmiany" : "Dodaj subskrypcję"}
+          {mode === "edit" ? "Zapisz zmiany" : "Zapisz opłatę"}
         </Button>
       </div>
     </form>
