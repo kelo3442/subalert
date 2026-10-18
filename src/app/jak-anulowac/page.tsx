@@ -7,7 +7,7 @@ import { CANCEL_GUIDES } from "@/lib/cancel-guides/data";
 export const metadata: Metadata = {
   title: "Jak anulować subskrypcję — poradniki krok po kroku",
   description:
-    "Jak zrezygnować z Netflixa, Spotify Premium, YouTube Premium oraz subskrypcji na iPhonie i w Google Play. Instrukcje krok po kroku sprawdzone z oficjalną pomocą.",
+    "Jak zrezygnować z Netflixa, Disney+, HBO Max, Amazon Prime, Spotify, Playera, CANAL+, SkyShowtime i innych subskrypcji. Instrukcje krok po kroku sprawdzone z oficjalną pomocą.",
   alternates: { canonical: "/jak-anulowac" },
 };
 
