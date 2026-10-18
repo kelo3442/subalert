@@ -1,4 +1,4 @@
-export const LEGAL_EFFECTIVE_DATE = "2026-10-16";
+export const LEGAL_EFFECTIVE_DATE = "2026-10-18";
 
 export interface LegalInfo {
   operatorName: string | null;

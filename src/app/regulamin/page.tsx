@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactEmail, LegalPage, List, Operator, Section } from "@/components/legal/legal-page";
-import { FREE_PLAN_LIMIT } from "@/lib/premium/plan";
+import { EARLY_ACCESS_LIMIT, EARLY_ACCESS_MONTHS, FREE_PLAN_LIMIT } from "@/lib/premium/plan";
 
 export const metadata: Metadata = { title: "Regulamin" };
 
@@ -82,6 +82,11 @@ export default function TermsPage() {
           <li>Płatności obsługuje Stripe. Usługodawca nie otrzymuje ani nie przechowuje danych kart płatniczych.</li>
           <li>Umowa o Premium zostaje zawarta z chwilą skutecznej płatności; Premium jest aktywowane niezwłocznie po jej potwierdzeniu.</li>
           <li>Potwierdzenie zakupu jest wysyłane na adres e-mail podany przy płatności.</li>
+          <li>
+            Promocja startowa: pierwszych {EARLY_ACCESS_LIMIT} Kont otrzymuje Premium bezpłatnie na {EARLY_ACCESS_MONTHS} miesięcy, licząc od
+            pierwszego wejścia do panelu po założeniu Konta (o kolejności decyduje ta chwila). Po tym czasie Konto wraca do planu
+            darmowego automatycznie i bez żadnych opłat — w ramach promocji nie podaje się danych płatniczych.
+          </li>
         </List>
       </Section>
 

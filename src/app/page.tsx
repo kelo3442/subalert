@@ -11,6 +11,10 @@ import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
 import { getEmailConfig } from "@/lib/email/resend";
 import { getSiteUrl } from "@/lib/env";
+import { earlyAccessPlacesLeft } from "@/lib/premium/early-access";
+
+// The early-access counter is refreshed every few minutes.
+export const revalidate = 300;
 
 /** Structured data: tells search engines that "Opłacik" is this site's name. */
 function structuredData() {
@@ -31,19 +35,20 @@ function structuredData() {
   ]).replace(/</g, "\\u003c");
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const earlyAccessPlaces = await earlyAccessPlacesLeft();
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData() }} />
       <SiteHeader />
       <main className="flex-1">
-        <Hero />
+        <Hero earlyAccessPlaces={earlyAccessPlaces} />
         <DemoSection />
         <Features />
         <BillsSection />
         <CalculatorSection />
         <RemindersSection emailEnabled={getEmailConfig() !== null} />
-        <PricingSection />
+        <PricingSection earlyAccessPlaces={earlyAccessPlaces} />
         <Faq />
         <FinalCta />
       </main>

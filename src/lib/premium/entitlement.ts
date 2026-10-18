@@ -10,7 +10,7 @@ export interface StripeEvent {
 
 export interface ProfileBilling {
   premiumUntil: string | null;
-  premiumSource: "subscription" | "one_time" | null;
+  premiumSource: "subscription" | "one_time" | "early_access" | null;
 }
 
 export interface EntitlementChange {
@@ -19,7 +19,7 @@ export interface EntitlementChange {
   customerId: string | null;
   update: {
     premium_until?: string | null;
-    premium_source?: "subscription" | "one_time";
+    premium_source?: "subscription" | "one_time" | "early_access";
     stripe_customer_id?: string;
     stripe_subscription_id?: string | null;
   };
@@ -86,8 +86,8 @@ export function entitlementChange(
     if (!ended && !ACTIVE_STATUSES.has(status)) return null;
 
     if (ended) {
-      // Do not cut short a separately bought one-time year.
-      if (current?.premiumSource === "one_time") return null;
+      // Do not cut short a separately bought one-time year or the free launch Premium.
+      if (current?.premiumSource === "one_time" || current?.premiumSource === "early_access") return null;
       const endedAt = typeof object.ended_at === "number" ? object.ended_at * 1000 : now.getTime();
       return { userId, customerId, update: { premium_until: new Date(endedAt).toISOString(), stripe_subscription_id: null } };
     }

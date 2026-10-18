@@ -1,6 +1,7 @@
 import "server-only";
 import { getEmailConfig, sendEmail } from "@/lib/email/resend";
 import { getSiteUrl } from "@/lib/env";
+import { formatDateLong } from "@/lib/dates";
 import { getLegalInfo } from "@/lib/legal";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildWelcomeEmail } from "./email";
@@ -14,11 +15,12 @@ async function notifyOperatorOfSignup(
   config: NonNullable<ReturnType<typeof getEmailConfig>>,
   admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
   user: { id: string; email: string },
+  earlyAccess: boolean,
 ): Promise<void> {
   const operator = getLegalInfo().contactEmail;
   if (!operator) return;
   const { count } = await admin.from("profiles").select("id", { count: "exact", head: true });
-  const total = count ? ` To konto nr ${count}.` : "";
+  const total = (count ? ` To konto nr ${count}.` : "") + (earlyAccess ? " Dostało darmowe Premium (pierwsza setka)." : "");
   const result = await sendEmail(config, {
     to: operator,
     subject: `Nowe konto w Opłaciku: ${user.email}`,
@@ -47,11 +49,14 @@ export async function sendWelcomeEmailOnce(user: { id: string; email: string }):
     .select("id");
   if (error || !claimed?.length) return;
 
-  await notifyOperatorOfSignup(config, admin, user);
+  const { data: profile } = await admin.from("profiles").select("early_access_at, premium_until").eq("id", user.id).maybeSingle();
+  const earlyAccessUntil = profile?.early_access_at && profile.premium_until ? formatDateLong(profile.premium_until.slice(0, 10)) : undefined;
+
+  await notifyOperatorOfSignup(config, admin, user, Boolean(earlyAccessUntil));
 
   const result = await sendEmail(config, {
     to: user.email,
-    ...buildWelcomeEmail(getSiteUrl()),
+    ...buildWelcomeEmail(getSiteUrl(), { earlyAccessUntil }),
     idempotencyKey: `welcome-${user.id}`,
     replyTo: getLegalInfo().contactEmail ?? undefined,
   });

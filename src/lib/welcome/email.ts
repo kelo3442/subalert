@@ -24,7 +24,10 @@ const STEPS = [
 ];
 
 /** The one-off e-mail sent after an account is created. */
-export function buildWelcomeEmail(appUrl: string) {
+export function buildWelcomeEmail(appUrl: string, options: { earlyAccessUntil?: string } = {}) {
+  const gift = options.earlyAccessUntil
+    ? `Prezent na start: jesteś w pierwszej setce, więc masz Premium za darmo do ${options.earlyAccessUntil} — bez limitu opłat i z automatycznym czytaniem maili. Potem konto wróci do darmowego planu, nic nie zapłacisz.`
+    : null;
   const subject = "Witaj w Opłaciku: 3 kroki na dobry start";
   const intro = "Dzięki za założenie konta w Opłaciku. Żeby pilnował Twoich płatności, zrób te trzy rzeczy. Zajmą kilka minut.";
   const outro = "Masz pytanie albo coś nie działa? Odpowiedz na tę wiadomość, przeczytamy ją.";
@@ -44,6 +47,7 @@ export function buildWelcomeEmail(appUrl: string) {
 <p style="margin:0 0 20px;font-weight:bold;font-size:18px">Opłacik</p>
 <h1 style="margin:0 0 12px;font-size:20px">Witaj w Opłaciku</h1>
 <p style="margin:0 0 22px;line-height:1.5">${escapeHtml(intro)}</p>
+${gift ? `<p style="margin:0 0 22px;padding:12px 14px;background:#f7fee7;border-radius:10px;line-height:1.5">🎁 ${escapeHtml(gift)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%">${steps}</table>
 <p style="margin:6px 0 0;line-height:1.5;color:#3f3f46">${escapeHtml(outro)}</p>
 </div>
@@ -55,6 +59,7 @@ export function buildWelcomeEmail(appUrl: string) {
     "",
     intro,
     "",
+    ...(gift ? [gift, ""] : []),
     ...STEPS.flatMap((step, index) => [`${index + 1}. ${step.title}`, step.text, `${step.label}: ${appUrl}${step.path}`, ""]),
     outro,
     "",

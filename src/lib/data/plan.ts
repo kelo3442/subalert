@@ -7,7 +7,7 @@ import { requireUser } from "./user";
 export interface PlanStatus {
   premium: boolean;
   premiumUntil: string | null;
-  premiumSource: "subscription" | "one_time" | null;
+  premiumSource: "subscription" | "one_time" | "early_access" | null;
   hasStripeCustomer: boolean;
   activeCount: number;
   limit: number;

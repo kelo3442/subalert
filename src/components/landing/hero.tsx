@@ -1,8 +1,9 @@
 import { ArrowRight, BellRing, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
+import { EarlyAccessBanner } from "./early-access-banner";
 import { ProductPreview } from "./product-preview";
 
-export function Hero() {
+export function Hero({ earlyAccessPlaces }: { earlyAccessPlaces: number | null }) {
   return (
     <section className="relative overflow-hidden">
       <div
@@ -23,7 +24,8 @@ export function Hero() {
             Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet. Opłacik przypomni, zanim zapłacisz, pokaże, ile
             to kosztuje w skali miesiąca i roku, i da znać, gdy coś podrożeje.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <EarlyAccessBanner placesLeft={earlyAccessPlaces} className="mt-6 max-w-xl" />
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/rejestracja" size="lg">
               Zacznij kontrolować wydatki
               <ArrowRight className="size-4" aria-hidden />

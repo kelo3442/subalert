@@ -15,4 +15,11 @@ describe("welcome e-mail", () => {
     expect(email.subject).toBe("Witaj w Opłaciku: 3 kroki na dobry start");
     expect(email.text).toMatch(/1\. Dodaj swoje stałe opłaty[\s\S]*2\. Włącz powiadomienia[\s\S]*3\. Dodaj terminy do kalendarza/);
   });
+
+  it("mentions free launch Premium only for accounts that got it", () => {
+    expect(email.text).not.toContain("Premium za darmo");
+    const gifted = buildWelcomeEmail("https://www.oplacik.pl", { earlyAccessUntil: "18 kwietnia 2027" });
+    expect(gifted.text).toContain("masz Premium za darmo do 18 kwietnia 2027");
+    expect(gifted.html).toContain("Premium za darmo do 18 kwietnia 2027");
+  });
 });

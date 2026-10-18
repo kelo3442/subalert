@@ -398,6 +398,34 @@ do $$ begin
 end $$;
 reset role;
 
+-- Launch Premium is granted only by the server.
+set role authenticated;
+select set_config('request.jwt.claim.sub', :'alice', false);
+do $$ begin
+  begin
+    perform public.claim_early_access('00000000-0000-0000-0000-00000000000a', 100, 6);
+    raise exception 'FAIL: user claimed early access';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.profiles set early_access_at = now();
+    raise exception 'FAIL: user set early_access_at';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
+do $$ begin
+  -- Paid Premium keeps its source; a free account gets 'early_access'.
+  update public.profiles set premium_until = null, premium_source = null where id = '00000000-0000-0000-0000-00000000000a';
+  assert public.claim_early_access('00000000-0000-0000-0000-00000000000a', 1, 6), 'FAIL: first claim';
+  assert not public.claim_early_access('00000000-0000-0000-0000-00000000000a', 1, 6), 'FAIL: second claim for the same user';
+  assert not public.claim_early_access('00000000-0000-0000-0000-00000000000b', 1, 6), 'FAIL: claim over the limit';
+  assert (select premium_source from public.profiles where id = '00000000-0000-0000-0000-00000000000a') = 'early_access', 'FAIL: source';
+  assert (select premium_until > now() + interval '5 months' from public.profiles where id = '00000000-0000-0000-0000-00000000000a'), 'FAIL: months';
+  assert public.is_premium('00000000-0000-0000-0000-00000000000a'), 'FAIL: alice should be premium';
+  update public.profiles set premium_until = null, premium_source = null, early_access_at = null where id = '00000000-0000-0000-0000-00000000000a';
+end $$;
+
 -- Premium waitlist: only the server (service role) reads or writes it.
 reset role;
 insert into public.premium_waitlist (email, user_id, source) values ('bob@example.pl', :'bob', 'app'), ('gosc@example.pl', null, 'landing');

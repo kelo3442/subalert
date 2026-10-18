@@ -66,6 +66,8 @@ export default async function PremiumPage({ searchParams }: PageProps<"/panel/pr
                 {plan.premiumSource === "subscription" ? "Odnawia się automatycznie — kolejna płatność " : "Aktywne do "}
                 {plan.premiumUntil && formatDateLong(plan.premiumUntil.slice(0, 10))}.
                 {plan.premiumSource === "one_time" && " Nie odnawia się samo."}
+                {plan.premiumSource === "early_access" &&
+                  " Prezent na start dla pierwszych 100 osób. Potem konto wróci do darmowego planu — nic nie zapłacisz."}
               </p>
             </div>
             {plan.premiumSource === "subscription" && plan.hasStripeCustomer && paymentsReady && (

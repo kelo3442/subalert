@@ -3,6 +3,10 @@ import { isPremiumSalesOpen } from "@/lib/env";
 /** Active subscriptions allowed on the free plan. Keep in sync with the SQL trigger. */
 export const FREE_PLAN_LIMIT = 3;
 
+/** Launch promotion: the first EARLY_ACCESS_LIMIT accounts get Premium free for EARLY_ACCESS_MONTHS. */
+export const EARLY_ACCESS_LIMIT = 100;
+export const EARLY_ACCESS_MONTHS = 6;
+
 export const PREMIUM_PLANS = {
   monthly: { cents: 999, label: "9,99 zł / miesiąc" },
   yearly: { cents: 7900, label: "79 zł / rok" },

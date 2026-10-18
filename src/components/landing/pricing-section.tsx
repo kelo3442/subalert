@@ -1,9 +1,10 @@
 import { PricingCards } from "@/components/premium/pricing-cards";
 import { WaitlistForm } from "@/components/premium/waitlist-form";
+import { EarlyAccessBanner } from "./early-access-banner";
 import { ButtonLink } from "@/components/ui/button";
 import { isPremiumSalesOpen } from "@/lib/env";
 
-export function PricingSection() {
+export function PricingSection({ earlyAccessPlaces }: { earlyAccessPlaces: number | null }) {
   const salesOpen = isPremiumSalesOpen();
   return (
     <section id="cennik" className="scroll-mt-20 border-t border-line/60 bg-surface/40">
@@ -17,6 +18,7 @@ export function PricingSection() {
               : "Bez karty przy rejestracji. Premium startuje wkrótce — zostaw e-mail, a damy znać jako pierwszym."}
           </p>
         </div>
+        <EarlyAccessBanner placesLeft={earlyAccessPlaces} className="mb-6" />
         <PricingCards
           soon={!salesOpen}
           freeAction={

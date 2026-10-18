@@ -117,6 +117,7 @@ describe("entitlementChange", () => {
       stripe_subscription_id: null,
     });
     expect(entitlementChange(deleted, { premiumUntil: "2027-10-01T00:00:00Z", premiumSource: "one_time" }, now)).toBeNull();
+    expect(entitlementChange(deleted, { premiumUntil: "2027-04-01T00:00:00Z", premiumSource: "early_access" }, now)).toBeNull();
   });
 
   it("waits while the first subscription payment is still incomplete", () => {
