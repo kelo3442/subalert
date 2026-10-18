@@ -14,7 +14,7 @@ import { getSiteUrl } from "@/lib/env";
 import { earlyAccessPlacesLeft } from "@/lib/premium/early-access";
 
 // The early-access counter is refreshed every few minutes.
-export const revalidate = 300;
+export const revalidate = 60;
 
 /** Structured data: tells search engines that "Opłacik" is this site's name. */
 function structuredData() {

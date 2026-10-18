@@ -12,6 +12,7 @@ export function Hero({ earlyAccessPlaces }: { earlyAccessPlaces: number | null }
       />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 sm:px-6 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:pb-24">
         <div className="animate-fade-up">
+          <EarlyAccessBanner placesLeft={earlyAccessPlaces} className="mb-6 max-w-xl" />
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
             <BellRing className="size-3.5 text-accent" aria-hidden />
             Subskrypcje i rachunki domowe w jednym miejscu
@@ -24,7 +25,6 @@ export function Hero({ earlyAccessPlaces }: { earlyAccessPlaces: number | null }
             Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet. Opłacik przypomni, zanim zapłacisz, pokaże, ile
             to kosztuje w skali miesiąca i roku, i da znać, gdy coś podrożeje.
           </p>
-          <EarlyAccessBanner placesLeft={earlyAccessPlaces} className="mt-6 max-w-xl" />
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/rejestracja" size="lg">
               Zacznij kontrolować wydatki

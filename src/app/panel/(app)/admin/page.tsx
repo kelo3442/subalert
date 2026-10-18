@@ -8,6 +8,8 @@ import { buttonClasses } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { requireUser } from "@/lib/data/user";
 import { isPremiumSalesOpen } from "@/lib/env";
+import { countEarlyAccessClaims } from "@/lib/premium/early-access";
+import { EARLY_ACCESS_LIMIT } from "@/lib/premium/plan";
 import { countAccounts, isAdminEmail, listWaitlist } from "@/lib/waitlist";
 
 export const metadata: Metadata = { title: "Administracja", robots: { index: false } };
@@ -24,16 +26,17 @@ export default async function AdminPage() {
   const user = await requireUser();
   if (!isAdminEmail(user.email)) notFound();
 
-  const [entries, accounts] = await Promise.all([listWaitlist(), countAccounts()]);
+  const [entries, accounts, earlyAccess] = await Promise.all([listWaitlist(), countAccounts(), countEarlyAccessClaims()]);
   const active = entries.filter((entry) => !entry.unsubscribedAt);
   const pending = active.filter((entry) => !entry.notifiedAt).length;
 
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="Administracja" description="Konta i lista chętnych na Premium. Widoczne tylko dla adresów z ADMIN_EMAILS." />
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {[
           ["Konta", accounts ?? "—"],
+          ["Darmowe Premium", earlyAccess === null ? "—" : `${Math.min(earlyAccess, EARLY_ACCESS_LIMIT)} / ${EARLY_ACCESS_LIMIT}`],
           ["Na liście", active.length],
           ["Czeka na powiadomienie", pending],
           ["Wypisani", entries.length - active.length],
