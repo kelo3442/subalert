@@ -91,6 +91,14 @@ export interface WaitlistEntry {
   unsubscribedAt: string | null;
 }
 
+/** Number of accounts (for the admin overview). */
+export async function countAccounts(): Promise<number | null> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) return null;
+  const { count } = await admin.from("profiles").select("id", { count: "exact", head: true });
+  return count;
+}
+
 export async function listWaitlist(): Promise<WaitlistEntry[]> {
   const admin = createSupabaseAdminClient();
   if (!admin) return [];
