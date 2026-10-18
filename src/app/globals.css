@@ -92,3 +92,21 @@ html.theme-light:has(.panel-app) {
 html.theme-light:has(.panel-app) input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
 }
+
+/*
+ * Phone navigation: a bottom tab bar in the installed app, a row under the
+ * header in the browser (where the browser's toolbar covers the bottom edge).
+ * In the components layer so lg:hidden still wins on desktop.
+ */
+@layer components {
+  .app-nav-bottom { display: none; }
+  .panel-main { padding-bottom: 2.5rem; }
+  @media (display-mode: standalone), (display-mode: fullscreen) {
+    .app-nav-bottom { display: block; }
+    .app-nav-top { display: none; }
+    .panel-main { padding-bottom: 7rem; }
+  }
+  @media (min-width: 64rem) {
+    .panel-main { padding-bottom: 3rem; }
+  }
+}

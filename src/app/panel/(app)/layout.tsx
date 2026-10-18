@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MobileNav, SidebarNav } from "@/components/app/app-nav";
+import { MobileNav, MobileTopNav, SidebarNav } from "@/components/app/app-nav";
 import { FeedbackButton } from "@/components/app/feedback-button";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ButtonLink } from "@/components/ui/button";
@@ -27,11 +27,17 @@ export default async function AppShellLayout({ children }: { children: ReactNode
         <SidebarNav />
         <div className="mt-auto flex flex-col gap-1">
           {isAdmin && (
-            <Link href="/panel/admin" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg">
+            <Link
+              href="/panel/admin"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg"
+            >
               <Shield className="size-4" aria-hidden /> Lista Premium
             </Link>
           )}
-          <Link href="/panel/pomoc" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg">
+          <Link
+            href="/panel/pomoc"
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg"
+          >
             <CircleHelp className="size-4" aria-hidden /> Pomoc
           </Link>
           <FeedbackButton />
@@ -46,21 +52,33 @@ export default async function AppShellLayout({ children }: { children: ReactNode
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur-xl lg:hidden">
-          <Logo href="/panel" />
-          <div className="flex items-center gap-1">
-            {isAdmin && (
-              <Link href="/panel/admin" aria-label="Lista Premium" className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg">
-                <Shield className="size-5" aria-hidden />
+        <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur-xl lg:hidden">
+          <div className="flex h-14 items-center justify-between px-4">
+            <Logo href="/panel" />
+            <div className="flex items-center gap-1">
+              {isAdmin && (
+                <Link
+                  href="/panel/admin"
+                  aria-label="Lista Premium"
+                  className="grid size-10 place-items-center rounded-xl text-muted hover:bg-surface-2 hover:text-fg"
+                >
+                  <Shield className="size-5" aria-hidden />
+                </Link>
+              )}
+              <FeedbackButton variant="icon" />
+              <Link
+                href="/panel/pomoc"
+                className="ml-1 inline-flex h-10 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-semibold text-fg hover:bg-surface-2"
+              >
+                <CircleHelp className="size-4" aria-hidden /> Pomoc
               </Link>
-            )}
-            <FeedbackButton variant="icon" />
-            <Link href="/panel/pomoc" className="ml-1 inline-flex h-10 items-center gap-1.5 rounded-xl border border-line px-3 text-sm font-semibold text-fg hover:bg-surface-2">
-              <CircleHelp className="size-4" aria-hidden /> Pomoc
-            </Link>
+            </div>
           </div>
+          <MobileTopNav />
         </header>
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">{children}</main>
+        <main className="mx-auto w-full max-w-5xl flex-1 panel-main px-4 pt-6 sm:px-6 lg:px-10 lg:pt-10">
+          {children}
+        </main>
       </div>
       <MobileNav />
     </div>

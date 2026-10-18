@@ -43,35 +43,48 @@ export function SidebarNav() {
   );
 }
 
-export function MobileNav() {
+function MobileNavItem({
+  href,
+  label,
+  short,
+  icon: Icon,
+  exact,
+  compact,
+}: (typeof ITEMS)[number] & { short?: string; compact?: boolean }) {
   const isActive = useIsActive();
-  const [first, second, third, fourth] = ITEMS;
-  const renderItem = ({ href, label, short, icon: Icon, exact }: (typeof ITEMS)[number] & { short?: string }) => {
-    const active = isActive(href, exact);
-    return (
-      <Link
-        key={href}
-        href={href}
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-semibold transition-colors",
-          active ? "text-accent" : "text-muted",
-        )}
-      >
-        <Icon className="size-5" aria-hidden />
-        {short ?? label}
-      </Link>
-    );
-  };
+  const active = isActive(href, exact);
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex flex-1 flex-col items-center gap-1 text-xs font-semibold transition-colors",
+        compact ? "rounded-xl py-1.5" : "py-2",
+        active ? "text-accent" : "text-muted",
+        compact && active && "bg-surface-2",
+      )}
+    >
+      <Icon className="size-5" aria-hidden />
+      {short ?? label}
+    </Link>
+  );
+}
 
+/**
+ * Bottom tab bar for the installed app. In a phone browser the browser's own
+ * toolbar and the home indicator cover the bottom edge, so there the same
+ * items are shown at the top instead (see MobileTopNav and globals.css).
+ */
+export function MobileNav() {
+  const [first, second, third, fourth] = ITEMS;
   return (
     <nav
       aria-label="Nawigacja aplikacji"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+      className="app-nav-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
     >
       <div className="mx-auto flex max-w-md items-center px-2">
-        {renderItem(first)}
-        {renderItem(second)}
+        <MobileNavItem {...first} />
+        <MobileNavItem {...second} />
         <Link
           href="/panel/subskrypcje/nowa"
           aria-label="Dodaj opłatę"
@@ -79,8 +92,30 @@ export function MobileNav() {
         >
           <Plus className="size-6" aria-hidden />
         </Link>
-        {renderItem(third)}
-        {renderItem(fourth)}
+        <MobileNavItem {...third} />
+        <MobileNavItem {...fourth} />
+      </div>
+    </nav>
+  );
+}
+
+/** The same navigation as a row under the header, used in a phone browser. */
+export function MobileTopNav() {
+  const [first, second, third, fourth] = ITEMS;
+  return (
+    <nav aria-label="Nawigacja aplikacji" className="app-nav-top border-t border-line px-2 py-1.5 lg:hidden">
+      <div className="mx-auto flex max-w-md items-stretch gap-1">
+        <MobileNavItem {...first} compact />
+        <MobileNavItem {...second} compact />
+        <Link
+          href="/panel/subskrypcje/nowa"
+          className="flex flex-1 flex-col items-center gap-1 rounded-xl bg-accent py-1.5 text-xs font-semibold text-accent-ink transition-transform active:scale-95"
+        >
+          <Plus className="size-5" aria-hidden />
+          Dodaj
+        </Link>
+        <MobileNavItem {...third} compact />
+        <MobileNavItem {...fourth} compact />
       </div>
     </nav>
   );
