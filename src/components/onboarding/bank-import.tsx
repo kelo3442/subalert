@@ -247,7 +247,7 @@ export function BankImport({
                     <ServiceAvatar name={candidate.name} className="size-9" />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate font-medium text-fg">{candidate.name}</span>
+                        <span className="font-medium text-fg [overflow-wrap:anywhere]">{candidate.name}</span>
                         {existing && <Badge>już dodana</Badge>}
                         {!existing && candidate.possiblyInactive && <Badge tone="warn">może już nieaktywna</Badge>}
                       </span>
