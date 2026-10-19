@@ -2,6 +2,8 @@ import { Download, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LaunchNotifyForm } from "@/components/app/launch-notify-form";
+import { UsageStats } from "@/components/app/usage-stats";
+import { getAdminStats } from "@/lib/admin-stats";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
@@ -26,13 +28,18 @@ export default async function AdminPage() {
   const user = await requireUser();
   if (!isAdminEmail(user.email)) notFound();
 
-  const [entries, accounts, earlyAccess] = await Promise.all([listWaitlist(), countAccounts(), countEarlyAccessClaims()]);
+  const [entries, accounts, earlyAccess, stats] = await Promise.all([
+    listWaitlist(),
+    countAccounts(),
+    countEarlyAccessClaims(),
+    getAdminStats(),
+  ]);
   const active = entries.filter((entry) => !entry.unsubscribedAt);
   const pending = active.filter((entry) => !entry.notifiedAt).length;
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="Administracja" description="Konta i lista chętnych na Premium. Widoczne tylko dla adresów z ADMIN_EMAILS." />
+      <PageHeader title="Administracja" description="Konta, korzystanie z aplikacji i lista chętnych na Premium. Widoczne tylko dla adresów z ADMIN_EMAILS." />
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {[
           ["Konta", accounts ?? "—"],
@@ -47,6 +54,8 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+
+      <UsageStats stats={stats} />
 
       <Card className="mb-4">
         <CardHeader title="Start Premium" description="Gdy włączysz sprzedaż, powiadom wszystkich z listy." />

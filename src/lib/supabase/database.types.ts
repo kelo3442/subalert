@@ -65,6 +65,7 @@ export type Database = {
           early_access_at: string | null;
           early_access_token_hash: string | null;
           early_access_token_sent_at: string | null;
+          last_seen_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -90,6 +91,7 @@ export type Database = {
           welcome_email_sent_at?: string | null;
           early_access_token_hash?: string | null;
           early_access_token_sent_at?: string | null;
+          last_seen_at?: string | null;
         };
         Relationships: [];
       };
@@ -224,6 +226,10 @@ export type Database = {
     };
     Views: Record<never, never>;
     Functions: {
+      admin_stats: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       claim_early_access: {
         Args: { p_user: string; p_limit: number; p_months: number };
         Returns: boolean;

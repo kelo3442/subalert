@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import type { ReactNode } from "react";
 import { SetupRequired } from "@/components/auth/setup-required";
+import { touchLastSeen } from "@/lib/admin-stats";
 import { isWelcomeEmailPending, requireUser } from "@/lib/data/user";
 import { isSupabaseConfigured } from "@/lib/env";
 import { claimEarlyAccessOnSignup } from "@/lib/premium/early-access";
@@ -16,6 +17,7 @@ export default async function PanelGateLayout({ children }: { children: ReactNod
     );
   }
   const user = await requireUser();
+  after(() => touchLastSeen(user.id));
   if (await isWelcomeEmailPending()) {
     // First visit of a new account. Launch Premium needs a confirmed address:
     // Google sign-ins get it now, everyone else via the link in the welcome e-mail.
