@@ -256,6 +256,7 @@ export function BankImport({
                           ? `co miesiąc? · ${formatDateShort(candidate.lastDate)}`
                           : `${CYCLE_WORDS[candidate.cycle]} · ostatnio ${formatDateShort(candidate.lastDate)} · ${candidate.occurrences}×`}
                       </span>
+                      {candidate.note && <span className="mt-1 block text-xs leading-snug text-muted">{candidate.note}</span>}
                     </span>
                     <span className="shrink-0 text-sm font-medium tabular-nums text-fg">{formatPLN(candidate.amountCents)}</span>
                   </label>

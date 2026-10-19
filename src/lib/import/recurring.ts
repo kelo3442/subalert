@@ -1,7 +1,7 @@
 import { compareISODates, daysBetween, type ISODate } from "@/lib/dates";
 import { nextPaymentOnOrAfter, nthPaymentDate, type BillingCycle } from "@/lib/subscriptions/billing";
 import type { CategoryKey } from "@/lib/subscriptions/categories";
-import { matchServiceInDescription } from "@/lib/subscriptions/popular-services";
+import { matchServiceInDescription, withoutWalletNames } from "@/lib/subscriptions/popular-services";
 import type { Transaction } from "./statement";
 
 export interface RecurringCandidate {
@@ -19,6 +19,8 @@ export interface RecurringCandidate {
   possiblyInactive: boolean;
   /** A known service charged only once in the file; the cycle is assumed to be monthly. */
   singleCharge: boolean;
+  /** Extra explanation for the user, e.g. that an App Store charge can be any app. */
+  note?: string;
 }
 
 const CYCLE_RANGES: { cycle: BillingCycle; min: number; max: number; days: number }[] = [
@@ -42,8 +44,7 @@ const NOISE_WORDS = new Set([
 
 /** Groups descriptions that differ only by dates, card numbers or references. */
 export function merchantKey(description: string): string {
-  const tokens = description
-    .toLocaleLowerCase("pl")
+  const tokens = withoutWalletNames(description.toLocaleLowerCase("pl"))
     .replace(/[^a-ząćęłńóśźż\s]/g, " ")
     .split(/\s+/)
     .filter((token) => token.length >= 3 && !NOISE_WORDS.has(token));
@@ -87,7 +88,12 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
   const groups = new Map<string, { known: ReturnType<typeof matchServiceInDescription>; items: Transaction[] }>();
   for (const transaction of transactions) {
     const known = matchServiceInDescription(transaction.description);
-    const key = known ? `known:${known.name}` : merchantKey(transaction.description);
+    // App store charges only name the store; each price is most likely a different app.
+    const key = known
+      ? known.storeBilled
+        ? `known:${known.name}:${transaction.amountCents}`
+        : `known:${known.name}`
+      : merchantKey(transaction.description);
     if (!key) continue;
     const group = groups.get(key) ?? { known, items: [] };
     group.items.push(transaction);
@@ -127,6 +133,7 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
       nextPaymentDate: nextPaymentOnOrAfter(expected, range.cycle, today),
       possiblyInactive: daysBetween(expected, today) > range.days / 2,
       singleCharge: false,
+      note: known?.note,
     });
   }
 
@@ -150,6 +157,7 @@ export function detectRecurring(transactions: Transaction[], today: ISODate): Re
       nextPaymentDate: nextPaymentOnOrAfter(expected, "monthly", today),
       possiblyInactive: daysBetween(expected, today) > 15,
       singleCharge: true,
+      note: known.note,
     });
   }
 

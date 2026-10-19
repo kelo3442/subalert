@@ -9,6 +9,13 @@ export interface PopularService {
   cancelSteps?: string[];
   /** Shown as a quick-pick chip in the single subscription form. */
   featured?: boolean;
+  /**
+   * Billed through an app store: the bank statement only names the store, so
+   * different prices are most likely different subscriptions.
+   */
+  storeBilled?: boolean;
+  /** Extra explanation shown next to a payment found in a bank statement. */
+  note?: string;
 }
 
 /** How each service usually appears in bank transaction descriptions. */
@@ -21,8 +28,10 @@ const BANK_PATTERNS: Record<string, RegExp> = {
   "Disney+": /disney/,
   "HBO Max": /hbo ?max|hbomax/,
   "Amazon Prime": /amazon ?prime|prime ?video|amzn.{0,20}prime/,
-  "Apple (iCloud+, Music, TV+)": /apple\.com|itunes/,
+  // Apple and Google bill every App Store / Google Play purchase under their own name.
+  "App Store (Apple)": /apple\.com|itunes/,
   "Google One": /google ?one|google ?storage/,
+  "Google Play": /google ?\*|google ?play/,
   "Microsoft 365": /microsoft ?365|office ?365/,
   "Xbox Game Pass": /xbox/,
   "Adobe Creative Cloud": /adobe/,
@@ -49,7 +58,6 @@ const BANK_PATTERNS: Record<string, RegExp> = {
   // "Google Play" and "Disney Plus" must not count as a phone plan.
   "Abonament telefoniczny": /\borange\b|(?<!google\W{0,3})\bplay\b(?! ?store)|p4 sp|polkomtel|plus\.pl|\bplus gsm\b|t-mobile|heyah|nju mobile/,
   "Telewizja kablowa / satelitarna": /canal\+ polska|polsat box|cyfrowy polsat/,
-  "Ubezpieczenie samochodu (OC/AC)": /\bpzu\b|warta|allianz|ergo hestia|link4|generali|uniqa|compensa|proama|\baviva\b/,
   "Siłownia / karta sportowa": /multisport|benefit systems|fitprofit|medicover sport|cityfit|zdrofit|mcfit|calypso|just gym|smart gym|xtreme fitness|jatomi|fabryka formy/,
   "Abonament RTV": /abonament rtv|op[lł]ata rtv/,
   "Czynsz / opłaty administracyjne": /czynsz|wsp[oó]lnota mieszkaniowa|sp[oó][lł]dzielnia mieszkaniowa|zarz[aą]dca nieruchomo/,
@@ -201,7 +209,50 @@ export const POPULAR_SERVICES: PopularService[] = [
   { name: "Ubezpieczenie samochodu (OC/AC)", category: "insurance", manageUrl: null },
   { name: "Ubezpieczenie mieszkania", category: "insurance", manageUrl: null },
   { name: "Ubezpieczenie na życie", category: "insurance", manageUrl: null },
+  {
+    name: "App Store (Apple)",
+    category: "software",
+    manageUrl: "https://apps.apple.com/account/subscriptions",
+    cancelSteps: ["Na iPhonie: Ustawienia → Twoje imię → Subskrypcje.", "Wybierz aplikację i „Anuluj subskrypcję”."],
+    storeBilled: true,
+    note: "Na wyciągu widać tylko Apple. To może być iCloud, Apple Music albo dowolna aplikacja kupiona na iPhonie. Sprawdzisz to na iPhonie: Ustawienia → Twoje imię → Subskrypcje. Po dodaniu możesz zmienić nazwę na tę aplikację.",
+  },
+  {
+    name: "Google Play",
+    category: "software",
+    manageUrl: "https://play.google.com/store/account/subscriptions",
+    storeBilled: true,
+    note: "Na wyciągu widać tylko Google. Za jaką aplikację płacisz, sprawdzisz w Google Play: ikona profilu → Płatności i subskrypcje → Subskrypcje. Po dodaniu możesz zmienić nazwę na tę aplikację.",
+  },
 ];
+
+/** Insurers sell car, home and life cover, so the description decides which one it is. */
+const INSURERS: [RegExp, string][] = [
+  [/\bpzu\b/, "PZU"],
+  [/warta/, "Warta"],
+  [/allianz/, "Allianz"],
+  [/ergo hestia|\bhestia\b/, "ERGO Hestia"],
+  [/link4/, "LINK4"],
+  [/generali/, "Generali"],
+  [/uniqa/, "UNIQA"],
+  [/compensa/, "Compensa"],
+  [/proama/, "Proama"],
+  [/\baviva\b/, "Aviva"],
+  [/nationale.nederlanden/, "Nationale-Nederlanden"],
+  [/metlife/, "MetLife"],
+];
+const INSURANCE_KINDS: [RegExp, string][] = [
+  [/[zż]yci[ea]|[zż]yciow|\blife\b/, "Ubezpieczenie na życie"],
+  [/\boc\b|\bac\b|komunikac|pojazd|samoch|\bauto\b/, "Ubezpieczenie samochodu"],
+  [/mieszka|\bdomu?\b|nieruchomo/, "Ubezpieczenie mieszkania"],
+];
+
+function matchInsurance(text: string): PopularService | undefined {
+  const insurer = INSURERS.find(([pattern]) => pattern.test(text))?.[1];
+  if (!insurer) return undefined;
+  const kind = INSURANCE_KINDS.find(([pattern]) => pattern.test(text))?.[1] ?? "Ubezpieczenie";
+  return { name: `${kind} (${insurer})`, category: "insurance", manageUrl: null };
+}
 
 export const FEATURED_SERVICES = POPULAR_SERVICES.filter((service) => service.featured);
 
@@ -220,7 +271,14 @@ export function findPopularService(name: string): PopularService | undefined {
 
 /** Recognises a known service in a bank transaction description. */
 export function matchServiceInDescription(description: string): PopularService | undefined {
-  const text = description.toLocaleLowerCase("pl");
+  // "Apple Pay" / "Google Pay" say how the card was used, not who was paid.
+  const text = withoutWalletNames(description.toLocaleLowerCase("pl"));
   const name = Object.keys(BANK_PATTERNS).find((key) => BANK_PATTERNS[key].test(text));
-  return name ? POPULAR_SERVICES.find((service) => service.name === name) : undefined;
+  if (name) return POPULAR_SERVICES.find((service) => service.name === name);
+  return matchInsurance(text);
+}
+
+/** Removes phone wallet names (Apple Pay, Google Pay) from a lower-case description. */
+export function withoutWalletNames(text: string): string {
+  return text.replace(/apple ?pay|google ?pay/g, " ");
 }

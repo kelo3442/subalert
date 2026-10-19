@@ -110,7 +110,49 @@ describe("detectRecurring", () => {
     );
     expect(found.map((c) => [c.name, c.amountCents, c.cycle, c.singleCharge, c.possiblyInactive, c.nextPaymentDate])).toEqual([
       ["Claude Pro", 8900, "monthly", true, false, "2026-11-05"],
-      ["Apple (iCloud+, Music, TV+)", 99, "monthly", true, true, "2026-11-08"],
+      ["App Store (Apple)", 99, "monthly", true, true, "2026-11-08"],
     ]);
+  });
+
+  it("splits App Store and Google Play charges by price and explains that the app is not named", () => {
+    const found = detectRecurring(
+      [
+        t("2026-08-10", 5999, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-09-10", 5999, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-10-10", 5999, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-10-03", 499, "APPLE.COM/BILL APPLE.COM/BIL IRL"),
+        t("2026-10-07", 2499, "GOOGLE *Duet Display g.co/helppay#"),
+      ],
+      today,
+    );
+    expect(found.map((c) => [c.name, c.amountCents, c.cycle, c.singleCharge])).toEqual([
+      ["App Store (Apple)", 5999, "monthly", false],
+      ["Google Play", 2499, "monthly", true],
+      ["App Store (Apple)", 499, "monthly", true],
+    ]);
+    expect(found[0].note).toMatch(/dowolna aplikacja kupiona na iPhonie/);
+    expect(found[1].note).toMatch(/Google Play/);
+  });
+
+  it("does not take Apple Pay or Google Pay for the merchant", () => {
+    const found = detectRecurring(
+      [
+        t("2026-09-05", 12900, "Płatność kartą Apple Pay CITYFIT WARSZAWA abonament"),
+        t("2026-10-05", 12900, "Płatność kartą Apple Pay CITYFIT WARSZAWA abonament"),
+        t("2026-10-08", 4500, "Płatność Google Pay ZABKA Z9781"),
+        t("2026-09-08", 4500, "Płatność Google Pay ZABKA Z9781"),
+      ],
+      today,
+    );
+    expect(found.map((c) => c.name)).toEqual(["Siłownia / karta sportowa"]);
+  });
+
+  it("tells life, car and home insurance apart and names the insurer", () => {
+    const names = (description: string) => detectRecurring([t("2026-10-02", 6000, description)], today).map((c) => [c.name, c.category]);
+    expect(names("TUnŻ WARTA S.A. składka ubezpieczenie na życie polisa 123")).toEqual([["Ubezpieczenie na życie (Warta)", "insurance"]]);
+    expect(names("WARTA SA polisa OC/AC WX12345")).toEqual([["Ubezpieczenie samochodu (Warta)", "insurance"]]);
+    expect(names("PZU SA ubezpieczenie mieszkania")).toEqual([["Ubezpieczenie mieszkania (PZU)", "insurance"]]);
+    expect(names("WARTA SA polisa 99887766")).toEqual([["Ubezpieczenie (Warta)", "insurance"]]);
+    expect(names("Autoryzacja karty WARTA SA składka na życie")).toEqual([["Ubezpieczenie na życie (Warta)", "insurance"]]);
   });
 });
