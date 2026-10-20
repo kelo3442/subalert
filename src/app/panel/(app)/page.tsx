@@ -1,4 +1,4 @@
-import { CalendarDays, Layers, Plus, Zap } from "lucide-react";
+import { ArrowRight, CalendarDays, Layers, PiggyBank, Plus, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryBreakdown } from "@/components/app/category-breakdown";
@@ -10,11 +10,14 @@ import { SubscriptionList } from "@/components/app/subscription-list";
 import { TrialGuardPanel } from "@/components/app/trial-guard-panel";
 import { UpcomingList } from "@/components/app/upcoming-list";
 import { InstallBanner } from "@/components/pwa/install-banner";
+import { PaydayCard } from "@/components/savings/payday-card";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { getSavingsPrefs, listUsageAnswers } from "@/lib/data/savings";
 import { listSubscriptions } from "@/lib/data/subscriptions";
+import { savingsAttention } from "@/lib/savings/attention";
 import { EarlyAccessPending } from "@/components/premium/early-access-pending";
 import { getUserProfile, requireUser } from "@/lib/data/user";
 import { formatRelativeDays, todayInTimeZone } from "@/lib/dates";
@@ -33,14 +36,17 @@ const UPCOMING_DAYS = 30;
 const UPCOMING_SHOWN = 5;
 
 export default async function DashboardPage({ searchParams }: PageProps<"/panel">) {
-  const [user, profile, subscriptions, params, detected] = await Promise.all([
+  const [user, profile, subscriptions, params, detected, savingsPrefs, usageAnswers] = await Promise.all([
     requireUser(),
     getUserProfile(),
     listSubscriptions(),
     searchParams,
     listDetectedForReview(),
+    getSavingsPrefs(),
+    listUsageAnswers(),
   ]);
   const today = todayInTimeZone(profile.timeZone);
+  const savingsCount = savingsAttention(subscriptions, usageAnswers, savingsPrefs.dismissedTips, today, savingsPrefs.ready);
   const emailImportAvailable = getInboundConfig() !== null;
   const detectedPanel = detected.length > 0 && (
     <div className="mb-4">
@@ -129,6 +135,27 @@ export default async function DashboardPage({ searchParams }: PageProps<"/panel"
           </p>
         )}
       </section>
+
+      {savingsCount > 0 && (
+        <Link
+          href="/panel/oszczedzaj"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent/[0.07] p-4 transition-colors hover:border-accent/60"
+          data-testid="savings-teaser"
+        >
+          <PiggyBank className="size-6 shrink-0 text-accent" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-fg">Oszczędzaj: {savingsCount} do sprawdzenia</span>
+            <span className="block text-sm text-muted">Zobacz, gdzie mogą uciekać pieniądze.</span>
+          </span>
+          <ArrowRight className="size-5 shrink-0 text-accent" aria-hidden />
+        </Link>
+      )}
+
+      {savingsPrefs.payday !== null && (
+        <div className="mt-4">
+          <PaydayCard subscriptions={subscriptions} today={today} payday={savingsPrefs.payday} ready={savingsPrefs.ready} />
+        </div>
+      )}
 
       {trials.length > 0 && (
         <div className="mt-4">

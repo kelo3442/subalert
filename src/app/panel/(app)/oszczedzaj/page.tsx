@@ -1,29 +1,45 @@
-import { BookOpen, CopyCheck, Layers } from "lucide-react";
+import { BookOpen, CopyCheck, Layers, MoonStar } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { setSubscriptionStatus } from "@/actions/subscriptions";
 import { PageHeader } from "@/components/app/page-header";
+import { PaydayCard } from "@/components/savings/payday-card";
 import { SavingsCounter } from "@/components/savings/savings-counter";
 import { TipCard } from "@/components/savings/tip-card";
+import { UsageQuestions } from "@/components/savings/usage-questions";
 import { ServiceAvatar } from "@/components/subscriptions/service-avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { getSavingsPrefs } from "@/lib/data/savings";
+import { getSavingsPrefs, listUsageAnswers } from "@/lib/data/savings";
 import { listSubscriptions } from "@/lib/data/subscriptions";
+import { getUserProfile } from "@/lib/data/user";
+import { todayInTimeZone } from "@/lib/dates";
 import { formatPLN } from "@/lib/money";
 import { cancelGuideSlug } from "@/lib/savings/guides";
 import { findOverlaps, overlapHint, overlapTitle } from "@/lib/savings/overlaps";
 import { computeSavings, priciestOptional } from "@/lib/savings/savings";
+import { unusedPlans, usageQuestions } from "@/lib/savings/usage";
 import { yearlyCostCents } from "@/lib/subscriptions/billing";
 
 export const metadata: Metadata = { title: "Oszczędzaj" };
 
 export default async function SavingsPage() {
-  const [subscriptions, prefs] = await Promise.all([listSubscriptions(), getSavingsPrefs()]);
+  const [subscriptions, prefs, answers, profile] = await Promise.all([
+    listSubscriptions(),
+    getSavingsPrefs(),
+    listUsageAnswers(),
+    getUserProfile(),
+  ]);
+  const today = todayInTimeZone(profile.timeZone);
   const savings = computeSavings(subscriptions);
   const dismissed = new Set(prefs.dismissedTips);
   const overlaps = findOverlaps(subscriptions).filter((o) => !dismissed.has(o.key));
+  const unused = unusedPlans(subscriptions, answers, today)
+    .map((u) => ({ ...u, key: `unused:${u.subscription.id},${u.month}` }))
+    .filter((u) => !dismissed.has(u.key));
+  const questions = prefs.ready ? usageQuestions(subscriptions, answers, today) : [];
+  const tipCount = overlaps.length + unused.length;
   const priciest = priciestOptional(subscriptions);
 
   return (
@@ -31,18 +47,51 @@ export default async function SavingsPage() {
       <PageHeader title="Oszczędzaj" description="Tu Opłacik szuka pieniędzy, które uciekają w stałych opłatach." />
       <div className="flex flex-col gap-6">
         <SavingsCounter savings={savings} />
+        <UsageQuestions questions={questions} />
 
         <section aria-labelledby="tips-heading">
           <h2 id="tips-heading" className="mb-3 text-lg font-semibold text-fg">
-            Do sprawdzenia {overlaps.length > 0 && <span className="text-muted">({overlaps.length})</span>}
+            Do sprawdzenia {tipCount > 0 && <span className="text-muted">({tipCount})</span>}
           </h2>
-          {overlaps.length === 0 ? (
+          {tipCount === 0 ? (
             <Card className="p-5 text-sm leading-relaxed text-muted" data-testid="no-tips">
               Na razie nic podejrzanego. Sprawdzamy, czy nie płacisz dwa razy za to samo (np. dwie chmury na zdjęcia albo dwa
               serwisy z muzyką). Im więcej opłat dodasz, tym więcej znajdziemy.
             </Card>
           ) : (
             <ul className="flex flex-col gap-3">
+              {unused.map(({ subscription, months, key }) => {
+                const guide = cancelGuideSlug(subscription.name);
+                return (
+                  <TipCard
+                    key={key}
+                    tipKey={key}
+                    icon={<MoonStar className="size-5" aria-hidden />}
+                    title={months >= 2 ? `Od ${months} miesięcy nie korzystasz z: ${subscription.name}` : `Nie korzystasz z: ${subscription.name}`}
+                    canDismiss={prefs.ready}
+                    actions={
+                      <>
+                        <ButtonLink href={guide ? `/jak-anulowac/${guide}` : `/panel/subskrypcje/${subscription.id}`} variant="secondary" size="sm">
+                          <BookOpen className="size-4" aria-hidden /> Jak zrezygnować
+                        </ButtonLink>
+                        <form action={setSubscriptionStatus.bind(null, subscription.id, "cancelled")}>
+                          <SubmitButton variant="secondary" size="sm" pendingText="Zapisuję…">
+                            Zrezygnowałem
+                          </SubmitButton>
+                        </form>
+                      </>
+                    }
+                  >
+                    <p>
+                      Rezygnując, oszczędzisz{" "}
+                      <strong className="tabular-nums text-fg">
+                        {formatPLN(yearlyCostCents(subscription.amountCents, subscription.billingCycle))} rocznie
+                      </strong>
+                      . Gdy znów będzie potrzebna, zwykle da się ją włączyć w kilka minut.
+                    </p>
+                  </TipCard>
+                );
+              })}
               {overlaps.map((overlap) => {
                 const yearly = overlap.subscriptions.reduce((sum, s) => sum + yearlyCostCents(s.amountCents, s.billingCycle), 0);
                 return (
@@ -67,6 +116,8 @@ export default async function SavingsPage() {
             </ul>
           )}
         </section>
+
+        <PaydayCard subscriptions={subscriptions} today={today} payday={prefs.payday} ready={prefs.ready} />
 
         {priciest.length > 0 && (
           <Card data-testid="priciest">

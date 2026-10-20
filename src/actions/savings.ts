@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/data/user";
+import { isUuid } from "@/lib/data/subscriptions";
+import { getUserProfile, requireUser } from "@/lib/data/user";
+import { todayInTimeZone } from "@/lib/dates";
+import { monthStart } from "@/lib/savings/usage";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const MAX_TIPS = 300;
@@ -20,5 +23,29 @@ export async function dismissTip(key: string): Promise<void> {
     .from("profiles")
     .update({ dismissed_tips: [...tips, key].slice(-MAX_TIPS) })
     .eq("id", user.id);
+  revalidatePath("/panel", "layout");
+}
+
+/** "Korzystałeś z tego w ostatnim miesiącu?" — one answer per plan and month. */
+export async function answerUsage(subscriptionId: string, used: boolean): Promise<void> {
+  const user = await requireUser();
+  if (!isUuid(subscriptionId)) return;
+  const profile = await getUserProfile();
+  const month = monthStart(todayInTimeZone(profile.timeZone));
+  const supabase = await createSupabaseServerClient();
+  await supabase
+    .from("usage_checks")
+    .upsert({ subscription_id: subscriptionId, user_id: user.id, month, used, answered_at: new Date().toISOString() });
+  revalidatePath("/panel", "layout");
+}
+
+/** Day of the month the user gets paid (empty clears it). */
+export async function setPayday(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const raw = String(formData.get("payday") ?? "");
+  const day = raw === "" ? null : Number(raw);
+  if (day !== null && !(Number.isInteger(day) && day >= 1 && day <= 31)) return;
+  const supabase = await createSupabaseServerClient();
+  await supabase.from("profiles").update({ payday: day }).eq("id", user.id);
   revalidatePath("/panel", "layout");
 }
