@@ -18,25 +18,25 @@ export function Hero({ earlyAccessPlaces }: { earlyAccessPlaces: number | null }
             Subskrypcje i rachunki domowe w jednym miejscu
           </p>
           <h1 className="mt-5 text-4xl font-semibold leading-[1.08] tracking-tight text-fg sm:text-5xl lg:text-[3.5rem]">
-            Wszystkie stałe opłaty w jednym miejscu.{" "}
-            <span className="text-accent">Z każdego banku.</span>
+            Sprawdź, czy nie płacisz za coś,{" "}
+            <span className="text-accent">o czym zapomniałeś.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-            Netflix, Spotify, siłownia, ale też prąd, czynsz czy internet. Opłacik przypomni, zanim zapłacisz, pokaże, ile
-            to kosztuje w skali miesiąca i roku, i da znać, gdy coś podrożeje.
+            Wgraj historię konta z banku i w kilka sekund zobacz wszystkie stałe opłaty: subskrypcje, aplikacje, abonamenty i
+            rachunki. Potem Opłacik przypomni przed każdą płatnością i da znać, gdy coś podrożeje.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/rejestracja" size="lg">
-              Zacznij kontrolować wydatki
+            <ButtonLink href="/sprawdz" size="lg">
+              Sprawdź swój wyciąg — bez konta
               <ArrowRight className="size-4" aria-hidden />
             </ButtonLink>
-            <ButtonLink href="#kalkulator" variant="secondary" size="lg">
-              Policz swoje subskrypcje
+            <ButtonLink href="/rejestracja" variant="secondary" size="lg">
+              Załóż darmowe konto
             </ButtonLink>
           </div>
           <p className="mt-5 flex items-center gap-2 text-sm text-subtle">
-            <ShieldCheck className="size-4 text-accent" aria-hidden />
-            Bez podpinania konta bankowego. Sam decydujesz, co zapisujesz.
+            <ShieldCheck className="size-4 shrink-0 text-accent" aria-hidden />
+            Bez podpinania konta bankowego. Plik nie opuszcza Twojego urządzenia.
           </p>
         </div>
         <ProductPreview />

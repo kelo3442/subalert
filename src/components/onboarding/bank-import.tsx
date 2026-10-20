@@ -15,7 +15,7 @@ import { buildSampleStatement } from "@/lib/import/sample-statement";
 import { analyzeRows, analyzeStatement, extractTransactions, type ColumnMapping, type StatementAnalysis } from "@/lib/import/statement";
 import { isLegacyOfficeFile, isPdfFile, isZipFile, xlsxToRows } from "@/lib/import/xlsx";
 import { formatPLN } from "@/lib/money";
-import type { BillingCycle } from "@/lib/subscriptions/billing";
+import { totalCosts, type BillingCycle } from "@/lib/subscriptions/billing";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 // Phones often label bank CSV files as Excel documents; list every type they use so the file is not greyed out.
@@ -64,12 +64,18 @@ export function BankImport({
   isExisting,
   onConfirm,
   onManual,
+  variant = "app",
 }: {
   today: ISODate;
   isExisting: (name: string) => boolean;
+  /** In the public check, called with [] for the sample data (nothing to keep). */
   onConfirm: (candidates: RecurringCandidate[]) => void;
-  onManual: () => void;
+  /** Hidden in the public check, where there is no manual picker. */
+  onManual?: () => void;
+  /** "public": the check without an account on /sprawdz. */
+  variant?: "app" | "public";
 }) {
+  const isPublic = variant === "public";
   const inputId = useId();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -189,6 +195,19 @@ export function BankImport({
 
   if (results) {
     const chosen = results.candidates.filter((c) => selected.has(c.key));
+    const totals = totalCosts(chosen.map((c) => ({ amountCents: c.amountCents, billingCycle: c.cycle })));
+    const footerTotals = (
+      <p className="min-w-0 text-sm text-muted" aria-live="polite">
+        Zaznaczone: <span className="font-medium text-fg">{chosen.length}</span>
+        {totals.yearlyCents > 0 && (
+          <>
+            {" · "}
+            <span className="font-medium tabular-nums text-fg">{formatPLN(totals.monthlyCents)}</span>/mies.{" · "}
+            <span className="font-semibold tabular-nums text-accent">{formatPLN(totals.yearlyCents)}</span>/rok
+          </>
+        )}
+      </p>
+    );
     return (
       <div className="flex flex-col gap-4">
         {isSample && (
@@ -196,6 +215,19 @@ export function BankImport({
             To <strong className="font-semibold">przykładowe dane</strong>, żeby pokazać, jak działa wyszukiwanie. Nie
             zaznaczaj ich, jeśli to nie Twoje subskrypcje — wgraj własny plik.
           </Alert>
+        )}
+        {isPublic && !isSample && results.candidates.length > 0 && (
+          <div className="rounded-2xl border border-accent/30 bg-gradient-to-b from-accent/[0.12] to-surface p-5" aria-live="polite">
+            <p className="text-sm text-muted">Zaznaczone stałe opłaty to</p>
+            <p className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-fg sm:text-4xl">
+              {formatPLN(totals.monthlyCents)} <span className="text-base font-medium text-muted">miesięcznie</span>
+            </p>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-accent">czyli {formatPLN(totals.yearlyCents)} rocznie</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              Coś Cię zaskoczyło? Zapisz listę, a Opłacik przypomni przed każdą płatnością — zdążysz zrezygnować z tego, czego
+              już nie potrzebujesz.
+            </p>
+          </div>
         )}
         <div className="rounded-2xl border border-line bg-surface p-4 text-sm text-muted">
           Przeanalizowaliśmy <strong className="text-fg">{results.transactionCount}</strong> płatności
@@ -213,8 +245,8 @@ export function BankImport({
 
         {results.candidates.length === 0 ? (
           <Alert tone="info">
-            Nie znaleźliśmy subskrypcji ani rachunków. Najlepiej działa plik z co najmniej 3–6 miesięcy. Możesz też zaznaczyć
-            usługi ręcznie.
+            Nie znaleźliśmy subskrypcji ani rachunków. Najlepiej działa plik z co najmniej 3–6 miesięcy.{" "}
+            {onManual ? "Możesz też zaznaczyć usługi ręcznie." : "Usługi możesz też dodać ręcznie po założeniu konta."}
           </Alert>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -266,19 +298,35 @@ export function BankImport({
           </ul>
         )}
 
+        {isPublic ? (
+          <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-bg/90 p-3 backdrop-blur-xl">
+            {!isSample && footerTotals}
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <Button variant="ghost" onClick={reset}>
+                <RotateCcw className="size-4" aria-hidden /> {isSample ? "Sprawdź swój plik" : "Inny plik"}
+              </Button>
+              <Button onClick={() => onConfirm(isSample ? [] : chosen)} disabled={!isSample && chosen.length === 0}>
+                {isSample ? "Załóż darmowe konto" : "Zapisz i dostawaj przypomnienia"} <ArrowRight className="size-4" aria-hidden />
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="sticky bottom-4 z-10 flex flex-col gap-2 rounded-2xl border border-line bg-bg/90 p-3 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
           <Button variant="ghost" onClick={reset}>
             <RotateCcw className="size-4" aria-hidden /> Inny plik
           </Button>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={onManual}>
-              Wybiorę ręcznie
-            </Button>
+            {onManual && (
+              <Button variant="secondary" onClick={onManual}>
+                Wybiorę ręcznie
+              </Button>
+            )}
             <Button onClick={() => onConfirm(chosen)} disabled={chosen.length === 0} className="flex-1 sm:flex-none">
               Dalej ({chosen.length}) <ArrowRight className="size-4" aria-hidden />
             </Button>
           </div>
         </div>
+        )}
       </div>
     );
   }
@@ -378,9 +426,11 @@ export function BankImport({
         <Button variant="ghost" className="justify-start" onClick={trySample}>
           Nie masz pliku? Zobacz na przykładowych danych
         </Button>
-        <Button variant="ghost" className="justify-start" onClick={onManual}>
-          Wolę zaznaczyć usługi ręcznie
-        </Button>
+        {onManual && (
+          <Button variant="ghost" className="justify-start" onClick={onManual}>
+            Wolę zaznaczyć usługi ręcznie
+          </Button>
+        )}
       </div>
     </div>
   );

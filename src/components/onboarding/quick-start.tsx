@@ -2,13 +2,14 @@
 
 import { ArrowLeft, ArrowRight, FileSearch, LoaderCircle, MousePointerClick, Plus, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { startTransition, useActionState, useMemo, useState } from "react";
+import { startTransition, useActionState, useEffect, useMemo, useState } from "react";
 import { createSubscriptionsBulk, type BulkFormState } from "@/actions/subscriptions";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { nextDateForDayOfMonth, type ISODate } from "@/lib/dates";
 import { isPremiumSalesOpen } from "@/lib/env";
+import { takePendingImport } from "@/lib/import/pending-import";
 import type { RecurringCandidate } from "@/lib/import/recurring";
 import { centsToInputValue, formatPLN, parseAmountToCents } from "@/lib/money";
 import { totalCosts } from "@/lib/subscriptions/billing";
@@ -163,6 +164,19 @@ export function QuickStart({
     setEntries([...entries, ...imported].slice(0, MAX_BULK_SUBSCRIPTIONS));
     setStep("details");
   };
+
+  // Payments picked on the public statement check before signing up.
+  const [fromCheck, setFromCheck] = useState(false);
+  useEffect(() => {
+    const pending = takePendingImport().filter((candidate) => !existing.has(normalize(candidate.name)));
+    if (pending.length === 0) return;
+    // Browser storage is only readable after hydration, so this one-time read has to happen in an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFromCheck(true);
+    addImported(pending);
+    // Runs once on arrival; addImported only reads the (empty) initial list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const update = (key: string, patch: Partial<QuickStartEntry>) => {
     setEntries((current) => current.map((entry) => (entry.key === key ? { ...entry, ...patch } : entry)));
@@ -353,6 +367,12 @@ export function QuickStart({
         title="Wpisz kwoty i terminy"
         description="Okres próbny, link do anulowania czy notatkę dodasz później w szczegółach subskrypcji."
       />
+      {fromCheck && (
+        <Alert tone="info">
+          To płatności zaznaczone przy sprawdzaniu wyciągu. Popraw kwoty lub terminy, jeśli trzeba, i zapisz — wtedy przypomnimy
+          Ci o nich przed każdą płatnością.
+        </Alert>
+      )}
       {freeSlots !== null && !errors?.message && (
         <Alert tone={overLimit ? "warn" : "info"}>
           Plan darmowy: możesz dodać jeszcze {freeSlots} {itemsWord(freeSlots)}.{" "}

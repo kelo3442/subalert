@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = getSiteUrl();
   return [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
+    { url: `${base}/sprawdz`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/jak-anulowac`, changeFrequency: "monthly", priority: 0.8 },
     ...CANCEL_GUIDES.map((guide) => ({
       url: `${base}/jak-anulowac/${guide.slug}`,

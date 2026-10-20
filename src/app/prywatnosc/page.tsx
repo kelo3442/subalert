@@ -112,6 +112,11 @@ export default function PrivacyPage() {
           Używamy wyłącznie niezbędnych plików cookies, które utrzymują Twoją sesję logowania. Nie używamy cookies reklamowych ani
           analitycznych — statystyki odwiedzin działają bez cookies. Cookies możesz usunąć w ustawieniach przeglądarki — spowoduje to wylogowanie.
         </p>
+        <p>
+          W pamięci Twojej przeglądarki (tzw. localStorage) zapisujemy tylko: ustawienia wyglądu (np. większy tekst) oraz — jeśli
+          sprawdzasz wyciąg bez konta i klikniesz „Zapisz” — zaznaczone pozycje (nazwa, kwota, cykl), żeby dodać je po założeniu
+          konta. Te pozycje usuwamy z przeglądarki po ich odczytaniu albo po 24 godzinach. Samego pliku z banku nigdzie nie zapisujemy.
+        </p>
       </Section>
 
       <Section title="8. Zmiany polityki">
