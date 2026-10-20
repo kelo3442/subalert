@@ -83,6 +83,8 @@ export function buildMonthlySummaryEmail(summary: MonthlySummary, appUrl: string
 
   const usageUrl = `${appUrl}/panel/oszczedzaj#uzywanie`;
   const panelUrl = `${appUrl}/panel`;
+  const importUrl = `${appUrl}/panel/start`;
+  const statement = "Masz nowy wyciąg z banku? Wgraj go, a pokażemy, czy doszła jakaś nowa stała opłata albo coś podrożało.";
   const settingsUrl = `${appUrl}/panel/ustawienia`;
   const lead =
     summary.paymentCount > 0
@@ -101,6 +103,9 @@ export function buildMonthlySummaryEmail(summary: MonthlySummary, appUrl: string
     ...(notes.length ? ["Zwróć uwagę:", ...notes.map((n) => `- ${n}`), ""] : []),
     ...(usage ? [usage, usageUrl, ""] : []),
     ...(savings ? [savings, ""] : []),
+    statement,
+    importUrl,
+    "",
     `Wszystkie płatności: ${panelUrl}`,
     "",
     `Podsumowanie wysyłamy raz w miesiącu. Wyłączysz je w ustawieniach: ${settingsUrl}`,
@@ -123,6 +128,7 @@ export function buildMonthlySummaryEmail(summary: MonthlySummary, appUrl: string
 <h1 style="margin:0 0 12px;font-size:20px">${escapeHtml(subject)}</h1>
 <p style="margin:0 0 16px;line-height:1.5">${escapeHtml(lead)}</p>
 ${noteHtml}${usageHtml}${savingsHtml}
+<p style="margin:0 0 16px;line-height:1.5">${escapeHtml(statement)} <a href="${escapeHtml(importUrl)}" style="color:#4d7c0f">Wgraj wyciąg</a></p>
 <p style="margin:0"><a href="${escapeHtml(panelUrl)}" style="color:#4d7c0f">Zobacz wszystkie płatności</a></p>
 </div>
 <p style="max-width:520px;margin:16px auto 0;font-size:12px;color:#71717a">Podsumowanie wysyłamy raz w miesiącu. <a href="${escapeHtml(settingsUrl)}" style="color:#71717a">Wyłączysz je w ustawieniach</a>.</p>

@@ -8,7 +8,7 @@ import { monthStart } from "@/lib/savings/usage";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const MAX_TIPS = 300;
-const TIP_KEY = /^[a-z]+:[0-9a-f,-]{1,800}$/;
+const TIP_KEY = /^[a-z]+:[0-9a-z,-]{1,800}$/;
 
 /** "Zostawiam": hides a tip (e.g. two clouds) for good. */
 export async function dismissTip(key: string): Promise<void> {

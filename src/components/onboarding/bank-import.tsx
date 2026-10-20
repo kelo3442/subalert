@@ -65,6 +65,7 @@ export function BankImport({
   onConfirm,
   onManual,
   variant = "app",
+  existingAmount,
 }: {
   today: ISODate;
   isExisting: (name: string) => boolean;
@@ -74,6 +75,8 @@ export function BankImport({
   onManual?: () => void;
   /** "public": the check without an account on /sprawdz. */
   variant?: "app" | "public";
+  /** Amount saved in Opłacik for a payment with this name, to spot price changes in a new statement. */
+  existingAmount?: (name: string) => number | null;
 }) {
   const isPublic = variant === "public";
   const inputId = useId();
@@ -236,7 +239,16 @@ export function BankImport({
               {" "}z okresu {formatDateShort(results.from)} – {formatDateShort(results.to)}
             </>
           )}
-          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>.{" "}
+          . Znalezione subskrypcje: <strong className="text-fg">{results.candidates.length}</strong>
+          {!isPublic && !isSample && results.candidates.some((c) => isExisting(c.name)) && (
+            <>
+              , w tym nowych (jeszcze nie w Opłaciku):{" "}
+              <strong className="text-accent" data-testid="new-count">
+                {results.candidates.filter((c) => !isExisting(c.name)).length}
+              </strong>
+            </>
+          )}
+          .{" "}
           <span className="mt-1 block text-xs text-subtle">
             Pokazujemy tylko płatności, które wyglądają na subskrypcje lub rachunki (np. Netflix, prąd, abonament). Zwykłe
             zakupy pomijamy, nawet jeśli się powtarzają.
@@ -281,6 +293,12 @@ export function BankImport({
                       <span className="flex flex-wrap items-center gap-1.5">
                         <span className="font-medium text-fg [overflow-wrap:anywhere]">{candidate.name}</span>
                         {existing && <Badge>już dodana</Badge>}
+                        {existing && (() => {
+                          const saved = existingAmount?.(candidate.name);
+                          return saved && saved !== candidate.amountCents ? (
+                            <Badge tone="warn">inna kwota: w Opłaciku {formatPLN(saved)}</Badge>
+                          ) : null;
+                        })()}
                         {!existing && candidate.possiblyInactive && <Badge tone="warn">może już nieaktywna</Badge>}
                       </span>
                       <span className="block truncate text-xs text-muted" title={candidate.singleCharge ? "Jedna płatność w pliku. Zakładamy cykl miesięczny — możesz go zmienić po dodaniu." : undefined}>

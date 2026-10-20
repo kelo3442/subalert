@@ -32,5 +32,6 @@ describe("monthly summary", () => {
     expect(email.text).toContain("https://www.oplacik.pl/panel/oszczedzaj#uzywanie");
     expect(email.html).toContain("Okres próbny Disney+");
     expect(email.text).toContain("359,88");
+    expect(email.text).toContain("https://www.oplacik.pl/panel/start");
   });
 });

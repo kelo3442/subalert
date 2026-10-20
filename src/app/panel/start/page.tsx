@@ -22,7 +22,12 @@ export default async function QuickStartPage() {
         </Link>
       </header>
       <main className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-10 pt-4 sm:px-6 sm:pt-8">
-        <QuickStart today={todayInTimeZone(profile.timeZone)} existingNames={active.map((s) => s.name)} freeSlots={plan.slotsLeft} />
+        <QuickStart
+          today={todayInTimeZone(profile.timeZone)}
+          existingNames={active.map((s) => s.name)}
+          existingAmounts={Object.fromEntries(active.map((s) => [s.name.trim().toLocaleLowerCase("pl"), s.amountCents]))}
+          freeSlots={plan.slotsLeft}
+        />
       </main>
     </>
   );

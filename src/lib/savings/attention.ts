@@ -1,5 +1,6 @@
 import type { ISODate } from "@/lib/dates";
 import type { Subscription } from "@/lib/subscriptions/types";
+import { cheaperOffers } from "./offers";
 import { findOverlaps } from "./overlaps";
 import { unusedPlans, usageQuestions, type UsageAnswer } from "./usage";
 
@@ -16,5 +17,6 @@ export function savingsAttention(
   const tips =
     findOverlaps(subscriptions).filter((o) => !dismissed.has(o.key)).length +
     unusedPlans(subscriptions, answers, today).filter((u) => !dismissed.has(`unused:${u.subscription.id},${u.month}`)).length;
-  return tips + usageQuestions(subscriptions, answers, today).length;
+  const cheaper = cheaperOffers(subscriptions).filter((t) => !dismissed.has(t.key)).length;
+  return tips + cheaper + usageQuestions(subscriptions, answers, today).length;
 }

@@ -1,4 +1,4 @@
-import { BookOpen, CopyCheck, Layers, MoonStar } from "lucide-react";
+import { BadgePercent, BookOpen, Car, CopyCheck, FileText, Layers, MoonStar, PhoneCall } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { setSubscriptionStatus } from "@/actions/subscriptions";
@@ -14,13 +14,15 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { getSavingsPrefs, listUsageAnswers } from "@/lib/data/savings";
 import { listSubscriptions } from "@/lib/data/subscriptions";
 import { getUserProfile } from "@/lib/data/user";
-import { todayInTimeZone } from "@/lib/dates";
+import { daysBetween, formatDateLong, todayInTimeZone } from "@/lib/dates";
 import { formatPLN } from "@/lib/money";
 import { cancelGuideSlug } from "@/lib/savings/guides";
+import { cheaperOffers, isCarInsurance } from "@/lib/savings/offers";
 import { findOverlaps, overlapHint, overlapTitle } from "@/lib/savings/overlaps";
 import { computeSavings, priciestOptional } from "@/lib/savings/savings";
 import { unusedPlans, usageQuestions } from "@/lib/savings/usage";
 import { yearlyCostCents } from "@/lib/subscriptions/billing";
+import { nextPaymentDate } from "@/lib/subscriptions/schedule";
 
 export const metadata: Metadata = { title: "Oszczędzaj" };
 
@@ -39,7 +41,20 @@ export default async function SavingsPage() {
     .map((u) => ({ ...u, key: `unused:${u.subscription.id},${u.month}` }))
     .filter((u) => !dismissed.has(u.key));
   const questions = prefs.ready ? usageQuestions(subscriptions, answers, today) : [];
-  const tipCount = overlaps.length + unused.length;
+  const cheaper = cheaperOffers(subscriptions).filter((t) => !dismissed.has(t.key));
+  const active = subscriptions.filter((s) => s.status === "active");
+  // OC renews itself for another 12 months: show it from two months before the renewal.
+  const carInsurance = active
+    .filter(isCarInsurance)
+    .map((s) => ({ subscription: s, renews: nextPaymentDate(s, today) }))
+    .filter(({ renews }) => daysBetween(today, renews) <= 60)
+    .map((x) => ({ ...x, key: `oc:${x.subscription.id},${x.renews}` }))
+    .filter((x) => !dismissed.has(x.key));
+  const telecom = active
+    .filter((s) => s.category === "telecom")
+    .map((s) => ({ subscription: s, key: `telecom:${s.id}` }))
+    .filter((x) => !dismissed.has(x.key));
+  const tipCount = overlaps.length + unused.length + cheaper.length + carInsurance.length + telecom.length;
   const priciest = priciestOptional(subscriptions);
 
   return (
@@ -60,6 +75,75 @@ export default async function SavingsPage() {
             </Card>
           ) : (
             <ul className="flex flex-col gap-3">
+              {carInsurance.map(({ subscription, renews, key }) => (
+                <TipCard
+                  key={key}
+                  tipKey={key}
+                  icon={<Car className="size-5" aria-hidden />}
+                  title={`${subscription.name} odnowi się samo ${formatDateLong(renews)}`}
+                  canDismiss={prefs.ready}
+                  actions={
+                    <ButtonLink href={`/panel/oszczedzaj/wypowiedzenie?typ=oc&id=${subscription.id}`} variant="secondary" size="sm">
+                      <FileText className="size-4" aria-hidden /> Napisz wypowiedzenie
+                    </ButtonLink>
+                  }
+                >
+                  <p>
+                    Umowa OC przedłuża się automatycznie na kolejne 12 miesięcy, jeśli jej nie wypowiesz. Najpóźniej 14 dni przed końcem
+                    ubezpieczyciel musi przysłać informację o składce na kolejny rok. Porównaj ją z ofertami innych firm. Jeśli znajdziesz
+                    taniej, wypowiedz obecną umowę przed jej końcem, najlepiej z kilkudniowym zapasem.
+                  </p>
+                </TipCard>
+              ))}
+              {cheaper.map(({ key, offer, subscription }) => (
+                <TipCard
+                  key={key}
+                  tipKey={key}
+                  icon={<BadgePercent className="size-5" aria-hidden />}
+                  title={offer.title}
+                  canDismiss={prefs.ready}
+                  actions={
+                    <ButtonLink href={offer.source} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
+                      Cennik u dostawcy
+                    </ButtonLink>
+                  }
+                >
+                  <p>{offer.body}</p>
+                  {offer.yearlySavingCents !== null && (
+                    <p className="mt-1">
+                      Przy obecnej cenie ({subscription.name}) oszczędzisz{" "}
+                      <strong className="tabular-nums text-fg">{formatPLN(offer.yearlySavingCents)} rocznie</strong>.
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-subtle">Ceny sprawdzone {formatDateLong(offer.verifiedAt)}. Aktualne zawsze w cenniku dostawcy.</p>
+                </TipCard>
+              ))}
+              {telecom.map(({ subscription, key }) => (
+                <TipCard
+                  key={key}
+                  tipKey={key}
+                  icon={<PhoneCall className="size-5" aria-hidden />}
+                  title={`${subscription.name}: zapytaj o lepszą ofertę`}
+                  canDismiss={prefs.ready}
+                  actions={
+                    <ButtonLink href={`/panel/oszczedzaj/wypowiedzenie?id=${subscription.id}`} variant="secondary" size="sm">
+                      <FileText className="size-4" aria-hidden /> Wypowiedzenie
+                    </ButtonLink>
+                  }
+                >
+                  <p>Operatorzy często mają lepsze ceny dla nowych klientów. Jedna rozmowa może obniżyć rachunek.</p>
+                  <details className="mt-2">
+                    <summary className="cursor-pointer font-medium text-fg">Co powiedzieć — ściąga</summary>
+                    <ol className="mt-2 flex list-decimal flex-col gap-1 pl-5">
+                      <li>Sprawdź, kiedy kończy się Twoja umowa (w umowie albo w aplikacji operatora).</li>
+                      <li>Zobacz aktualne oferty dla nowych klientów u swojego operatora i u konkurencji.</li>
+                      <li>Zadzwoń lub napisz: „Rozważam przejście do innej sieci. Jaką ofertę możecie mi zaproponować, żebym został?”</li>
+                      <li>Numer telefonu możesz zabrać do innej sieci, więc masz w czym wybierać.</li>
+                      <li>Nie zgadzaj się od razu. Poproś o ofertę mailem i porównaj ją z innymi.</li>
+                    </ol>
+                  </details>
+                </TipCard>
+              ))}
               {unused.map(({ subscription, months, key }) => {
                 const guide = cancelGuideSlug(subscription.name);
                 return (
@@ -138,6 +222,11 @@ export default async function SavingsPage() {
                       </span>
                     </Link>
                     <div className="flex flex-wrap gap-2">
+                      {!guide && subscription.category === "fitness" && (
+                        <ButtonLink href={`/panel/oszczedzaj/wypowiedzenie?id=${subscription.id}`} variant="ghost" size="sm">
+                          <FileText className="size-4" aria-hidden /> Wypowiedzenie
+                        </ButtonLink>
+                      )}
                       {guide && (
                         <ButtonLink href={`/jak-anulowac/${guide}`} variant="ghost" size="sm">
                           <BookOpen className="size-4" aria-hidden /> Jak zrezygnować

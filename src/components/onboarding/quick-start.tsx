@@ -75,10 +75,13 @@ function BackLink({ onClick }: { onClick: () => void }) {
 export function QuickStart({
   today,
   existingNames,
+  existingAmounts = {},
   freeSlots,
 }: {
   today: ISODate;
   existingNames: string[];
+  /** Saved amounts by name, to flag price changes in a new bank file. */
+  existingAmounts?: Record<string, number>;
   /** Remaining free-plan slots; null on Premium. */
   freeSlots: number | null;
 }) {
@@ -287,6 +290,7 @@ export function QuickStart({
         <BankImport
         today={today}
         isExisting={(name) => existing.has(normalize(name))}
+        existingAmount={(name) => existingAmounts[normalize(name)] ?? null}
         onConfirm={addImported}
         onManual={() => setStep("pick")}
         />
