@@ -157,7 +157,8 @@ export function QuickStart({
           custom: !candidate.knownService,
           amount: centsToInputValue(candidate.amountCents),
           cycle: candidate.cycle,
-          day: candidate.cycle === "monthly" ? String(Number(candidate.nextPaymentDate.slice(8, 10))) : "",
+          // Items from the quick check have no known date yet: the person picks the day.
+          day: candidate.cycle === "monthly" && candidate.nextPaymentDate ? String(Number(candidate.nextPaymentDate.slice(8, 10))) : "",
           date: candidate.cycle === "monthly" ? "" : candidate.nextPaymentDate,
         }),
       );
