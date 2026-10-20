@@ -1,4 +1,4 @@
-import { Layers, Plus, Zap } from "lucide-react";
+import { CalendarDays, Layers, Plus, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
@@ -56,25 +56,34 @@ export default async function SubscriptionsPage({ searchParams }: PageProps<"/pa
         </Alert>
       )}
 
-      <div role="tablist" aria-label="Filtr statusu" className="mb-4 inline-flex rounded-xl border border-line bg-surface p-1">
-        {TABS.map((t) => {
-          const count = subscriptions.filter((s) => s.status === t.status).length;
-          const selected = t.key === tab.key;
-          return (
-            <Link
-              key={t.key}
-              role="tab"
-              aria-selected={selected}
-              href={t.key === "aktywne" ? "/panel/subskrypcje" : `/panel/subskrypcje?widok=${t.key}`}
-              className={cn(
-                "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-                selected ? "bg-surface-3 text-fg" : "text-muted hover:text-fg",
-              )}
-            >
-              {t.label} <span className="text-subtle">{count}</span>
-            </Link>
-          );
-        })}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div
+          role="tablist"
+          aria-label="Filtr statusu"
+          className="inline-flex rounded-xl border border-line bg-surface p-1"
+        >
+          {TABS.map((t) => {
+            const count = subscriptions.filter((s) => s.status === t.status).length;
+            const selected = t.key === tab.key;
+            return (
+              <Link
+                key={t.key}
+                role="tab"
+                aria-selected={selected}
+                href={t.key === "aktywne" ? "/panel/subskrypcje" : `/panel/subskrypcje?widok=${t.key}`}
+                className={cn(
+                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  selected ? "bg-surface-3 text-fg" : "text-muted hover:text-fg",
+                )}
+              >
+                {t.label} <span className="text-subtle">{count}</span>
+              </Link>
+            );
+          })}
+        </div>
+        <ButtonLink href="/panel/kalendarz" variant="ghost" size="sm">
+          <CalendarDays className="size-4" aria-hidden /> Kalendarz płatności
+        </ButtonLink>
       </div>
 
       <Card className="overflow-hidden">

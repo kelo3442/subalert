@@ -1,16 +1,19 @@
 "use client";
 
-import { CalendarDays, LayoutDashboard, ListChecks, Plus, Settings } from "lucide-react";
+import { CalendarDays, LayoutDashboard, ListChecks, PiggyBank, Plus, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/components/ui/cn";
 
-const ITEMS = [
-  { href: "/panel", label: "Start", icon: LayoutDashboard, exact: true },
-  { href: "/panel/subskrypcje", label: "Moje opłaty", short: "Opłaty", icon: ListChecks, exact: false },
-  { href: "/panel/kalendarz", label: "Kalendarz", icon: CalendarDays, exact: false },
-  { href: "/panel/ustawienia", label: "Ustawienia", icon: Settings, exact: false },
-];
+const START = { href: "/panel", label: "Start", icon: LayoutDashboard, exact: true };
+const PAYMENTS = { href: "/panel/subskrypcje", label: "Moje opłaty", short: "Opłaty", icon: ListChecks, exact: false };
+const SAVINGS = { href: "/panel/oszczedzaj", label: "Oszczędzaj", icon: PiggyBank, exact: false };
+const CALENDAR = { href: "/panel/kalendarz", label: "Kalendarz", icon: CalendarDays, exact: false };
+const SETTINGS = { href: "/panel/ustawienia", label: "Ustawienia", icon: Settings, exact: false };
+
+const ITEMS = [START, PAYMENTS, SAVINGS, CALENDAR, SETTINGS];
+// Phones have room for four tabs around the "+" button; the calendar is reachable from "Opłaty".
+const MOBILE_ITEMS = [START, PAYMENTS, SAVINGS, SETTINGS];
 
 function useIsActive() {
   const pathname = usePathname();
@@ -76,7 +79,7 @@ function MobileNavItem({
  * items are shown at the top instead (see MobileTopNav and globals.css).
  */
 export function MobileNav() {
-  const [first, second, third, fourth] = ITEMS;
+  const [first, second, third, fourth] = MOBILE_ITEMS;
   return (
     <nav
       aria-label="Nawigacja aplikacji"
@@ -101,7 +104,7 @@ export function MobileNav() {
 
 /** The same navigation as a row under the header, used in a phone browser. */
 export function MobileTopNav() {
-  const [first, second, third, fourth] = ITEMS;
+  const [first, second, third, fourth] = MOBILE_ITEMS;
   return (
     <nav aria-label="Nawigacja aplikacji" className="app-nav-top border-t border-line px-2 py-1.5 lg:hidden">
       <div className="mx-auto flex max-w-md items-stretch gap-1">

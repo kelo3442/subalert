@@ -66,6 +66,10 @@ export type Database = {
           early_access_token_hash: string | null;
           early_access_token_sent_at: string | null;
           last_seen_at: string | null;
+          dismissed_tips: string[];
+          payday: number | null;
+          monthly_summary_enabled: boolean;
+          monthly_summary_sent_on: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -92,6 +96,31 @@ export type Database = {
           early_access_token_hash?: string | null;
           early_access_token_sent_at?: string | null;
           last_seen_at?: string | null;
+          dismissed_tips?: string[];
+          payday?: number | null;
+          monthly_summary_enabled?: boolean;
+          monthly_summary_sent_on?: string | null;
+        };
+        Relationships: [];
+      };
+      usage_checks: {
+        Row: {
+          subscription_id: string;
+          user_id: string;
+          month: string;
+          used: boolean;
+          answered_at: string;
+        };
+        Insert: {
+          subscription_id: string;
+          user_id?: string;
+          month: string;
+          used: boolean;
+          answered_at?: string;
+        };
+        Update: {
+          used?: boolean;
+          answered_at?: string;
         };
         Relationships: [];
       };
