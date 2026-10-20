@@ -49,3 +49,12 @@ export async function setPayday(formData: FormData): Promise<void> {
   await supabase.from("profiles").update({ payday: day }).eq("id", user.id);
   revalidatePath("/panel", "layout");
 }
+
+/** Turns the monthly summary e-mail on or off. */
+export async function setMonthlySummary(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const enabled = formData.get("monthlySummary") === "on";
+  const supabase = await createSupabaseServerClient();
+  await supabase.from("profiles").update({ monthly_summary_enabled: enabled }).eq("id", user.id);
+  revalidatePath("/panel", "layout");
+}

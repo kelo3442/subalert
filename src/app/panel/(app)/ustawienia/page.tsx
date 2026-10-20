@@ -12,6 +12,8 @@ import { getPlanStatus } from "@/lib/data/plan";
 import { getInboundConfig, inboundAddress } from "@/lib/email-import/config";
 import { PageHeader } from "@/components/app/page-header";
 import { ReminderSettingsForm } from "@/components/app/reminder-settings-form";
+import { MonthlySummaryToggle } from "@/components/savings/monthly-summary-toggle";
+import { getSavingsPrefs } from "@/lib/data/savings";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
@@ -31,12 +33,13 @@ function timeZoneOptions(current: string): string[] {
 }
 
 export default async function SettingsPage({ searchParams }: PageProps<"/panel/ustawienia">) {
-  const [profile, params, inbound, plan, calendarToken] = await Promise.all([
+  const [profile, params, inbound, plan, calendarToken, savingsPrefs] = await Promise.all([
     getUserProfile(),
     searchParams,
     getInboundSettings(),
     getPlanStatus(),
     getCalendarToken(),
+    getSavingsPrefs(),
   ]);
   const pushConfig = getPushConfig();
   const emailEnabled = getEmailConfig() !== null;
@@ -83,6 +86,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/panel/u
               timeZone={profile.timeZone}
               timeZones={timeZoneOptions(profile.timeZone)}
             />
+            {savingsPrefs.ready && <MonthlySummaryToggle enabled={savingsPrefs.monthlySummaryEnabled} />}
           </div>
         </Card>
 
